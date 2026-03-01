@@ -1,30 +1,46 @@
 import { useState } from "react";
 import {
-  CONCEPTS,
-  GROUPS,
-  EXPLANATIONS,
-  CONCEPT_DETAILS,
-  CONCEPT_EXPANSIONS,
-} from "./matrix-intuition/data";
-import { VIS_MAP } from "./matrix-intuition/visuals";
-import {
   ConceptSelector,
   ConceptDetailsPanel,
-} from "./matrix-intuition/components";
+} from "./components";
 
-export default function MatrixIntuition() {
-  var st = useState("rank");
+function getById(list, id) {
+  return list.find(function (item) {
+    return item.id === id;
+  });
+}
+
+export default function MathConceptExplorer(props) {
+  var domain = props.domain;
+  var title = domain.title;
+  var subtitle = domain.subtitle;
+  var concepts = domain.concepts;
+  var groups = domain.groups;
+  var explanations = domain.explanations;
+  var detailsById = domain.details;
+  var expansionsById = domain.expansions;
+  var visuals = domain.visuals;
+  var initialConceptId = domain.initialConceptId || concepts[0].id;
+
+  var st = useState(initialConceptId);
   var active = st[0];
   var setActive = st[1];
 
-  var concept =
-    CONCEPTS.find(function (c) {
-      return c.id === active;
-    }) || CONCEPTS[0];
-  var explanation = EXPLANATIONS[active] || EXPLANATIONS[concept.id];
-  var details = CONCEPT_DETAILS[active] || CONCEPT_DETAILS[concept.id];
-  var expansion = CONCEPT_EXPANSIONS[active] || CONCEPT_EXPANSIONS[concept.id];
-  var VisComponent = VIS_MAP[active] || VIS_MAP[concept.id];
+  var concept = getById(concepts, active) || concepts[0];
+  var explanation = explanations[active] || explanations[concept.id];
+  var details = detailsById[active] || detailsById[concept.id] || {
+    deeper: "",
+    useCases: [],
+    pitfalls: [],
+    quickCheck: "",
+  };
+  var expansion = expansionsById[active] || expansionsById[concept.id] || {
+    algebraic: "",
+    computation: "",
+    workedExample: "",
+    connections: [],
+  };
+  var VisComponent = visuals[active] || visuals[concept.id];
 
   return (
     <div
@@ -48,7 +64,7 @@ export default function MatrixIntuition() {
               lineHeight: 1.1,
             }}
           >
-            Visual Intuition for Matrices
+            {title}
           </h1>
           <p
             style={{
@@ -58,13 +74,13 @@ export default function MatrixIntuition() {
               marginTop: 6,
             }}
           >
-            {CONCEPTS.length + " interactive geometric interpretations"}
+            {subtitle || concepts.length + " interactive geometric interpretations"}
           </p>
         </div>
 
         <ConceptSelector
-          groups={GROUPS}
-          concepts={CONCEPTS}
+          groups={groups}
+          concepts={concepts}
           active={active}
           onSelect={setActive}
         />

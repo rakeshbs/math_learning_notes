@@ -1,8 +1,5 @@
 import { useState } from "react";
-import {
-  ConceptSelector,
-  ConceptDetailsPanel,
-} from "./components";
+import { ConceptSelector, ConceptDetailsPanel } from "./components";
 
 function getById(list, id) {
   return list.find(function (item) {
@@ -12,6 +9,7 @@ function getById(list, id) {
 
 export default function MathConceptExplorer(props) {
   var domain = props.domain;
+  var headerSlot = props.headerSlot;
   var title = domain.title;
   var subtitle = domain.subtitle;
   var concepts = domain.concepts;
@@ -28,18 +26,20 @@ export default function MathConceptExplorer(props) {
 
   var concept = getById(concepts, active) || concepts[0];
   var explanation = explanations[active] || explanations[concept.id];
-  var details = detailsById[active] || detailsById[concept.id] || {
-    deeper: "",
-    useCases: [],
-    pitfalls: [],
-    quickCheck: "",
-  };
-  var expansion = expansionsById[active] || expansionsById[concept.id] || {
-    algebraic: "",
-    computation: "",
-    workedExample: "",
-    connections: [],
-  };
+  var details = detailsById[active] ||
+    detailsById[concept.id] || {
+      deeper: "",
+      useCases: [],
+      pitfalls: [],
+      quickCheck: "",
+    };
+  var expansion = expansionsById[active] ||
+    expansionsById[concept.id] || {
+      algebraic: "",
+      computation: "",
+      workedExample: "",
+      connections: [],
+    };
   var VisComponent = visuals[active] || visuals[concept.id];
 
   return (
@@ -53,6 +53,10 @@ export default function MathConceptExplorer(props) {
       }}
     >
       <div style={{ maxWidth: 960, margin: "0 auto" }}>
+        {headerSlot ? (
+          <div style={{ marginBottom: 20 }}>{headerSlot}</div>
+        ) : null}
+
         <div style={{ marginBottom: 28 }}>
           <h1
             style={{
@@ -74,7 +78,8 @@ export default function MathConceptExplorer(props) {
               marginTop: 6,
             }}
           >
-            {subtitle || concepts.length + " interactive geometric interpretations"}
+            {subtitle ||
+              concepts.length + " interactive geometric interpretations"}
           </p>
         </div>
 

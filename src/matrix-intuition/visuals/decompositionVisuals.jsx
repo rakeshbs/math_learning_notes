@@ -550,3 +550,64 @@ export function PseudoinverseVis() {
   }, []);
   return <Canvas2D draw={draw} />;
 }
+
+export function SVDValuesVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    var sigmas = [
+      2.3 + Math.sin(t * 0.45) * 0.25,
+      1.0 + Math.cos(t * 0.7) * 0.15,
+      0.22 + Math.sin(t * 1.1 + 0.7) * 0.08,
+    ];
+    var maxS = 2.8;
+    var i;
+
+    ctx.strokeStyle = "rgba(255,255,255,0.14)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(26, h - 28);
+    ctx.lineTo(w - 24, h - 28);
+    ctx.stroke();
+
+    var baseX = 78;
+    var gap = 78;
+    for (i = 0; i < sigmas.length; i++) {
+      var ratio = sigmas[i] / maxS;
+      var bh = ratio * 210;
+      var hue = i === 0 ? "#8B5CF6" : i === 1 ? "#A78BFA" : "#DDD6FE";
+      ctx.fillStyle = hue;
+      ctx.globalAlpha = i === 2 ? 0.55 : 0.85;
+      drawRoundRect(ctx, baseX + i * gap, h - 28 - bh, 44, bh, 8);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      drawText(
+        ctx,
+        "σ" + String(i + 1),
+        baseX + i * gap + 12,
+        h - 8,
+        "rgba(255,255,255,0.62)",
+        11,
+      );
+      drawText(
+        ctx,
+        sigmas[i].toFixed(2),
+        baseX + i * gap + 4,
+        h - 38 - bh,
+        "rgba(255,255,255,0.75)",
+        10,
+      );
+    }
+
+    var cond = sigmas[0] / Math.max(sigmas[2], 0.01);
+    drawText(ctx, "Singular-value spectrum", 10, 22, "#C4B5FD", 14);
+    drawText(ctx, "Energy drops across modes", 10, 42, "#A78BFA", 12);
+    drawText(
+      ctx,
+      "κ ≈ σmax/σmin ≈ " + cond.toFixed(1),
+      10,
+      h - 46,
+      "#DDD6FE",
+      11,
+    );
+  }, []);
+  return <Canvas2D draw={draw} />;
+}

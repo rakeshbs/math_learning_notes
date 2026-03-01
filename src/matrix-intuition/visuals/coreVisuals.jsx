@@ -770,3 +770,259 @@ export function NonCommuteVis() {
   }, []);
   return <Canvas2D draw={draw} />;
 }
+
+export function DetOrientationVis() {
+  var st = useState(-1);
+  var orientation = st[0];
+  var setOrientation = st[1];
+
+  var draw = useCallback(
+    function (ctx, w, h, t) {
+      drawGrid(ctx, w, h);
+      var cx = w / 2;
+      var cy = h / 2;
+      var s = 58;
+      var shear = 0.45 + Math.sin(t * 0.55) * 0.2;
+
+      var e1 = [orientation * s, 0];
+      var e2 = [shear * s, -s];
+
+      ctx.fillStyle = "rgba(106,76,147,0.16)";
+      ctx.strokeStyle = "#6A4C93";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + e1[0], cy + e1[1]);
+      ctx.lineTo(cx + e1[0] + e2[0], cy + e1[1] + e2[1]);
+      ctx.lineTo(cx + e2[0], cy + e2[1]);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      drawArrow(ctx, cx, cy, cx + e1[0], cy + e1[1], "#6A4C93", 3);
+      drawArrow(ctx, cx, cy, cx + e2[0], cy + e2[1], "#B8A9C9", 3);
+      drawText(ctx, "e1", cx + e1[0] + 6, cy + e1[1] + 14, "#6A4C93", 12);
+      drawText(ctx, "e2", cx + e2[0] + 6, cy + e2[1] - 8, "#B8A9C9", 12);
+
+      var det = orientation;
+      drawText(
+        ctx,
+        "det sign = " + (det > 0 ? "+" : "-"),
+        10,
+        22,
+        "#B8A9C9",
+        14,
+      );
+      drawText(
+        ctx,
+        det > 0 ? "Orientation preserved" : "Orientation flipped (mirror)",
+        10,
+        h - 14,
+        "rgba(255,255,255,0.5)",
+        11,
+      );
+    },
+    [orientation],
+  );
+
+  return (
+    <div>
+      <Canvas2D draw={draw} />
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        <button
+          onClick={function () {
+            setOrientation(1);
+          }}
+          style={{
+            padding: "6px 14px",
+            borderRadius: 8,
+            border: "none",
+            cursor: "pointer",
+            background: orientation > 0 ? "#6A4C93" : "rgba(255,255,255,0.08)",
+            color: orientation > 0 ? "#fff" : "rgba(255,255,255,0.5)",
+            fontFamily: "monospace",
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+          Positive det
+        </button>
+        <button
+          onClick={function () {
+            setOrientation(-1);
+          }}
+          style={{
+            padding: "6px 14px",
+            borderRadius: 8,
+            border: "none",
+            cursor: "pointer",
+            background: orientation < 0 ? "#6A4C93" : "rgba(255,255,255,0.08)",
+            color: orientation < 0 ? "#fff" : "rgba(255,255,255,0.5)",
+            fontFamily: "monospace",
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+          Negative det
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function EigenDecomposeVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    drawGrid(ctx, w, h);
+    var cx = w / 2;
+    var cy = h / 2;
+    var theta = 0.55;
+    var l1 = 1.7;
+    var l2 = 0.45;
+    var phase = (Math.sin(t * 0.8) + 1) / 2;
+
+    var e1 = [Math.cos(theta), Math.sin(theta)];
+    var e2 = [-Math.sin(theta), Math.cos(theta)];
+
+    var i;
+    for (i = -3; i <= 3; i++) {
+      var j;
+      for (j = -3; j <= 3; j++) {
+        var vx = i * 24;
+        var vy = j * 24;
+        var c1 = vx * e1[0] + vy * e1[1];
+        var c2 = vx * e2[0] + vy * e2[1];
+        var tx =
+          (1 + (l1 - 1) * phase) * c1 * e1[0] +
+          (1 + (l2 - 1) * phase) * c2 * e2[0];
+        var ty =
+          (1 + (l1 - 1) * phase) * c1 * e1[1] +
+          (1 + (l2 - 1) * phase) * c2 * e2[1];
+        drawDot(ctx, cx + tx, cy - ty, 1.8, "rgba(255,255,255,0.2)");
+      }
+    }
+
+    drawArrow(ctx, cx, cy, cx + e1[0] * 95, cy - e1[1] * 95, "#06D6A0", 3);
+    drawArrow(ctx, cx, cy, cx + e2[0] * 78, cy - e2[1] * 78, "#1B9AAA", 3);
+    drawText(ctx, "e1", cx + e1[0] * 95 + 6, cy - e1[1] * 95, "#06D6A0", 12);
+    drawText(ctx, "e2", cx + e2[0] * 78 + 6, cy - e2[1] * 78, "#1B9AAA", 12);
+
+    drawText(ctx, "A = PΛP^-1", 10, 22, "#06D6A0", 14);
+    drawText(
+      ctx,
+      "Eigenbasis decouples the transform into axis scaling",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      10.8,
+    );
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+export function RankSingularBarsVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    var bars = [
+      0.9 + Math.sin(t * 0.6) * 0.08,
+      0.55 + Math.cos(t * 0.5) * 0.1,
+      0.12 + Math.sin(t * 0.8 + 1.4) * 0.08,
+    ];
+    var threshold = 0.2;
+    var rank = 0;
+    var i;
+    for (i = 0; i < bars.length; i++) {
+      if (bars[i] > threshold) rank += 1;
+    }
+
+    ctx.strokeStyle = "rgba(255,255,255,0.15)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(30, h - 34);
+    ctx.lineTo(w - 30, h - 34);
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(255,184,7,0.4)";
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    var ty = h - 34 - threshold * 220;
+    ctx.moveTo(30, ty);
+    ctx.lineTo(w - 30, ty);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    var baseX = 72;
+    var gap = 78;
+    for (i = 0; i < bars.length; i++) {
+      var bh = bars[i] * 220;
+      ctx.fillStyle =
+        bars[i] > threshold ? "rgba(232,93,4,0.8)" : "rgba(255,255,255,0.16)";
+      drawRoundRect(ctx, baseX + i * gap, h - 34 - bh, 42, bh, 8);
+      ctx.fill();
+      drawText(
+        ctx,
+        "σ" + String(i + 1),
+        baseX + i * gap + 10,
+        h - 12,
+        "rgba(255,255,255,0.6)",
+        11,
+      );
+    }
+
+    drawText(ctx, "Rank from singular values", 10, 22, "#FAA307", 14);
+    drawText(ctx, "count(σ_i > threshold) = " + rank, 10, 42, "#E85D04", 12);
+    drawText(
+      ctx,
+      "Numerical rank depends on tolerance",
+      10,
+      h - 48,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+export function NullspaceFamilyVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    drawGrid(ctx, w, h);
+    var cx = w / 2;
+    var cy = h / 2;
+    var a = 0.7 + Math.sin(t * 0.4) * 0.25;
+    var dx = Math.cos(a);
+    var dy = Math.sin(a);
+
+    ctx.strokeStyle = "rgba(214,40,40,0.55)";
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(cx - dx * 165, cy + dy * 165);
+    ctx.lineTo(cx + dx * 165, cy - dy * 165);
+    ctx.stroke();
+
+    var s;
+    for (s = -3; s <= 3; s++) {
+      if (s === 0) continue;
+      var px = cx + dx * s * 36;
+      var py = cy - dy * s * 36;
+      drawDot(ctx, px, py, 3.5, "rgba(214,40,40,0.85)");
+      drawArrow(ctx, px, py, cx, cy, "rgba(247,127,0,0.4)", 1.4);
+    }
+
+    drawDot(ctx, cx, cy, 4.2, "#fff");
+    drawText(
+      ctx,
+      "All points on this line satisfy Ax = 0",
+      10,
+      22,
+      "#F77F00",
+      12.2,
+    );
+    drawText(ctx, "Null(A) = { t * v }", 10, 40, "#D62828", 13);
+    drawText(
+      ctx,
+      "Every nullspace vector maps to origin",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
+  }, []);
+  return <Canvas2D draw={draw} />;
+}

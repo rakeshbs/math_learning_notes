@@ -7,6 +7,39 @@ function getById(list, id) {
   });
 }
 
+function normalizeVisualVariants(entry) {
+  if (!entry) return [];
+
+  function toVariant(item, index) {
+    if (typeof item === "function") {
+      return {
+        id: "view-" + (index + 1),
+        label: "View " + (index + 1),
+        component: item,
+      };
+    }
+    if (
+      item &&
+      typeof item === "object" &&
+      typeof item.component === "function"
+    ) {
+      return {
+        id: item.id || "view-" + (index + 1),
+        label: item.label || "View " + (index + 1),
+        component: item.component,
+      };
+    }
+    return null;
+  }
+
+  if (Array.isArray(entry)) {
+    return entry.map(toVariant).filter(Boolean);
+  }
+
+  var single = toVariant(entry, 0);
+  return single ? [single] : [];
+}
+
 export default function MathConceptExplorer(props) {
   var domain = props.domain;
   var headerSlot = props.headerSlot;
@@ -40,7 +73,9 @@ export default function MathConceptExplorer(props) {
       workedExample: "",
       connections: [],
     };
-  var VisComponent = visuals[active] || visuals[concept.id];
+  var visualVariants = normalizeVisualVariants(
+    visuals[active] || visuals[concept.id],
+  );
 
   return (
     <div
@@ -99,7 +134,30 @@ export default function MathConceptExplorer(props) {
           }}
         >
           <div>
-            <VisComponent key={active} />
+            {visualVariants.map(function (variant, idx) {
+              var VariantComponent = variant.component;
+              var isLast = idx === visualVariants.length - 1;
+              return (
+                <div key={variant.id} style={{ marginBottom: isLast ? 0 : 14 }}>
+                  {visualVariants.length > 1 ? (
+                    <div
+                      style={{
+                        fontFamily: "monospace",
+                        fontSize: 11,
+                        color: concept.accent,
+                        opacity: 0.75,
+                        marginBottom: 6,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                      }}
+                    >
+                      {variant.label}
+                    </div>
+                  ) : null}
+                  <VariantComponent key={active + ":" + variant.id} />
+                </div>
+              );
+            })}
           </div>
           <ConceptDetailsPanel
             concept={concept}

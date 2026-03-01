@@ -2,7 +2,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 
 /* -- Data -- */
 var CONCEPTS = [
-  { id: "rank", title: "Rank", subtitle: "The dimension of the output space", color: "#E85D04", accent: "#FAA307", group: "core" },
+  {
+    id: "rank",
+    title: "Rank",
+    subtitle: "The dimension of the output space",
+    color: "#E85D04",
+    accent: "#FAA307",
+    group: "core",
+  },
   {
     id: "determinant",
     title: "Determinant",
@@ -11,12 +18,54 @@ var CONCEPTS = [
     accent: "#B8A9C9",
     group: "core",
   },
-  { id: "eigenvalues", title: "Eigen", subtitle: "Directions that only stretch", color: "#1B9AAA", accent: "#06D6A0", group: "core" },
-  { id: "nullspace", title: "Null Space", subtitle: "What gets crushed to zero", color: "#D62828", accent: "#F77F00", group: "core" },
-  { id: "trace", title: "Trace", subtitle: "Sum of diagonal stretches", color: "#2D6A4F", accent: "#52B788", group: "core" },
-  { id: "transpose", title: "Transpose", subtitle: "Mirroring across the diagonal", color: "#7209B7", accent: "#F72585", group: "core" },
-  { id: "inverse", title: "Inverse", subtitle: "Undoing the transformation", color: "#003566", accent: "#0077B6", group: "core" },
-  { id: "span", title: "Column Space", subtitle: "All reachable outputs", color: "#BC6C25", accent: "#DDA15E", group: "core" },
+  {
+    id: "eigenvalues",
+    title: "Eigen",
+    subtitle: "Directions that only stretch",
+    color: "#1B9AAA",
+    accent: "#06D6A0",
+    group: "core",
+  },
+  {
+    id: "nullspace",
+    title: "Null Space",
+    subtitle: "What gets crushed to zero",
+    color: "#D62828",
+    accent: "#F77F00",
+    group: "core",
+  },
+  {
+    id: "trace",
+    title: "Trace",
+    subtitle: "Sum of diagonal stretches",
+    color: "#2D6A4F",
+    accent: "#52B788",
+    group: "core",
+  },
+  {
+    id: "transpose",
+    title: "Transpose",
+    subtitle: "Mirroring across the diagonal",
+    color: "#7209B7",
+    accent: "#F72585",
+    group: "core",
+  },
+  {
+    id: "inverse",
+    title: "Inverse",
+    subtitle: "Undoing the transformation",
+    color: "#003566",
+    accent: "#0077B6",
+    group: "core",
+  },
+  {
+    id: "span",
+    title: "Column Space",
+    subtitle: "All reachable outputs",
+    color: "#BC6C25",
+    accent: "#DDA15E",
+    group: "core",
+  },
   {
     id: "orthogonal",
     title: "Orthogonality",
@@ -25,11 +74,78 @@ var CONCEPTS = [
     accent: "#34D399",
     group: "geometry",
   },
-  { id: "projection", title: "Projection", subtitle: "Shadows onto subspaces", color: "#F59E0B", accent: "#FCD34D", group: "geometry" },
-  { id: "norm", title: "Norm", subtitle: "Measuring vector size", color: "#EF4444", accent: "#FCA5A5", group: "geometry" },
-  { id: "svd", title: "SVD", subtitle: "Rotate then Stretch then Rotate", color: "#8B5CF6", accent: "#C4B5FD", group: "decomp" },
-  { id: "posdef", title: "Positive Definite", subtitle: "Always curves upward", color: "#10B981", accent: "#6EE7B7", group: "special" },
-  { id: "symmetric", title: "Symmetric", subtitle: "Equal across the diagonal", color: "#EC4899", accent: "#F9A8D4", group: "special" },
+  {
+    id: "projection",
+    title: "Projection",
+    subtitle: "Shadows onto subspaces",
+    color: "#F59E0B",
+    accent: "#FCD34D",
+    group: "geometry",
+  },
+  {
+    id: "norm",
+    title: "Norm",
+    subtitle: "Measuring vector size",
+    color: "#EF4444",
+    accent: "#FCA5A5",
+    group: "geometry",
+  },
+  {
+    id: "svd",
+    title: "SVD",
+    subtitle: "Rotate then Stretch then Rotate",
+    color: "#8B5CF6",
+    accent: "#C4B5FD",
+    group: "decomp",
+  },
+  {
+    id: "diagonalization",
+    title: "Diagonalization",
+    subtitle: "Change basis to uncouple scaling",
+    color: "#4361EE",
+    accent: "#4CC9F0",
+    group: "decomp",
+  },
+  {
+    id: "lu",
+    title: "LU Factorization",
+    subtitle: "Shear then scale/combination",
+    color: "#0EA5E9",
+    accent: "#7DD3FC",
+    group: "decomp",
+  },
+  {
+    id: "qr",
+    title: "QR Factorization",
+    subtitle: "Orthonormal basis + coordinates",
+    color: "#84CC16",
+    accent: "#BEF264",
+    group: "decomp",
+  },
+  {
+    id: "posdef",
+    title: "Positive Definite",
+    subtitle: "Always curves upward",
+    color: "#10B981",
+    accent: "#6EE7B7",
+    group: "special",
+  },
+  {
+    id: "symmetric",
+    title: "Symmetric",
+    subtitle: "Equal across the diagonal",
+    color: "#EC4899",
+    accent: "#F9A8D4",
+    group: "special",
+  },
+  {
+    id: "condition",
+    title: "Condition Number",
+    subtitle: "Sensitivity to input noise",
+    color: "#F43F5E",
+    accent: "#FDA4AF",
+    group: "numerical",
+  },
   {
     id: "linindep",
     title: "Linear Independence",
@@ -38,7 +154,14 @@ var CONCEPTS = [
     accent: "#FDBA74",
     group: "foundations",
   },
-  { id: "basis", title: "Basis and Dimension", subtitle: "The minimal spanning set", color: "#14B8A6", accent: "#5EEAD4", group: "foundations" },
+  {
+    id: "basis",
+    title: "Basis and Dimension",
+    subtitle: "The minimal spanning set",
+    color: "#14B8A6",
+    accent: "#5EEAD4",
+    group: "foundations",
+  },
 ];
 
 var GROUPS = [
@@ -46,6 +169,7 @@ var GROUPS = [
   { id: "geometry", label: "Geometry" },
   { id: "decomp", label: "Decomposition" },
   { id: "special", label: "Special Matrices" },
+  { id: "numerical", label: "Numerical" },
   { id: "foundations", label: "Foundations" },
 ];
 
@@ -66,7 +190,12 @@ var EXPLANATIONS = {
     what: "The determinant measures how a matrix scales area (2D) or volume (3D). It captures both the scaling factor and whether orientation is preserved or flipped.",
     visual:
       "The unit square transforms into a parallelogram. Its area is |det(A)|. If det < 0, the orientation has flipped like a mirror image.",
-    intuition: ["det = 0 means space is collapsed, matrix not invertible", "|det| > 1 means space is expanded", "|det| < 1 means space is compressed", "det < 0 means orientation is flipped"],
+    intuition: [
+      "det = 0 means space is collapsed, matrix not invertible",
+      "|det| > 1 means space is expanded",
+      "|det| < 1 means space is compressed",
+      "det < 0 means orientation is flipped",
+    ],
     formula: "det([[a,b],[c,d]]) = ad - bc",
   },
   eigenvalues: {
@@ -107,7 +236,8 @@ var EXPLANATIONS = {
   },
   transpose: {
     what: "The transpose flips a matrix over its diagonal: rows become columns. Entry (i,j) moves to (j,i).",
-    visual: "The colored cells swap positions. A 2x3 matrix becomes 3x2. Each color tracks where an entry moves.",
+    visual:
+      "The colored cells swap positions. A 2x3 matrix becomes 3x2. Each color tracks where an entry moves.",
     intuition: [
       "If A maps R^n to R^m, then A^T maps R^m to R^n",
       "Symmetric means A = A^T",
@@ -118,7 +248,8 @@ var EXPLANATIONS = {
   },
   inverse: {
     what: "The inverse A^-1 undoes A. Applying A then A^-1 returns to the start. Exists only when det(A) is not 0.",
-    visual: "Watch the shape morph forward under A, then morph backward under A^-1, returning to its original form.",
+    visual:
+      "Watch the shape morph forward under A, then morph backward under A^-1, returning to its original form.",
     intuition: [
       "A^-1 A = A A^-1 = I, the identity",
       "det(A) = 0 means some dimension was crushed, cannot undo",
@@ -187,6 +318,42 @@ var EXPLANATIONS = {
     ],
     formula: "A = U Sigma V^T where sigma_i = sqrt(lambda_i(A^T A))",
   },
+  diagonalization: {
+    what: "A matrix is diagonalizable if you can change coordinates into an eigenvector basis where the action becomes simple axis scaling.",
+    visual:
+      "A moving vector is decomposed along eigen-directions. In that basis each component scales independently, then you rotate back to original coordinates.",
+    intuition: [
+      "A = P D P^-1 means change basis, scale, change back",
+      "Diagonalization is possible when there are enough independent eigenvectors",
+      "P columns are eigenvectors, D stores eigenvalues",
+      "Powers A^k become easy: A^k = P D^k P^-1",
+    ],
+    formula: "A = P D P^-1 with D diagonal and Av_i = lambda_i v_i",
+  },
+  lu: {
+    what: "LU factorization writes A as L times U, where L is lower triangular and U is upper triangular. It separates elimination steps from final triangular system solve.",
+    visual:
+      "Watch a square first shear under L, then get stretched/combined under U. Together they reproduce the full transform A.",
+    intuition: [
+      "LU lets you solve Ax=b quickly for many different b",
+      "Forward substitution solves Ly=b, then backward substitution solves Ux=y",
+      "Pivoting improves numerical stability",
+      "LU is the engine behind many linear solvers",
+    ],
+    formula: "A = L U (or P A = L U with pivoting)",
+  },
+  qr: {
+    what: "QR factorization writes A as Q R, where Q has orthonormal columns and R is upper triangular. It separates geometry (rotation/reflection) from coordinates.",
+    visual:
+      "Non-orthogonal columns are re-expressed as perpendicular unit directions (Q), then R stores how to recombine those directions.",
+    intuition: [
+      "QR is numerically stable for least squares",
+      "Q preserves lengths and angles",
+      "R captures coordinate coefficients in the orthonormal basis",
+      "Householder QR is standard in robust solvers",
+    ],
+    formula: "A = Q R with Q^T Q = I and R upper triangular",
+  },
   posdef: {
     what: "A symmetric matrix is positive definite if x^T A x > 0 for every nonzero x. The quadratic form is a bowl that always curves upward.",
     visual:
@@ -201,7 +368,8 @@ var EXPLANATIONS = {
   },
   symmetric: {
     what: "A matrix is symmetric if A = A^T, meaning entry (i,j) equals entry (j,i). Perfectly mirrored across the main diagonal.",
-    visual: "Watch highlighted pairs: each off-diagonal element equals its mirror. The diagonal is the line of symmetry.",
+    visual:
+      "Watch highlighted pairs: each off-diagonal element equals its mirror. The diagonal is the line of symmetry.",
     intuition: [
       "Symmetric matrices have ALL real eigenvalues",
       "Eigenvectors are always orthogonal to each other",
@@ -210,9 +378,22 @@ var EXPLANATIONS = {
     ],
     formula: "A = A^T iff a_ij = a_ji ; A = Q Lambda Q^T",
   },
+  condition: {
+    what: "The condition number measures how much relative output error can grow compared to relative input error. High condition number means unstable sensitivity.",
+    visual:
+      "Two almost identical input vectors map to outputs that separate a lot after transformation. Small input noise becomes large output error.",
+    intuition: [
+      "kappa(A) close to 1 is well-conditioned",
+      "Large kappa(A) amplifies floating-point and measurement errors",
+      "Near-singular matrices usually have huge condition numbers",
+      "Least squares becomes fragile when A has large condition number",
+    ],
+    formula: "kappa_2(A) = sigma_max / sigma_min = ||A|| * ||A^-1||",
+  },
   linindep: {
     what: "Vectors are linearly independent if none can be written as a combination of the others. The only solution to c1 v1 + c2 v2 + ... = 0 is all c = 0.",
-    visual: "Independent vectors point in genuinely different directions. Dependent vectors are redundant: one is a scaled or combined copy.",
+    visual:
+      "Independent vectors point in genuinely different directions. Dependent vectors are redundant: one is a scaled or combined copy.",
     intuition: [
       "Independent means each vector adds new information",
       "Dependent means at least one vector is redundant",
@@ -232,6 +413,290 @@ var EXPLANATIONS = {
       "Infinitely many bases exist for any space",
     ],
     formula: "dim(V) = |B| where B is any basis of V",
+  },
+};
+
+var CONCEPT_DETAILS = {
+  rank: {
+    deeper:
+      "For an m x n matrix, rank is the dimension of both column space and row space. Rank controls solvability and uniqueness through rank-nullity.",
+    useCases: [
+      "Diagnose if Ax = b is solvable",
+      "Measure effective dimensionality in datasets",
+      "Detect redundancy in feature matrices",
+    ],
+    pitfalls: [
+      "Assuming non-zero rows automatically means full rank",
+      "Ignoring numerical rank when singular values decay slowly",
+    ],
+    quickCheck: "Count pivots in RREF; that number is rank.",
+  },
+  determinant: {
+    deeper:
+      "Determinant is multilinear and alternates sign with row swaps. It is the oriented volume scaling under the linear map.",
+    useCases: [
+      "Quick invertibility test for square matrices",
+      "Jacobian volume scaling in calculus",
+      "Orientation checks in geometry pipelines",
+    ],
+    pitfalls: [
+      "Using determinant alone to judge numerical stability",
+      "Interpreting small det as exactly singular without context",
+    ],
+    quickCheck: "det(A) = 0 iff A is singular.",
+  },
+  eigenvalues: {
+    deeper:
+      "Eigenvalues summarize intrinsic scaling directions. Repeated eigenvalues may or may not provide enough eigenvectors for diagonalization.",
+    useCases: [
+      "Stability of dynamical systems",
+      "Principal modes in PDEs and physics",
+      "PCA and covariance analysis",
+    ],
+    pitfalls: [
+      "Confusing singular values with eigenvalues",
+      "Assuming every matrix has a full eigenbasis",
+    ],
+    quickCheck: "Solve det(A - lambda I) = 0, then find eigenspaces.",
+  },
+  nullspace: {
+    deeper:
+      "Null space dimension (nullity) equals n - rank for n columns. It captures hidden degrees of freedom in underdetermined systems.",
+    useCases: [
+      "Describe all solutions to Ax = 0",
+      "Constraint analysis in mechanics",
+      "Find dependencies among columns",
+    ],
+    pitfalls: [
+      "Treating null space as always one-dimensional",
+      "Ignoring free variables when parameterizing solutions",
+    ],
+    quickCheck: "Identify free columns after row reduction.",
+  },
+  trace: {
+    deeper:
+      "Trace is basis-invariant and equals the sum of eigenvalues with algebraic multiplicity. It is linear: tr(A + B) = tr(A) + tr(B).",
+    useCases: [
+      "Fast matrix summary statistic",
+      "Derivatives in matrix calculus",
+      "Characterizing linear ODE systems",
+    ],
+    pitfalls: [
+      "Using trace as if it measured matrix norm",
+      "Forgetting trace only applies to square matrices",
+    ],
+    quickCheck: "Add only the main diagonal entries.",
+  },
+  transpose: {
+    deeper:
+      "Transpose represents the adjoint under the standard dot product. It converts row-space statements into column-space statements.",
+    useCases: [
+      "Normal equations A^T A x = A^T b",
+      "Building covariance and Gram matrices",
+      "Switching between primal/dual views",
+    ],
+    pitfalls: [
+      "Dropping reverse-order rule: (AB)^T = B^T A^T",
+      "Treating transpose as inverse for non-orthogonal matrices",
+    ],
+    quickCheck: "Swap indices i,j in every entry.",
+  },
+  inverse: {
+    deeper:
+      "Inverse exists only for square full-rank matrices. Numerically, solving linear systems directly is usually better than explicitly computing A^-1.",
+    useCases: [
+      "Recover x from Ax = b in theory",
+      "Coordinate transformations",
+      "Control and estimation formulas",
+    ],
+    pitfalls: [
+      "Computing inverse just to solve Ax = b",
+      "Ignoring ill-conditioning when inverse exists but is unstable",
+    ],
+    quickCheck: "A is invertible iff rank = n (square) iff det(A) != 0.",
+  },
+  span: {
+    deeper:
+      "Span is the closure under linear combinations. Column space tells exactly which right-hand sides b are reachable in Ax = b.",
+    useCases: [
+      "Reachability analysis",
+      "Feature subspace modeling",
+      "Constructing approximations in reduced bases",
+    ],
+    pitfalls: [
+      "Thinking span requires unique coefficients",
+      "Mixing up spanning with independence",
+    ],
+    quickCheck: "Check whether b is orthogonal to left null space.",
+  },
+  orthogonal: {
+    deeper:
+      "Orthogonal transformations preserve inner products, therefore preserve lengths and angles. They are numerically stable building blocks.",
+    useCases: [
+      "Rotations/reflections in graphics",
+      "Stable factorizations (QR)",
+      "Signal decorrelation and transforms",
+    ],
+    pitfalls: [
+      "Assuming orthogonal means axis-aligned",
+      "Forgetting orthonormal columns must have unit length",
+    ],
+    quickCheck: "Verify Q^T Q = I.",
+  },
+  projection: {
+    deeper:
+      "Orthogonal projection minimizes distance to a subspace. The residual is orthogonal to that subspace by construction.",
+    useCases: [
+      "Least squares regression",
+      "Denoising by subspace truncation",
+      "Computer vision plane fitting",
+    ],
+    pitfalls: [
+      "Projecting with non-orthogonal basis without correction",
+      "Forgetting projection matrix is idempotent",
+    ],
+    quickCheck: "For orthogonal projector P, check P^2 = P and P = P^T.",
+  },
+  norm: {
+    deeper:
+      "Different norms encode different geometry. Choice of norm changes optimization behavior and robustness properties.",
+    useCases: [
+      "Regularization design in ML",
+      "Convergence criteria in iterative methods",
+      "Error bounds in numerical analysis",
+    ],
+    pitfalls: [
+      "Comparing values across norms without scaling context",
+      "Assuming L1 and L2 penalize outliers similarly",
+    ],
+    quickCheck:
+      "Any norm obeys positivity, homogeneity, and triangle inequality.",
+  },
+  svd: {
+    deeper:
+      "SVD exposes rank, condition number, and dominant directions. It is the most informative all-purpose matrix decomposition.",
+    useCases: [
+      "Low-rank compression",
+      "Pseudoinverse and least squares",
+      "Latent semantic analysis and recommender systems",
+    ],
+    pitfalls: [
+      "Keeping too many tiny singular values in inversion",
+      "Ignoring centering/normalization before PCA-style use",
+    ],
+    quickCheck: "Count non-zero singular values to get rank.",
+  },
+  diagonalization: {
+    deeper:
+      "Diagonalization is a coordinate simplification: complicated coupling in standard basis becomes independent scaling in eigenbasis.",
+    useCases: [
+      "Fast matrix powers for recurrences",
+      "Closed forms for linear ODE systems",
+      "Spectral interpretation of operators",
+    ],
+    pitfalls: [
+      "Assuming repeated eigenvalues always imply non-diagonalizable",
+      "Forgetting complex eigenpairs when matrix is real",
+    ],
+    quickCheck: "Need n independent eigenvectors for n x n matrix.",
+  },
+  lu: {
+    deeper:
+      "LU reuses elimination work across many right-hand sides. With pivoting, it is the standard dense direct solve workflow.",
+    useCases: [
+      "Repeated solves Ax = b_i",
+      "Determinant from triangular factors",
+      "Preconditioner construction",
+    ],
+    pitfalls: [
+      "Skipping pivoting on difficult matrices",
+      "Confusing symbolic LU with floating-point stable LU",
+    ],
+    quickCheck: "After factorization, solve Ly = b then Ux = y.",
+  },
+  qr: {
+    deeper:
+      "QR is geometry-first: Q gives orthonormal directions, R gives coordinates in those directions.",
+    useCases: [
+      "Least squares without normal-equation squaring",
+      "Computing orthonormal bases",
+      "Eigenvalue algorithms (QR iteration)",
+    ],
+    pitfalls: [
+      "Using classical Gram-Schmidt in unstable settings",
+      "Ignoring column pivoting for rank-deficient problems",
+    ],
+    quickCheck: "Columns of Q should be unit and mutually orthogonal.",
+  },
+  posdef: {
+    deeper:
+      "Positive definite matrices define inner products and energy bowls. They guarantee unique minimizers in many quadratic problems.",
+    useCases: [
+      "Convex quadratic optimization",
+      "Covariance modeling",
+      "Cholesky-based efficient solvers",
+    ],
+    pitfalls: [
+      "Confusing PSD with PD",
+      "Testing definiteness only on diagonal signs",
+    ],
+    quickCheck: "For symmetric A, all eigenvalues > 0 iff A is PD.",
+  },
+  symmetric: {
+    deeper:
+      "Symmetric matrices are orthogonally diagonalizable, making them especially interpretable and stable in computations.",
+    useCases: [
+      "Covariance and Hessian analysis",
+      "Spectral clustering and graph Laplacians",
+      "Principal axis transforms",
+    ],
+    pitfalls: [
+      "Assuming all real matrices are diagonalizable like symmetric ones",
+      "Forgetting symmetry must hold entrywise",
+    ],
+    quickCheck: "Verify a_ij = a_ji for all i,j.",
+  },
+  condition: {
+    deeper:
+      "Condition number is a property of the problem, not the algorithm. It upper-bounds how input perturbations can scale in output.",
+    useCases: [
+      "Judge reliability of computed solutions",
+      "Feature scaling decisions",
+      "Detect near-singularity before inversion",
+    ],
+    pitfalls: [
+      "Blaming algorithm for errors caused by bad conditioning",
+      "Ignoring units/scaling that inflate kappa",
+    ],
+    quickCheck: "kappa near 1 is stable; very large kappa is fragile.",
+  },
+  linindep: {
+    deeper:
+      "Independence is about uniqueness of representation. It determines whether a set can serve as a basis candidate.",
+    useCases: [
+      "Basis construction",
+      "Feature selection without redundancy",
+      "Solvability and uniqueness checks",
+    ],
+    pitfalls: [
+      "Testing with too few sample combinations",
+      "Ignoring floating-point tolerance in near-dependent vectors",
+    ],
+    quickCheck: "Set is independent iff only trivial combination gives zero.",
+  },
+  basis: {
+    deeper:
+      "A basis provides coordinates. Changing basis changes numbers, not the underlying geometric vector.",
+    useCases: [
+      "Coordinate transforms in graphics/robotics",
+      "Modal decompositions in physics",
+      "Efficient representation in sparse domains",
+    ],
+    pitfalls: [
+      "Mixing vectors from different spaces",
+      "Using spanning sets that are not independent",
+    ],
+    quickCheck: "Need exactly dim(V) independent vectors to form a basis.",
   },
 };
 
@@ -361,7 +826,7 @@ function Canvas2D(props) {
         cancelAnimationFrame(animRef.current);
       };
     },
-    [drawFn, size]
+    [drawFn, size],
   );
 
   return (
@@ -408,7 +873,14 @@ function RankVis() {
         drawArrow(ctx, cx, cy, cx + v2x, cy - v2y, "#FAA307");
         drawText(ctx, "v1", cx + v1x + 6, cy - v1y, "#E85D04", 13);
         drawText(ctx, "v2", cx + v2x + 6, cy - v2y, "#FAA307", 13);
-        drawText(ctx, "Rank 2: spans a plane", 10, h - 14, "rgba(255,255,255,0.5)", 12);
+        drawText(
+          ctx,
+          "Rank 2: spans a plane",
+          10,
+          h - 14,
+          "rgba(255,255,255,0.5)",
+          12,
+        );
       } else if (rankCase === 1) {
         var a2 = t * 0.3;
         var dx = Math.cos(a2);
@@ -423,13 +895,27 @@ function RankVis() {
         ctx.setLineDash([]);
         drawArrow(ctx, cx, cy, cx + dx * s * 2, cy - dy * s * 2, "#E85D04");
         drawArrow(ctx, cx, cy, cx + dx * s * 1.2, cy - dy * s * 1.2, "#FAA307");
-        drawText(ctx, "Rank 1: only spans a line", 10, h - 14, "rgba(255,255,255,0.5)", 12);
+        drawText(
+          ctx,
+          "Rank 1: only spans a line",
+          10,
+          h - 14,
+          "rgba(255,255,255,0.5)",
+          12,
+        );
       } else {
         drawDot(ctx, cx, cy, 5 + Math.sin(t * 3) * 2, "#E85D04");
-        drawText(ctx, "Rank 0: collapses to origin", 10, h - 14, "rgba(255,255,255,0.5)", 12);
+        drawText(
+          ctx,
+          "Rank 0: collapses to origin",
+          10,
+          h - 14,
+          "rgba(255,255,255,0.5)",
+          12,
+        );
       }
     },
-    [rankCase]
+    [rankCase],
   );
   return (
     <div>
@@ -527,15 +1013,41 @@ function DetVis() {
       drawArrow(ctx, cx, cy, cx + v2x, cy + v2y, "#B8A9C9");
       var det = scale * scale;
       drawText(ctx, "det = " + det.toFixed(2), 10, 24, "#B8A9C9", 14);
-      drawText(ctx, det > 1 ? "Space expanded" : det > 0 ? "Space shrunk" : "Space collapsed!", 10, h - 14, "rgba(255,255,255,0.5)", 12);
+      drawText(
+        ctx,
+        det > 1
+          ? "Space expanded"
+          : det > 0
+            ? "Space shrunk"
+            : "Space collapsed!",
+        10,
+        h - 14,
+        "rgba(255,255,255,0.5)",
+        12,
+      );
     },
-    [scale]
+    [scale],
   );
   return (
     <div>
       <Canvas2D draw={draw} />
-      <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ color: "rgba(255,255,255,0.5)", fontFamily: "monospace", fontSize: 12 }}>Scale</span>
+      <div
+        style={{
+          marginTop: 12,
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+        }}
+      >
+        <span
+          style={{
+            color: "rgba(255,255,255,0.5)",
+            fontFamily: "monospace",
+            fontSize: 12,
+          }}
+        >
+          Scale
+        </span>
         <input
           type="range"
           min="-2"
@@ -547,7 +1059,16 @@ function DetVis() {
           }}
           style={{ flex: 1, accentColor: "#6A4C93" }}
         />
-        <span style={{ color: "#B8A9C9", fontFamily: "monospace", fontSize: 13, minWidth: 40 }}>{scale.toFixed(1)}</span>
+        <span
+          style={{
+            color: "#B8A9C9",
+            fontFamily: "monospace",
+            fontSize: 13,
+            minWidth: 40,
+          }}
+        >
+          {scale.toFixed(1)}
+        </span>
       </div>
     </div>
   );
@@ -570,9 +1091,19 @@ function EigenVis() {
       var tx = ox * (1 + (l1 - 1) * phase);
       var ty = oy * (1 + (l2 - 1) * phase);
       var isE1 = Math.abs(angle) < 0.25 || Math.abs(angle - Math.PI) < 0.25;
-      var isE2 = Math.abs(angle - Math.PI / 2) < 0.25 || Math.abs(angle - Math.PI * 1.5) < 0.25;
+      var isE2 =
+        Math.abs(angle - Math.PI / 2) < 0.25 ||
+        Math.abs(angle - Math.PI * 1.5) < 0.25;
       if (isE1 || isE2) {
-        drawArrow(ctx, cx, cy, cx + tx, cy - ty, isE1 ? "#06D6A0" : "#1B9AAA", 3);
+        drawArrow(
+          ctx,
+          cx,
+          cy,
+          cx + tx,
+          cy - ty,
+          isE1 ? "#06D6A0" : "#1B9AAA",
+          3,
+        );
       } else {
         ctx.strokeStyle = "rgba(255,255,255,0.15)";
         ctx.lineWidth = 1;
@@ -585,7 +1116,14 @@ function EigenVis() {
     }
     drawText(ctx, "lambda1 = 1.8", 10, 22, "#06D6A0", 14);
     drawText(ctx, "lambda2 = 0.7", 10, 40, "#1B9AAA", 14);
-    drawText(ctx, "Eigenvectors stay on their line, only scale", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(
+      ctx,
+      "Eigenvectors stay on their line, only scale",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -624,13 +1162,34 @@ function NullVis() {
         cx + px * i * 40 * (1 - pulse * 0.8),
         cy - py * i * 40 * (1 - pulse * 0.8),
         "rgba(214,40,40," + (0.3 + pulse * 0.4) + ")",
-        1.5
+        1.5,
       );
     }
     drawDot(ctx, cx, cy, 4, "#fff");
-    drawText(ctx, "Column space", cx + dx * 100 + 5, cy - dy * 100 - 5, "#F77F00", 11);
-    drawText(ctx, "Null space", cx + px * 80 + 5, cy - py * 80 - 5, "#D62828", 11);
-    drawText(ctx, "Null space vectors collapse to origin", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(
+      ctx,
+      "Column space",
+      cx + dx * 100 + 5,
+      cy - dy * 100 - 5,
+      "#F77F00",
+      11,
+    );
+    drawText(
+      ctx,
+      "Null space",
+      cx + px * 80 + 5,
+      cy - py * 80 - 5,
+      "#D62828",
+      11,
+    );
+    drawText(
+      ctx,
+      "Null space vectors collapse to origin",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -644,9 +1203,23 @@ function TraceVis() {
     var a11 = 1.5 + Math.sin(t * 0.5) * 0.5;
     var a22 = 0.8 + Math.cos(t * 0.7) * 0.3;
     drawArrow(ctx, cx, cy, cx + a11 * s, cy, "#52B788", 3);
-    drawText(ctx, "a11=" + a11.toFixed(2), cx + a11 * s + 8, cy + 4, "#52B788", 12);
+    drawText(
+      ctx,
+      "a11=" + a11.toFixed(2),
+      cx + a11 * s + 8,
+      cy + 4,
+      "#52B788",
+      12,
+    );
     drawArrow(ctx, cx, cy, cx, cy - a22 * s, "#2D6A4F", 3);
-    drawText(ctx, "a22=" + a22.toFixed(2), cx + 8, cy - a22 * s - 6, "#2D6A4F", 12);
+    drawText(
+      ctx,
+      "a22=" + a22.toFixed(2),
+      cx + 8,
+      cy - a22 * s - 6,
+      "#2D6A4F",
+      12,
+    );
     ctx.strokeStyle = "rgba(255,255,255,0.08)";
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
@@ -656,7 +1229,14 @@ function TraceVis() {
     ctx.lineWidth = 1.5;
     ctx.strokeRect(cx, cy - a22 * s, a11 * s, a22 * s);
     drawText(ctx, "trace = " + (a11 + a22).toFixed(2), 10, 22, "#52B788", 14);
-    drawText(ctx, "Trace = sum of diagonal scaling factors", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(
+      ctx,
+      "Trace = sum of diagonal scaling factors",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -722,7 +1302,14 @@ function TransposeVis() {
       }
     }
     ctx.textAlign = "left";
-    drawText(ctx, "Rows and Columns swap", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(
+      ctx,
+      "Rows and Columns swap",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -767,7 +1354,7 @@ function InverseVis() {
         return [x, y];
       },
       0.15,
-      "rgba(255,255,255,0.5)"
+      "rgba(255,255,255,0.5)",
     );
     drawShape(
       function (x, y) {
@@ -776,10 +1363,24 @@ function InverseVis() {
         return [lerp(x, fx, phase), lerp(y, fy, phase)];
       },
       0.2,
-      "#0077B6"
+      "#0077B6",
     );
-    drawText(ctx, phase < 0.5 ? "A * x transforming..." : "A^-1 * (Ax) undoing...", 10, 22, "#0077B6", 13);
-    drawText(ctx, "A^-1 A = I : Inverse perfectly reverses A", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(
+      ctx,
+      phase < 0.5 ? "A * x transforming..." : "A^-1 * (Ax) undoing...",
+      10,
+      22,
+      "#0077B6",
+      13,
+    );
+    drawText(
+      ctx,
+      "A^-1 A = I : Inverse perfectly reverses A",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -806,7 +1407,13 @@ function SpanVis() {
         ppy = cy - (i * v1y) / 2 - (j * v2y) / 2;
         if (ppx > 5 && ppx < w - 5 && ppy > 5 && ppy < h - 5) {
           dist = Math.sqrt(Math.pow(ppx - cx, 2) + Math.pow(ppy - cy, 2));
-          drawDot(ctx, ppx, ppy, 2, "rgba(188,108,37," + Math.max(0, 0.2 - dist / 600) + ")");
+          drawDot(
+            ctx,
+            ppx,
+            ppy,
+            2,
+            "rgba(188,108,37," + Math.max(0, 0.2 - dist / 600) + ")",
+          );
         }
       }
     }
@@ -814,7 +1421,14 @@ function SpanVis() {
     drawArrow(ctx, cx, cy, cx + v2x, cy - v2y, "#DDA15E", 2.5);
     drawText(ctx, "col1", cx + v1x + 6, cy - v1y, "#BC6C25", 12);
     drawText(ctx, "col2", cx + v2x + 6, cy - v2y, "#DDA15E", 12);
-    drawText(ctx, "Every dot = c1*col1 + c2*col2", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(
+      ctx,
+      "Every dot = c1*col1 + c2*col2",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -847,7 +1461,14 @@ function OrthogonalVis() {
     drawText(ctx, "v", cx + v2x + 8, cy - v2y, "#34D399", 14);
     var dot = v1x * v2x + v1y * v2y;
     drawText(ctx, "u.v = " + dot.toFixed(1) + " = 0", 10, 22, "#06D6A0", 14);
-    drawText(ctx, "90 degrees: dot product = 0", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(
+      ctx,
+      "90 degrees: dot product = 0",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -887,7 +1508,14 @@ function ProjectionVis() {
     drawDot(ctx, cx + ppx, cy - ppy, 4, "#F59E0B");
     drawText(ctx, "v", cx + vx + 8, cy - vy, "#FCD34D", 13);
     drawText(ctx, "proj", cx + ppx + 8, cy - ppy + 14, "#F59E0B", 13);
-    drawText(ctx, "Shadow of v onto the line", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(
+      ctx,
+      "Shadow of v onto the line",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -930,7 +1558,14 @@ function NormVis() {
     ctx.setLineDash([]);
     drawText(ctx, "||v||2 = " + l2.toFixed(1), 10, 22, "#EF4444", 14);
     drawText(ctx, "||v||1 = " + l1.toFixed(1), 10, 40, "#FCA5A5", 12);
-    drawText(ctx, "Circle = L2 ball, Diamond = L1 ball", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(
+      ctx,
+      "Circle = L2 ball, Diamond = L1 ball",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -984,7 +1619,363 @@ function SVDVis() {
     var idx = step < 0.33 ? 0 : step < 0.66 ? 1 : 2;
     drawText(ctx, "A = U Sigma V^T", 10, 22, "#C4B5FD", 14);
     drawText(ctx, labels[idx], 10, 42, "#A78BFA", 13);
-    drawText(ctx, "Every matrix = rotate, stretch, rotate", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(
+      ctx,
+      "Every matrix = rotate, stretch, rotate",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+function DiagonalizationVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    drawGrid(ctx, w, h);
+    var cx = w / 2;
+    var cy = h / 2;
+    var theta = 0.75;
+    var e1x = Math.cos(theta);
+    var e1y = Math.sin(theta);
+    var e2x = -Math.sin(theta);
+    var e2y = Math.cos(theta);
+    var l1 = 1.8;
+    var l2 = 0.45;
+
+    ctx.strokeStyle = "rgba(76,201,240,0.28)";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(cx - e1x * 160, cy + e1y * 160);
+    ctx.lineTo(cx + e1x * 160, cy - e1y * 160);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx - e2x * 160, cy + e2y * 160);
+    ctx.lineTo(cx + e2x * 160, cy - e2y * 160);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    var vx = Math.cos(t * 0.5) * 85;
+    var vy = Math.sin(t * 0.65) * 70;
+    var c1 = vx * e1x + vy * e1y;
+    var c2 = vx * e2x + vy * e2y;
+    var avx = l1 * c1 * e1x + l2 * c2 * e2x;
+    var avy = l1 * c1 * e1y + l2 * c2 * e2y;
+
+    drawArrow(ctx, cx, cy, cx + vx, cy - vy, "#93C5FD", 2.4);
+    drawArrow(ctx, cx, cy, cx + avx, cy - avy, "#4361EE", 3.2);
+    drawDot(ctx, cx + avx, cy - avy, 3.5, "#4CC9F0");
+
+    drawText(ctx, "v", cx + vx + 8, cy - vy, "#93C5FD", 13);
+    drawText(ctx, "Av", cx + avx + 8, cy - avy, "#4361EE", 13);
+    drawText(ctx, "A = P D P^-1", 10, 22, "#4CC9F0", 14);
+    drawText(
+      ctx,
+      "Eigenbasis turns coupling into pure scaling",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+function LUVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    drawGrid(ctx, w, h);
+    var cx = w / 2;
+    var cy = h / 2;
+    var s = 52;
+    var phase = (Math.sin(t * 0.8) + 1) / 2;
+    var pL = Math.min(phase * 2, 1);
+    var pU = Math.max((phase - 0.5) * 2, 0);
+    var shear = 0.85;
+    var u11 = 1.5;
+    var u12 = 0.6;
+    var u22 = 0.9;
+    var pts = [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [0, 1],
+    ];
+
+    function applyL(x, y, p) {
+      return [x, y + shear * x * p];
+    }
+    function applyU(x, y, p) {
+      var nx = x * (1 + (u11 - 1) * p) + y * u12 * p;
+      var ny = y * (1 + (u22 - 1) * p);
+      return [nx, ny];
+    }
+    function drawShape(transformFn, color, alpha) {
+      ctx.beginPath();
+      for (var i = 0; i < pts.length; i++) {
+        var r = transformFn(pts[i][0], pts[i][1]);
+        var sx = cx + r[0] * s;
+        var sy = cy - r[1] * s;
+        if (i === 0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      }
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.globalAlpha = alpha;
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = Math.min(alpha + 0.2, 1);
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    drawShape(
+      function (x, y) {
+        return [x, y];
+      },
+      "rgba(255,255,255,0.45)",
+      0.12,
+    );
+    drawShape(
+      function (x, y) {
+        var l = applyL(x, y, pL);
+        return l;
+      },
+      "#7DD3FC",
+      0.18,
+    );
+    drawShape(
+      function (x, y) {
+        var l = applyL(x, y, pL);
+        return applyU(l[0], l[1], pU);
+      },
+      "#0EA5E9",
+      0.24,
+    );
+
+    drawText(ctx, "A = L U", 10, 22, "#7DD3FC", 14);
+    drawText(
+      ctx,
+      pU < 0.02
+        ? "Stage 1: Lower-triangular shear (L)"
+        : "Stage 2: Upper-triangular combine (U)",
+      10,
+      42,
+      "#0EA5E9",
+      12,
+    );
+    drawText(
+      ctx,
+      "Factorization separates elimination into two simple solves",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+function QRVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    drawGrid(ctx, w, h);
+    var cx = w / 2;
+    var cy = h / 2;
+    var a = t * 0.25;
+    var a1x = Math.cos(a) * 92;
+    var a1y = Math.sin(a) * 92;
+    var a1n = Math.sqrt(a1x * a1x + a1y * a1y);
+    var q1x = a1x / a1n;
+    var q1y = a1y / a1n;
+    var perpX = -q1y;
+    var perpY = q1x;
+    var mix = 42 + Math.sin(t * 0.6) * 20;
+    var a2x = q1x * mix + perpX * 78;
+    var a2y = q1y * mix + perpY * 78;
+
+    var r11 = a1x * q1x + a1y * q1y;
+    var r12 = a2x * q1x + a2y * q1y;
+    var u2x = a2x - r12 * q1x;
+    var u2y = a2y - r12 * q1y;
+    var r22 = Math.sqrt(u2x * u2x + u2y * u2y);
+    var q2x = u2x / r22;
+    var q2y = u2y / r22;
+
+    drawArrow(ctx, cx, cy, cx + a1x, cy - a1y, "rgba(125,211,252,0.5)", 2);
+    drawArrow(ctx, cx, cy, cx + a2x, cy - a2y, "rgba(125,211,252,0.5)", 2);
+    drawArrow(ctx, cx, cy, cx + q1x * 90, cy - q1y * 90, "#84CC16", 3.2);
+    drawArrow(ctx, cx, cy, cx + q2x * 90, cy - q2y * 90, "#BEF264", 3.2);
+
+    var sq = 11;
+    var n1x = q1x * sq;
+    var n1y = -q1y * sq;
+    var n2x = q2x * sq;
+    var n2y = -q2y * sq;
+    ctx.strokeStyle = "rgba(190,242,100,0.55)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cx + n1x, cy + n1y);
+    ctx.lineTo(cx + n1x + n2x, cy + n1y + n2y);
+    ctx.lineTo(cx + n2x, cy + n2y);
+    ctx.stroke();
+
+    drawText(ctx, "Q columns", cx + q1x * 90 + 6, cy - q1y * 90, "#84CC16", 12);
+    drawText(
+      ctx,
+      "orthonormal",
+      cx + q2x * 90 + 6,
+      cy - q2y * 90,
+      "#BEF264",
+      12,
+    );
+    drawText(ctx, "A = Q R", 10, 22, "#BEF264", 14);
+    drawText(
+      ctx,
+      "r11=" +
+        r11.toFixed(1) +
+        "  r12=" +
+        r12.toFixed(1) +
+        "  r22=" +
+        r22.toFixed(1),
+      10,
+      42,
+      "#84CC16",
+      12,
+    );
+    drawText(
+      ctx,
+      "QR turns arbitrary columns into orthonormal geometry + coefficients",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      10.5,
+    );
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+function ConditionVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    var cy = h / 2;
+    var lx = w * 0.27;
+    var rx = w * 0.73;
+    var inputScale = 68;
+    var outputScale = 76;
+
+    function transform(x, y) {
+      var a1 = 0.62;
+      var c1 = Math.cos(a1);
+      var s1 = Math.sin(a1);
+      var xr = x * c1 - y * s1;
+      var yr = x * s1 + y * c1;
+      xr *= 2.9;
+      yr *= 0.23;
+      var a2 = -0.25;
+      var c2 = Math.cos(a2);
+      var s2 = Math.sin(a2);
+      return [xr * c2 - yr * s2, xr * s2 + yr * c2];
+    }
+
+    ctx.strokeStyle = "rgba(255,255,255,0.1)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(lx, cy, inputScale, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(244,63,94,0.25)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (var i = 0; i <= 72; i++) {
+      var ang = (i / 72) * Math.PI * 2;
+      var r = transform(Math.cos(ang), Math.sin(ang));
+      var ex = rx + r[0] * outputScale;
+      var ey = cy - r[1] * outputScale;
+      if (i === 0) ctx.moveTo(ex, ey);
+      else ctx.lineTo(ex, ey);
+    }
+    ctx.closePath();
+    ctx.stroke();
+
+    var a = 1.1 + t * 0.35;
+    var delta = 0.06;
+    var v1 = [Math.cos(a), Math.sin(a)];
+    var v2 = [Math.cos(a + delta), Math.sin(a + delta)];
+    var o1 = transform(v1[0], v1[1]);
+    var o2 = transform(v2[0], v2[1]);
+
+    drawArrow(
+      ctx,
+      lx,
+      cy,
+      lx + v1[0] * inputScale,
+      cy - v1[1] * inputScale,
+      "rgba(255,255,255,0.75)",
+      2.2,
+    );
+    drawArrow(
+      ctx,
+      lx,
+      cy,
+      lx + v2[0] * inputScale,
+      cy - v2[1] * inputScale,
+      "rgba(255,255,255,0.42)",
+      2.2,
+    );
+
+    drawArrow(
+      ctx,
+      rx,
+      cy,
+      rx + o1[0] * outputScale,
+      cy - o1[1] * outputScale,
+      "#F43F5E",
+      2.8,
+    );
+    drawArrow(
+      ctx,
+      rx,
+      cy,
+      rx + o2[0] * outputScale,
+      cy - o2[1] * outputScale,
+      "#FDA4AF",
+      2.8,
+    );
+
+    var inSep = Math.sqrt(
+      Math.pow(v1[0] - v2[0], 2) + Math.pow(v1[1] - v2[1], 2),
+    );
+    var outSep = Math.sqrt(
+      Math.pow(o1[0] - o2[0], 2) + Math.pow(o1[1] - o2[1], 2),
+    );
+    var amp = outSep / (inSep + 1e-9);
+
+    drawText(
+      ctx,
+      "Input space",
+      lx - 36,
+      cy - inputScale - 12,
+      "rgba(255,255,255,0.45)",
+      11,
+    );
+    drawText(
+      ctx,
+      "Output space",
+      rx - 38,
+      cy - outputScale - 12,
+      "rgba(255,255,255,0.45)",
+      11,
+    );
+    drawText(ctx, "kappa(A) ~= " + amp.toFixed(1), 10, 22, "#FDA4AF", 14);
+    drawText(
+      ctx,
+      "Nearby inputs can separate sharply after A",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -1011,8 +2002,8 @@ function PosDefVis() {
       ctx.beginPath();
       for (i2 = 0; i2 <= 64; i2++) {
         a2 = (i2 / 64) * Math.PI * 2;
-        ex = Math.cos(a2) * sc / Math.sqrt(l1);
-        ey = Math.sin(a2) * sc / Math.sqrt(l2);
+        ex = (Math.cos(a2) * sc) / Math.sqrt(l1);
+        ey = (Math.sin(a2) * sc) / Math.sqrt(l2);
         rx = ex * Math.cos(angle) - ey * Math.sin(angle);
         ry = ex * Math.sin(angle) + ey * Math.cos(angle);
         if (i2 === 0) ctx.moveTo(cx + rx, cy - ry);
@@ -1039,15 +2030,22 @@ function PosDefVis() {
     ctx.setLineDash([]);
     var pa = t * 0.8;
     var pr = 60;
-    var ppx = Math.cos(pa) * pr / Math.sqrt(l1);
-    var ppy = Math.sin(pa) * pr / Math.sqrt(l2);
+    var ppx = (Math.cos(pa) * pr) / Math.sqrt(l1);
+    var ppy = (Math.sin(pa) * pr) / Math.sqrt(l2);
     var rpx = ppx * Math.cos(angle) - ppy * Math.sin(angle);
     var rpy = ppx * Math.sin(angle) + ppy * Math.cos(angle);
     drawDot(ctx, cx + rpx, cy - rpy, 5, "#10B981");
     drawDot(ctx, cx, cy, 4, "#6EE7B7");
     drawText(ctx, "lambda1 = 2 > 0", 10, 22, "#10B981", 13);
     drawText(ctx, "lambda2 = 0.8 > 0", 10, 40, "#6EE7B7", 13);
-    drawText(ctx, "All lambda > 0: bowl shape, always positive", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(
+      ctx,
+      "All lambda > 0: bowl shape, always positive",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -1099,7 +2097,11 @@ function SymmetricVis() {
         isHighA = currentPair[0][0] === r && currentPair[0][1] === c;
         isHighB = currentPair[1][0] === r && currentPair[1][1] === c;
         isHigh = isHighA || isHighB;
-        ctx.fillStyle = isDiag ? "rgba(236,72,153,0.35)" : isHigh ? "rgba(249,168,212," + (0.3 + pulse * 0.3) + ")" : "rgba(255,255,255,0.06)";
+        ctx.fillStyle = isDiag
+          ? "rgba(236,72,153,0.35)"
+          : isHigh
+            ? "rgba(249,168,212," + (0.3 + pulse * 0.3) + ")"
+            : "rgba(255,255,255,0.06)";
         drawRoundRect(ctx, x, y, cs, cs, 8);
         ctx.fill();
         if (isHigh) {
@@ -1108,7 +2110,11 @@ function SymmetricVis() {
           drawRoundRect(ctx, x, y, cs, cs, 8);
           ctx.stroke();
         }
-        ctx.fillStyle = isDiag ? "#EC4899" : isHigh ? "#F9A8D4" : "rgba(255,255,255,0.5)";
+        ctx.fillStyle = isDiag
+          ? "#EC4899"
+          : isHigh
+            ? "#F9A8D4"
+            : "rgba(255,255,255,0.5)";
         ctx.font = "bold 16px monospace";
         ctx.fillText(String(vals[r][c]), x + cs / 2, y + cs / 2 + 6);
       }
@@ -1120,14 +2126,26 @@ function SymmetricVis() {
     ctx.moveTo(ox, oy);
     ctx.lineTo(ox + 3 * (cs + gap), oy + 3 * (cs + gap));
     ctx.stroke();
-    drawText(ctx, "A = A^T: mirror across diagonal", 10, h - 30, "rgba(255,255,255,0.5)", 11);
     drawText(
       ctx,
-      "a[" + currentPair[0] + "] = a[" + currentPair[1] + "] = " + vals[currentPair[0][0]][currentPair[0][1]],
+      "A = A^T: mirror across diagonal",
+      10,
+      h - 30,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
+    drawText(
+      ctx,
+      "a[" +
+        currentPair[0] +
+        "] = a[" +
+        currentPair[1] +
+        "] = " +
+        vals[currentPair[0][0]][currentPair[0][1]],
       10,
       h - 14,
       "#F9A8D4",
-      12
+      12,
     );
   }, []);
   return <Canvas2D draw={draw} />;
@@ -1152,7 +2170,14 @@ function LinIndepVis() {
         drawArrow(ctx, cx, cy, cx + v2x, cy - v2y, "#FDBA74", 3);
         drawText(ctx, "v1", cx + v1x + 8, cy - v1y, "#F97316", 14);
         drawText(ctx, "v2", cx + v2x + 8, cy - v2y, "#FDBA74", 14);
-        drawText(ctx, "Independent: no scalar c makes v2 = c*v1", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+        drawText(
+          ctx,
+          "Independent: no scalar c makes v2 = c*v1",
+          10,
+          h - 14,
+          "rgba(255,255,255,0.5)",
+          11,
+        );
       } else {
         var a2 = t * 0.3;
         var dx = Math.cos(a2);
@@ -1168,11 +2193,25 @@ function LinIndepVis() {
         drawArrow(ctx, cx, cy, cx + dx * 90, cy - dy * 90, "#F97316", 3);
         drawArrow(ctx, cx, cy, cx + dx * 55, cy - dy * 55, "#FDBA74", 3);
         drawText(ctx, "v1", cx + dx * 90 + 8, cy - dy * 90, "#F97316", 14);
-        drawText(ctx, "v2=0.6*v1", cx + dx * 55 + 8, cy - dy * 55 - 14, "#FDBA74", 12);
-        drawText(ctx, "Dependent: v2 is a scaled copy of v1", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+        drawText(
+          ctx,
+          "v2=0.6*v1",
+          cx + dx * 55 + 8,
+          cy - dy * 55 - 14,
+          "#FDBA74",
+          12,
+        );
+        drawText(
+          ctx,
+          "Dependent: v2 is a scaled copy of v1",
+          10,
+          h - 14,
+          "rgba(255,255,255,0.5)",
+          11,
+        );
       }
     },
-    [dep]
+    [dep],
   );
   return (
     <div>
@@ -1255,9 +2294,23 @@ function BasisVis() {
     ctx.stroke();
     ctx.setLineDash([]);
     drawDot(ctx, cx + vx, cy - vy, 5, "#fff");
-    drawText(ctx, "v = 1.5b1 + 0.8b2", cx + vx + 8, cy - vy, "rgba(255,255,255,0.7)", 11);
+    drawText(
+      ctx,
+      "v = 1.5b1 + 0.8b2",
+      cx + vx + 8,
+      cy - vy,
+      "rgba(255,255,255,0.7)",
+      11,
+    );
     drawText(ctx, "dim = 2 (need 2 basis vectors)", 10, 22, "#5EEAD4", 12);
-    drawText(ctx, "Any basis spans the whole space minimally", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(
+      ctx,
+      "Any basis spans the whole space minimally",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -1276,8 +2329,12 @@ var VIS_MAP = {
   projection: ProjectionVis,
   norm: NormVis,
   svd: SVDVis,
+  diagonalization: DiagonalizationVis,
+  lu: LUVis,
+  qr: QRVis,
   posdef: PosDefVis,
   symmetric: SymmetricVis,
+  condition: ConditionVis,
   linindep: LinIndepVis,
   basis: BasisVis,
 };
@@ -1291,6 +2348,12 @@ export default function MatrixIntuition() {
     return c.id === active;
   });
   var explanation = EXPLANATIONS[active];
+  var details = CONCEPT_DETAILS[active] || {
+    deeper: "",
+    useCases: [],
+    pitfalls: [],
+    quickCheck: "",
+  };
   var VisComponent = VIS_MAP[active];
 
   return (
@@ -1317,8 +2380,15 @@ export default function MatrixIntuition() {
           >
             Visual Intuition for Matrices
           </h1>
-          <p style={{ fontFamily: "monospace", fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 6 }}>
-            16 interactive geometric interpretations
+          <p
+            style={{
+              fontFamily: "monospace",
+              fontSize: 12,
+              color: "rgba(255,255,255,0.3)",
+              marginTop: 6,
+            }}
+          >
+            {CONCEPTS.length + " interactive geometric interpretations"}
           </p>
         </div>
 
@@ -1351,9 +2421,14 @@ export default function MatrixIntuition() {
                         style={{
                           padding: "5px 12px",
                           borderRadius: 16,
-                          border: active === c.id ? "1.5px solid " + c.color : "1.5px solid rgba(255,255,255,0.06)",
-                          background: active === c.id ? c.color + "15" : "transparent",
-                          color: active === c.id ? c.color : "rgba(255,255,255,0.4)",
+                          border:
+                            active === c.id
+                              ? "1.5px solid " + c.color
+                              : "1.5px solid rgba(255,255,255,0.06)",
+                          background:
+                            active === c.id ? c.color + "15" : "transparent",
+                          color:
+                            active === c.id ? c.color : "rgba(255,255,255,0.4)",
                           fontFamily: "monospace",
                           fontSize: 11,
                           fontWeight: 500,
@@ -1394,7 +2469,17 @@ export default function MatrixIntuition() {
             >
               {concept.title}
             </h2>
-            <p style={{ fontFamily: "monospace", fontSize: 11, color: concept.accent, marginBottom: 18, opacity: 0.6 }}>{concept.subtitle}</p>
+            <p
+              style={{
+                fontFamily: "monospace",
+                fontSize: 11,
+                color: concept.accent,
+                marginBottom: 18,
+                opacity: 0.6,
+              }}
+            >
+              {concept.subtitle}
+            </p>
 
             <div style={{ marginBottom: 16 }}>
               <div
@@ -1409,7 +2494,15 @@ export default function MatrixIntuition() {
               >
                 Definition
               </div>
-              <p style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.68)" }}>{explanation.what}</p>
+              <p
+                style={{
+                  fontSize: 13,
+                  lineHeight: 1.65,
+                  color: "rgba(255,255,255,0.68)",
+                }}
+              >
+                {explanation.what}
+              </p>
             </div>
 
             <div style={{ marginBottom: 16 }}>
@@ -1425,7 +2518,39 @@ export default function MatrixIntuition() {
               >
                 Visual Intuition
               </div>
-              <p style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.68)" }}>{explanation.visual}</p>
+              <p
+                style={{
+                  fontSize: 13,
+                  lineHeight: 1.65,
+                  color: "rgba(255,255,255,0.68)",
+                }}
+              >
+                {explanation.visual}
+              </p>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <div
+                style={{
+                  fontFamily: "monospace",
+                  fontSize: 9,
+                  color: "rgba(255,255,255,0.25)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  marginBottom: 5,
+                }}
+              >
+                Deeper View
+              </div>
+              <p
+                style={{
+                  fontSize: 13,
+                  lineHeight: 1.65,
+                  color: "rgba(255,255,255,0.68)",
+                }}
+              >
+                {details.deeper}
+              </p>
             </div>
 
             <div style={{ marginBottom: 18 }}>
@@ -1443,9 +2568,132 @@ export default function MatrixIntuition() {
               </div>
               {explanation.intuition.map(function (item, i) {
                 return (
-                  <div key={i} style={{ display: "flex", gap: 10, marginBottom: 6, alignItems: "baseline" }}>
-                    <span style={{ color: concept.color, fontFamily: "monospace", fontSize: 10, opacity: 0.5, flexShrink: 0 }}>{String(i + 1).padStart(2, "0")}</span>
-                    <span style={{ fontSize: 12.5, lineHeight: 1.55, color: "rgba(255,255,255,0.6)" }}>{item}</span>
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      marginBottom: 6,
+                      alignItems: "baseline",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: concept.color,
+                        fontFamily: "monospace",
+                        fontSize: 10,
+                        opacity: 0.5,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 12.5,
+                        lineHeight: 1.55,
+                        color: "rgba(255,255,255,0.6)",
+                      }}
+                    >
+                      {item}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ marginBottom: 18 }}>
+              <div
+                style={{
+                  fontFamily: "monospace",
+                  fontSize: 9,
+                  color: "rgba(255,255,255,0.25)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  marginBottom: 8,
+                }}
+              >
+                Practical Use Cases
+              </div>
+              {details.useCases.map(function (item, i) {
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      marginBottom: 6,
+                      alignItems: "baseline",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: concept.accent,
+                        fontFamily: "monospace",
+                        fontSize: 10,
+                        opacity: 0.7,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 12.5,
+                        lineHeight: 1.55,
+                        color: "rgba(255,255,255,0.6)",
+                      }}
+                    >
+                      {item}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ marginBottom: 18 }}>
+              <div
+                style={{
+                  fontFamily: "monospace",
+                  fontSize: 9,
+                  color: "rgba(255,255,255,0.25)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  marginBottom: 8,
+                }}
+              >
+                Common Pitfalls
+              </div>
+              {details.pitfalls.map(function (item, i) {
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      marginBottom: 6,
+                      alignItems: "baseline",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: "rgba(255,184,107,0.9)",
+                        fontFamily: "monospace",
+                        fontSize: 11,
+                        flexShrink: 0,
+                      }}
+                    >
+                      !!
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 12.5,
+                        lineHeight: 1.55,
+                        color: "rgba(255,255,255,0.58)",
+                      }}
+                    >
+                      {item}
+                    </span>
                   </div>
                 );
               })}
@@ -1471,7 +2719,48 @@ export default function MatrixIntuition() {
               >
                 Formula
               </div>
-              <code style={{ fontFamily: "monospace", fontSize: 12, color: concept.accent }}>{explanation.formula}</code>
+              <code
+                style={{
+                  fontFamily: "monospace",
+                  fontSize: 12,
+                  color: concept.accent,
+                }}
+              >
+                {explanation.formula}
+              </code>
+            </div>
+
+            <div
+              style={{
+                marginTop: 12,
+                background: "rgba(255,255,255,0.02)",
+                border: "1px solid rgba(255,255,255,0.05)",
+                borderRadius: 10,
+                padding: "10px 14px",
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "monospace",
+                  fontSize: 9,
+                  color: "rgba(255,255,255,0.25)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  marginBottom: 5,
+                }}
+              >
+                Quick Check
+              </div>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 12.5,
+                  lineHeight: 1.6,
+                  color: "rgba(255,255,255,0.65)",
+                }}
+              >
+                {details.quickCheck}
+              </p>
             </div>
           </div>
         </div>

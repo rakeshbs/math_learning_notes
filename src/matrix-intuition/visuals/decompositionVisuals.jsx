@@ -1,6 +1,12 @@
 import { useCallback, useState } from "react";
 import { Canvas2D } from "../components/Canvas2D";
-import { drawGrid, drawArrow, drawText, drawDot, drawRoundRect } from "../drawing/helpers";
+import {
+  drawGrid,
+  drawArrow,
+  drawText,
+  drawDot,
+  drawRoundRect,
+} from "../drawing/helpers";
 export function SVDVis() {
   var draw = useCallback(function (ctx, w, h, t) {
     drawGrid(ctx, w, h);
@@ -406,6 +412,140 @@ export function ConditionVis() {
       h - 14,
       "rgba(255,255,255,0.5)",
       11,
+    );
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+export function CholeskyVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    drawGrid(ctx, w, h);
+    var cx = w / 2;
+    var cy = h / 2;
+    var s = 56;
+    var phase = (Math.sin(t * 0.75) + 1) / 2;
+    var pL = Math.min(phase * 2, 1);
+    var pLT = Math.max((phase - 0.5) * 2, 0);
+    var l11 = 1.5;
+    var l21 = 0.65;
+    var l22 = 1.15;
+    var N = 64;
+
+    function lerp(a, b, p) {
+      return a + (b - a) * p;
+    }
+    function applyL(x, y) {
+      return [l11 * x, l21 * x + l22 * y];
+    }
+    function applyLT(x, y) {
+      return [l11 * x + l21 * y, l22 * y];
+    }
+
+    ctx.strokeStyle = "#16A34A";
+    ctx.fillStyle = "rgba(22,163,74,0.08)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (var i = 0; i <= N; i++) {
+      var a = (i / N) * Math.PI * 2;
+      var x = Math.cos(a);
+      var y = Math.sin(a);
+      var l = applyL(x, y);
+      var lt = applyLT(l[0], l[1]);
+      var x1 = lerp(x, l[0], pL);
+      var y1 = lerp(y, l[1], pL);
+      var x2 = lerp(x1, lt[0], pLT);
+      var y2 = lerp(y1, lt[1], pLT);
+      var sx = cx + x2 * s;
+      var sy = cy - y2 * s;
+      if (i === 0) ctx.moveTo(sx, sy);
+      else ctx.lineTo(sx, sy);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    drawArrow(ctx, cx, cy, cx + l11 * 45, cy - l21 * 45, "#86EFAC", 2.5);
+    drawArrow(ctx, cx, cy, cx, cy - l22 * 45, "#16A34A", 2.5);
+
+    drawText(ctx, "A = L L^T", 10, 22, "#86EFAC", 14);
+    drawText(
+      ctx,
+      pLT < 0.02 ? "Stage 1: apply L" : "Stage 2: apply L^T",
+      10,
+      42,
+      "#16A34A",
+      12,
+    );
+    drawText(
+      ctx,
+      "SPD transform as a triangular square-root composition",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      10.8,
+    );
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+export function PseudoinverseVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    drawGrid(ctx, w, h);
+    var cx = w / 2;
+    var cy = h / 2;
+    var a = 0.45;
+    var dx = Math.cos(a);
+    var dy = Math.sin(a);
+
+    ctx.strokeStyle = "rgba(249,168,212,0.3)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(cx - dx * 160, cy + dy * 160);
+    ctx.lineTo(cx + dx * 160, cy - dy * 160);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    var bx = Math.cos(t * 0.45 + 0.7) * 95;
+    var by = Math.sin(t * 0.62 + 0.2) * 80;
+    var projScale = bx * dx + by * dy;
+    var px = dx * projScale;
+    var py = dy * projScale;
+    var err = Math.sqrt(Math.pow(bx - px, 2) + Math.pow(by - py, 2));
+
+    drawArrow(ctx, cx, cy, cx + bx, cy - by, "rgba(255,255,255,0.55)", 2.3);
+    drawArrow(ctx, cx, cy, cx + px, cy - py, "#DB2777", 3.4);
+
+    ctx.strokeStyle = "rgba(249,168,212,0.4)";
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(cx + bx, cy - by);
+    ctx.lineTo(cx + px, cy - py);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    drawDot(ctx, cx + bx, cy - by, 3.5, "#fff");
+    drawDot(ctx, cx + px, cy - py, 4, "#DB2777");
+    drawText(ctx, "b", cx + bx + 6, cy - by, "rgba(255,255,255,0.7)", 12);
+    drawText(ctx, "Ax*", cx + px + 6, cy - py, "#DB2777", 12);
+
+    drawText(ctx, "x* = A^+ b", 10, 22, "#F9A8D4", 14);
+    drawText(
+      ctx,
+      "least-squares error ||Ax* - b|| = " + err.toFixed(1),
+      10,
+      42,
+      "#DB2777",
+      12,
+    );
+    drawText(
+      ctx,
+      "Pseudoinverse maps b to the closest reachable output",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      10.6,
     );
   }, []);
   return <Canvas2D draw={draw} />;

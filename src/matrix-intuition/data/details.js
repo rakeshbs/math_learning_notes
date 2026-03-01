@@ -97,6 +97,48 @@ export const CONCEPT_DETAILS = {
     ],
     quickCheck: "A is invertible iff rank = n (square) iff det(A) != 0.",
   },
+  identity: {
+    deeper:
+      "Identity is the neutral map in a vector space: it preserves every vector and every subspace exactly.",
+    useCases: [
+      "Baseline transform in graphics/simulation pipelines",
+      "Initialization for iterative matrix products",
+      "Reference operator in proofs and algorithms",
+    ],
+    pitfalls: [
+      "Using mismatched identity size (I_n vs I_m)",
+      "Confusing identity with diagonal matrices having non-one entries",
+    ],
+    quickCheck: "All diagonal entries are 1 and off-diagonals are 0.",
+  },
+  multiplication: {
+    deeper:
+      "Matrix multiplication combines linear maps into one operator. Dimension compatibility is required: (m x n)(n x p) -> (m x p).",
+    useCases: [
+      "Compose rigid and affine transformations",
+      "Model layered linear systems",
+      "Build powers and transition operators",
+    ],
+    pitfalls: [
+      "Ignoring order when composing transforms",
+      "Multiplying incompatible dimensions",
+    ],
+    quickCheck: "For x, verify B(Ax) matches (BA)x.",
+  },
+  noncommute: {
+    deeper:
+      "Non-commutativity means transformation order is information. Two maps with identical factors can produce different outcomes when swapped.",
+    useCases: [
+      "Reason about pipeline order in graphics/robotics",
+      "Analyze operator interactions in physics/control",
+      "Use commutators in Lie algebra style modeling",
+    ],
+    pitfalls: [
+      "Assuming AB and BA are interchangeable",
+      "Simplifying symbolic expressions as if scalars",
+    ],
+    quickCheck: "Compute AB and BA on a test vector; compare outputs.",
+  },
   span: {
     deeper:
       "Span is the closure under linear combinations. Column space tells exactly which right-hand sides b are reachable in Ax = b.",
@@ -210,6 +252,20 @@ export const CONCEPT_DETAILS = {
     ],
     quickCheck: "Columns of Q should be unit and mutually orthogonal.",
   },
+  cholesky: {
+    deeper:
+      "Cholesky is a triangular square-root for SPD matrices. It reveals geometry and enables fast stable solves.",
+    useCases: [
+      "Solving SPD linear systems in optimization",
+      "Sampling correlated Gaussians",
+      "Efficient covariance-based computations",
+    ],
+    pitfalls: [
+      "Applying Cholesky to non-symmetric or indefinite matrices",
+      "Ignoring near-singularity causing numerical breakdown",
+    ],
+    quickCheck: "If factorization fails, A is not sufficiently SPD.",
+  },
   posdef: {
     deeper:
       "Positive definite matrices define inner products and energy bowls. They guarantee unique minimizers in many quadratic problems.",
@@ -251,6 +307,21 @@ export const CONCEPT_DETAILS = {
       "Ignoring units/scaling that inflate kappa",
     ],
     quickCheck: "kappa near 1 is stable; very large kappa is fragile.",
+  },
+  pseudoinverse: {
+    deeper:
+      "Pseudoinverse unifies solve strategies across rectangular/singular cases and selects the minimum-norm least-squares solution.",
+    useCases: [
+      "Least squares for overdetermined systems",
+      "Recovering signals with rank-deficient operators",
+      "Robust inverse kinematics in robotics",
+    ],
+    pitfalls: [
+      "Inverting tiny singular values without regularization",
+      "Expecting exact solves when b is outside column space",
+    ],
+    quickCheck:
+      "Compute Ax* with x*=A^+b; it should equal projection of b onto Col(A).",
   },
   linindep: {
     deeper:
@@ -369,6 +440,44 @@ export const CONCEPT_EXPANSIONS = {
       "Undoing transformations",
     ],
   },
+  identity: {
+    algebraic:
+      "Identity I satisfies I x = x and A I = I A = A for compatible sizes.",
+    computation:
+      "Construct with ones on the diagonal and zeros elsewhere; size must match the space/operator side.",
+    workedExample: "For any A in R^(m x n), A I_n = A and I_m A = A.",
+    connections: [
+      "Neutral element under multiplication",
+      "Inverse definitions",
+      "Basis vectors fixed pointwise",
+    ],
+  },
+  multiplication: {
+    algebraic:
+      "Multiplication is composition: (BA)x = B(Ax). Associative, but generally not commutative.",
+    computation:
+      "Use row-by-column dot products or block multiplication for structure and efficiency.",
+    workedExample:
+      "If A scales then B rotates, BA represents rotate-after-scale as one matrix.",
+    connections: [
+      "Transformation pipelines",
+      "Non-commutativity",
+      "Matrix powers and exponentials",
+    ],
+  },
+  noncommute: {
+    algebraic:
+      "Commutator [A,B] = AB - BA measures order mismatch. Zero commutator means the pair commutes.",
+    computation:
+      "Compare AB and BA numerically or evaluate both on a basis to reveal differences.",
+    workedExample:
+      "A shear and a rotation usually produce different outputs when their order is swapped.",
+    connections: [
+      "Operator algebra",
+      "Order-sensitive modeling",
+      "Lie-theoretic structures",
+    ],
+  },
   span: {
     algebraic:
       "Span(v1,...,vk) is the smallest subspace containing the vectors, i.e., all linear combinations of them.",
@@ -461,6 +570,18 @@ export const CONCEPT_EXPANSIONS = {
       "Least squares becomes Rx = Q^T b, solved by back substitution.",
     connections: ["Orthogonality", "Least squares", "Eigenvalue QR iteration"],
   },
+  cholesky: {
+    algebraic:
+      "For SPD A, there exists unique lower-triangular L with positive diagonal such that A = L L^T.",
+    computation:
+      "Compute L entry-by-entry; solve Ax=b using Ly=b then L^T x=y.",
+    workedExample: "A=[[4,2],[2,3]] yields L=[[2,0],[1,sqrt(2)]].",
+    connections: [
+      "Positive definiteness",
+      "Fast SPD solves",
+      "Covariance factorization",
+    ],
+  },
   posdef: {
     algebraic:
       "For symmetric A, x^T A x > 0 for all x != 0 is equivalent to all eigenvalues positive and to a Cholesky factorization.",
@@ -494,6 +615,19 @@ export const CONCEPT_EXPANSIONS = {
     workedExample:
       "kappa = 10^6 implies tiny data noise can massively perturb computed answers.",
     connections: ["Near singularity", "SVD", "Numerical stability limits"],
+  },
+  pseudoinverse: {
+    algebraic:
+      "A^+ is defined by Moore-Penrose conditions and equals V Sigma^+ U^T via SVD.",
+    computation:
+      "Compute SVD, invert only nonzero singular values, and optionally truncate tiny ones for stability.",
+    workedExample:
+      "For rank-deficient A, x*=A^+b gives least-squares fit with minimal Euclidean norm.",
+    connections: [
+      "Least squares projection",
+      "SVD truncation/regularization",
+      "Generalized inverses",
+    ],
   },
   linindep: {
     algebraic:

@@ -83,6 +83,42 @@ export const EXPLANATIONS = {
     ],
     formula: "A^-1 exists iff det(A) != 0 ; A A^-1 = I",
   },
+  identity: {
+    what: "The identity matrix I leaves every vector unchanged. It is the neutral element of matrix multiplication.",
+    visual:
+      "The input arrow and output arrow overlap exactly. Nothing rotates, stretches, or reflects under I.",
+    intuition: [
+      "I x = x for every vector x",
+      "A I = I A = A for compatible dimensions",
+      "Identity keeps basis vectors fixed",
+      "Inverse definitions use identity: A A^-1 = I",
+    ],
+    formula: "I_n x = x ; A I_n = I_m A = A",
+  },
+  multiplication: {
+    what: "Matrix multiplication composes linear transformations. Multiplying matrices means applying one transformation after another.",
+    visual:
+      "A shape first transforms by A, then by B. The final result matches a single combined matrix BA.",
+    intuition: [
+      "Applying A then B equals BA (right-to-left on vectors)",
+      "Composition is associative: C(BA) = (CB)A",
+      "Columns of BA are B acting on columns of A",
+      "Multiplication combines geometry into one map",
+    ],
+    formula: "x -> A x -> B(Ax) = (BA)x",
+  },
+  noncommute: {
+    what: "Most matrix products do not commute. Changing order usually changes the transformation and output.",
+    visual:
+      "The same starting vector follows two paths: AB and BA. Endpoints differ, showing order sensitivity.",
+    intuition: [
+      "Usually AB != BA",
+      "Commuting matrices are special, not typical",
+      "Order encodes operation sequence",
+      "Commutator quantifies mismatch",
+    ],
+    formula: "[A,B] = AB - BA ; generally [A,B] != 0",
+  },
   span: {
     what: "The column space is all possible outputs Ax. It is the span of column vectors, every reachable point by combining them.",
     visual:
@@ -179,6 +215,18 @@ export const EXPLANATIONS = {
     ],
     formula: "A = Q R with Q^T Q = I and R upper triangular",
   },
+  cholesky: {
+    what: "Cholesky factorization writes a symmetric positive definite matrix as A = L L^T, where L is lower triangular.",
+    visual:
+      "A unit shape is transformed by L, then by L^T. Together they produce the full SPD transformation.",
+    intuition: [
+      "Only for symmetric positive definite matrices",
+      "Faster and stabler than generic LU for SPD systems",
+      "Solving Ax=b becomes two triangular solves",
+      "Acts like a matrix square-root factorization",
+    ],
+    formula: "A = L L^T with L lower triangular and diag(L) > 0",
+  },
   posdef: {
     what: "A symmetric matrix is positive definite if x^T A x > 0 for every nonzero x. The quadratic form is a bowl that always curves upward.",
     visual:
@@ -214,6 +262,18 @@ export const EXPLANATIONS = {
       "Least squares becomes fragile when A has large condition number",
     ],
     formula: "kappa_2(A) = sigma_max / sigma_min = ||A|| * ||A^-1||",
+  },
+  pseudoinverse: {
+    what: "The Moore-Penrose pseudoinverse A^+ generalizes inversion to singular or rectangular matrices and gives least-squares/minimum-norm solutions.",
+    visual:
+      "A target vector b is dropped to the column space to get Ax*. The pseudoinverse computes x* whose image is that closest point.",
+    intuition: [
+      "If A is invertible, A^+ = A^-1",
+      "For inconsistent Ax=b, x* minimizes ||Ax-b||2",
+      "Among least-squares solutions, pseudoinverse gives minimum ||x||2",
+      "Built directly from SVD by inverting nonzero singular values",
+    ],
+    formula: "x* = A^+ b ; A^+ = V Sigma^+ U^T",
   },
   linindep: {
     what: "Vectors are linearly independent if none can be written as a combination of the others. The only solution to c1 v1 + c2 v2 + ... = 0 is all c = 0.",

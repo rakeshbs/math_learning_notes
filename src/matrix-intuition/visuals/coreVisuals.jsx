@@ -1,6 +1,12 @@
 import { useCallback, useState } from "react";
 import { Canvas2D } from "../components/Canvas2D";
-import { drawGrid, drawArrow, drawText, drawDot, drawRoundRect } from "../drawing/helpers";
+import {
+  drawGrid,
+  drawArrow,
+  drawText,
+  drawDot,
+  drawRoundRect,
+} from "../drawing/helpers";
 export function RankVis() {
   var st = useState(2);
   var rankCase = st[0];
@@ -579,6 +585,183 @@ export function SpanVis() {
     drawText(
       ctx,
       "Every dot = c1*col1 + c2*col2",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+export function IdentityVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    drawGrid(ctx, w, h);
+    var cx = w / 2;
+    var cy = h / 2;
+    var vx = Math.cos(t * 0.55) * 95;
+    var vy = Math.sin(t * 0.75) * 70;
+
+    drawArrow(ctx, cx, cy, cx + vx, cy - vy, "rgba(94,234,212,0.65)", 2.2);
+    drawArrow(ctx, cx, cy, cx + vx, cy - vy, "#0F766E", 3.8);
+    drawDot(ctx, cx + vx, cy - vy, 4, "#5EEAD4");
+
+    drawText(ctx, "v", cx + vx + 8, cy - vy, "#5EEAD4", 13);
+    drawText(ctx, "I v = v", 10, 22, "#5EEAD4", 14);
+    drawText(
+      ctx,
+      "Identity leaves every vector unchanged",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+export function MultiplicationVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    drawGrid(ctx, w, h);
+    var cx = w / 2;
+    var cy = h / 2;
+    var s = 50;
+    var phase = (Math.sin(t * 0.8) + 1) / 2;
+    var pA = Math.min(phase * 2, 1);
+    var pB = Math.max((phase - 0.5) * 2, 0);
+
+    function lerp(a, b, p) {
+      return a + (b - a) * p;
+    }
+    function applyA(x, y) {
+      return [1.45 * x + 0.35 * y, 0.15 * x + 1.1 * y];
+    }
+    function applyB(x, y) {
+      return [0.55 * x - 0.85 * y, 0.8 * x + 0.65 * y];
+    }
+    function drawShape(pts, color, alpha) {
+      ctx.beginPath();
+      for (var i = 0; i < pts.length; i++) {
+        var x = cx + pts[i][0] * s;
+        var y = cy - pts[i][1] * s;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.globalAlpha = alpha;
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = Math.min(alpha + 0.25, 1);
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    var unitSquare = [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [0, 1],
+    ];
+    var afterA = unitSquare.map(function (p) {
+      var a = applyA(p[0], p[1]);
+      return [lerp(p[0], a[0], pA), lerp(p[1], a[1], pA)];
+    });
+    var afterBA = unitSquare.map(function (p, i) {
+      var a = applyA(p[0], p[1]);
+      var b = applyB(a[0], a[1]);
+      return [lerp(afterA[i][0], b[0], pB), lerp(afterA[i][1], b[1], pB)];
+    });
+
+    drawShape(unitSquare, "rgba(255,255,255,0.45)", 0.1);
+    drawShape(afterA, "#93C5FD", 0.17);
+    drawShape(afterBA, "#2563EB", 0.24);
+
+    var v = [1.0, 0.65];
+    var va = applyA(v[0], v[1]);
+    var vba = applyB(va[0], va[1]);
+    var vmid = [lerp(v[0], va[0], pA), lerp(v[1], va[1], pA)];
+    var vend = [lerp(vmid[0], vba[0], pB), lerp(vmid[1], vba[1], pB)];
+
+    drawArrow(
+      ctx,
+      cx,
+      cy,
+      cx + v[0] * s,
+      cy - v[1] * s,
+      "rgba(255,255,255,0.35)",
+      1.8,
+    );
+    drawArrow(ctx, cx, cy, cx + vmid[0] * s, cy - vmid[1] * s, "#93C5FD", 2.6);
+    drawArrow(ctx, cx, cy, cx + vend[0] * s, cy - vend[1] * s, "#2563EB", 3.2);
+
+    drawText(ctx, "Matrix Multiplication", 10, 22, "#93C5FD", 14);
+    drawText(
+      ctx,
+      pB < 0.02 ? "Stage 1: apply A" : "Stage 2: apply B after A",
+      10,
+      42,
+      "#2563EB",
+      12,
+    );
+    drawText(
+      ctx,
+      "Applying A then B equals one combined map BA",
+      10,
+      h - 14,
+      "rgba(255,255,255,0.5)",
+      11,
+    );
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+export function NonCommuteVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    drawGrid(ctx, w, h);
+    var cx = w / 2;
+    var cy = h / 2;
+    var v = [Math.cos(t * 0.45) * 85, Math.sin(t * 0.65) * 65];
+
+    function applyA(x, y) {
+      return [1.25 * x + 0.7 * y, 0.2 * x + 1.0 * y];
+    }
+    function applyB(x, y) {
+      var a = 0.8;
+      return [
+        x * Math.cos(a) - y * Math.sin(a),
+        x * Math.sin(a) + y * Math.cos(a),
+      ];
+    }
+
+    var av = applyA(v[0], v[1]);
+    var bv = applyB(v[0], v[1]);
+    var abv = applyA(bv[0], bv[1]);
+    var bav = applyB(av[0], av[1]);
+
+    drawArrow(ctx, cx, cy, cx + v[0], cy - v[1], "rgba(255,255,255,0.45)", 2);
+    drawArrow(ctx, cx, cy, cx + abv[0], cy - abv[1], "#C026D3", 3.2);
+    drawArrow(ctx, cx, cy, cx + bav[0], cy - bav[1], "#E9D5FF", 3.2);
+
+    ctx.strokeStyle = "rgba(192,38,211,0.4)";
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(cx + abv[0], cy - abv[1]);
+    ctx.lineTo(cx + bav[0], cy - bav[1]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    drawDot(ctx, cx + abv[0], cy - abv[1], 3.5, "#C026D3");
+    drawDot(ctx, cx + bav[0], cy - bav[1], 3.5, "#E9D5FF");
+    drawText(ctx, "ABv", cx + abv[0] + 6, cy - abv[1], "#C026D3", 12);
+    drawText(ctx, "BAv", cx + bav[0] + 6, cy - bav[1], "#E9D5FF", 12);
+
+    drawText(ctx, "AB != BA (usually)", 10, 22, "#E9D5FF", 14);
+    drawText(
+      ctx,
+      "Changing order changes the endpoint",
       10,
       h - 14,
       "rgba(255,255,255,0.5)",

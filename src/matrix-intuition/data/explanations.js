@@ -251,6 +251,186 @@ export const EXPLANATIONS = {
     ],
     formula: "A = A^T iff a_ij = a_ji ; A = Q Lambda Q^T",
   },
+  diagonal: {
+    what: "A diagonal matrix has nonzero entries only on its main diagonal. It scales coordinate axes independently with no mixing.",
+    visual:
+      "Each axis is stretched by its diagonal value while all off-axis coupling stays zero.",
+    intuition: [
+      "Diagonal entries are direct per-coordinate scaling factors",
+      "Eigenvalues are exactly the diagonal entries",
+      "Powers and inverses are easy entrywise operations",
+      "Diagonal form is the simplest linear operator representation",
+    ],
+    formula: "D_ij = 0 for i != j",
+  },
+  triangular: {
+    what: "A triangular matrix has all entries above or below the diagonal equal to zero. It encodes directional dependency structure.",
+    visual:
+      "Influence flows one-way across indices: earlier coordinates can affect later ones (or vice versa), but not both.",
+    intuition: [
+      "Easy to solve with forward/back substitution",
+      "Determinant is product of diagonal entries",
+      "Eigenvalues are diagonal entries",
+      "Central in LU and Cholesky factorizations",
+    ],
+    formula: "U_ij = 0 for i > j (upper), L_ij = 0 for i < j (lower)",
+  },
+  permutation: {
+    what: "A permutation matrix reorders coordinates (or rows/columns). It has exactly one 1 in each row and column.",
+    visual:
+      "Entries of a vector are shuffled into new positions without changing their magnitudes.",
+    intuition: [
+      "Represents pure reindexing, no scaling",
+      "Permutation matrices are orthogonal",
+      "P^-1 = P^T",
+      "Used for pivoting in stable elimination",
+    ],
+    formula: "P has one 1 per row/column and zeros elsewhere",
+  },
+  idempotent: {
+    what: "An idempotent matrix satisfies A^2 = A. Applying it once already reaches the final effect.",
+    visual:
+      "First application projects onto a subspace; second application leaves points unchanged.",
+    intuition: [
+      "Projection matrices are canonical idempotent examples",
+      "Eigenvalues are only 0 or 1",
+      "Represents keep-or-kill subspace behavior",
+      "Rank equals trace for idempotent matrices",
+    ],
+    formula: "A^2 = A",
+  },
+  nilpotent: {
+    what: "A nilpotent matrix becomes zero after repeated multiplication by itself.",
+    visual:
+      "Each multiplication shifts energy toward zero until the transformation fully collapses.",
+    intuition: [
+      "All eigenvalues are zero",
+      "Always singular",
+      "Often appears in Jordan block structure",
+      "Captures transient but non-persistent dynamics",
+    ],
+    formula: "A^k = 0 for some integer k > 0",
+  },
+  involutory: {
+    what: "An involutory matrix is its own inverse. Applying it twice gives the identity.",
+    visual:
+      "One step flips/reflects state, second step returns exactly to the start.",
+    intuition: [
+      "A^-1 = A",
+      "Eigenvalues are +1 or -1",
+      "Reflections are common involutory examples",
+      "Represents reversible two-state switching geometry",
+    ],
+    formula: "A^2 = I",
+  },
+  skewsymmetric: {
+    what: "A skew-symmetric matrix satisfies A^T = -A. Off-diagonal entries are negatives of their mirrored partners.",
+    visual:
+      "Mirror entries cancel by sign, and diagonal entries are forced to zero.",
+    intuition: [
+      "All diagonal entries are zero",
+      "x^T A x = 0 for real x",
+      "In odd dimensions, determinant is zero",
+      "Generates infinitesimal rotations in continuous systems",
+    ],
+    formula: "A^T = -A",
+  },
+  orthogonalmatrix: {
+    what: "An orthogonal matrix has orthonormal columns, so it preserves lengths and angles exactly.",
+    visual:
+      "A shape rotates/reflects without distortion; only orientation or direction changes.",
+    intuition: [
+      "Q^T Q = I",
+      "Q^-1 = Q^T",
+      "Determinant is ±1",
+      "Numerically stable in decomposition algorithms",
+    ],
+    formula: "Q^T Q = I",
+  },
+  stochastic: {
+    what: "A stochastic matrix has nonnegative entries with each row summing to 1, representing transition probabilities.",
+    visual:
+      "Probability mass redistributes between states each step but total mass stays constant.",
+    intuition: [
+      "Rows are categorical distributions",
+      "Used for Markov chains and random walks",
+      "Repeated multiplication models long-run state evolution",
+      "Largest eigenvalue is 1 under standard assumptions",
+    ],
+    formula: "a_ij >= 0 and sum_j a_ij = 1",
+  },
+  doublystochastic: {
+    what: "A doubly stochastic matrix is stochastic by rows and columns: every row and every column sums to 1.",
+    visual:
+      "Mass is preserved globally and locally under both source and destination accounting.",
+    intuition: [
+      "Uniform vector is both left and right eigenvector for eigenvalue 1",
+      "Represents balanced transport or mixing",
+      "Includes permutation matrices as extreme points",
+      "Appears in assignment and transport problems",
+    ],
+    formula: "a_ij >= 0, sum_j a_ij = 1, and sum_i a_ij = 1",
+  },
+  diagonaldominant: {
+    what: "A matrix is diagonally dominant when each diagonal entry magnitude exceeds (or matches) the sum of off-diagonal magnitudes in its row.",
+    visual:
+      "Strong diagonal anchors each variable to itself more than to neighbors, improving stability.",
+    intuition: [
+      "Often nonsingular when strict",
+      "Supports convergence of iterative solvers",
+      "Common in discretized PDE systems",
+      "Signals reduced cross-coupling strength",
+    ],
+    formula: "|a_ii| >= sum_{j!=i} |a_ij|",
+  },
+  sparse: {
+    what: "A sparse matrix has mostly zero entries and a relatively small set of nonzero values.",
+    visual:
+      "Most cells are empty; only a structured subset carries interactions.",
+    intuition: [
+      "Storage and compute scale with nonzeros, not full size",
+      "Graph and PDE problems naturally produce sparse matrices",
+      "Sparsity pattern matters as much as values",
+      "Specialized solvers exploit sparse structure",
+    ],
+    formula: "nnz(A) << m*n",
+  },
+  toeplitz: {
+    what: "A Toeplitz matrix has constant values along each diagonal from top-left to bottom-right.",
+    visual:
+      "Diagonal bands repeat the same value, encoding shift-invariant structure.",
+    intuition: [
+      "Appears in convolution and time-invariant systems",
+      "Defined by first row and first column only",
+      "Supports fast algorithms with FFT-like structure",
+      "Links directly to signal autocorrelation matrices",
+    ],
+    formula: "a_ij = c_{i-j}",
+  },
+  laplacian: {
+    what: "The graph Laplacian L = D - A captures connectivity and flow on graphs.",
+    visual:
+      "Node values diffuse along edges; differences across neighbors are penalized.",
+    intuition: [
+      "Symmetric positive semidefinite for undirected graphs",
+      "One zero eigenvalue per connected component",
+      "Used in spectral clustering and graph smoothing",
+      "Measures graph signal roughness",
+    ],
+    formula: "L = D - A",
+  },
+  covariancematrix: {
+    what: "A covariance matrix stores pairwise covariances between variables, encoding spread and linear relationships.",
+    visual:
+      "Elliptical data clouds align with covariance eigenvectors, and axis lengths reflect variance scale.",
+    intuition: [
+      "Always symmetric positive semidefinite",
+      "Diagonal entries are variances",
+      "Off-diagonal entries measure linear co-movement",
+      "Eigen-decomposition drives PCA",
+    ],
+    formula: "Sigma = E[(x-mu)(x-mu)^T]",
+  },
   condition: {
     what: "The condition number measures how much relative output error can grow compared to relative input error. High condition number means unstable sensitivity.",
     visual:

@@ -351,6 +351,217 @@ export const CONCEPT_DETAILS = {
     ],
     quickCheck: "Need exactly dim(V) independent vectors to form a basis.",
   },
+  diagonal: {
+    deeper:
+      "Diagonal matrices are fully decoupled operators: each coordinate evolves independently with zero cross-coupling.",
+    useCases: [
+      "Fast scaling transforms in simulation/graphics",
+      "Simplified matrix powers and exponentials",
+      "Diagonal preconditioning in iterative solvers",
+    ],
+    pitfalls: [
+      "Assuming nearly diagonal behaves exactly diagonal",
+      "Ignoring zero diagonal entries when inverting",
+    ],
+    quickCheck: "All off-diagonal entries must be exactly zero.",
+  },
+  triangular: {
+    deeper:
+      "Triangular structure enables one-pass substitution and appears naturally after elimination/factorization.",
+    useCases: [
+      "Forward/back substitution in linear solves",
+      "Efficient determinant and eigenvalue inspection",
+      "Intermediate factors in LU/Cholesky workflows",
+    ],
+    pitfalls: [
+      "Using wrong solve direction (forward vs backward)",
+      "Assuming triangular implies well-conditioned",
+    ],
+    quickCheck: "For upper triangular U, entries below diagonal must be zero.",
+  },
+  permutation: {
+    deeper:
+      "Permutation matrices encode reorderings and preserve Euclidean norms as orthogonal operators.",
+    useCases: [
+      "Row pivoting for stable LU factorization",
+      "Index reordering in sparse computations",
+      "Representing discrete state relabeling",
+    ],
+    pitfalls: [
+      "Confusing row permutations with column permutations",
+      "Forgetting inverse is transpose for permutation matrices",
+    ],
+    quickCheck: "Every row and column has exactly one 1.",
+  },
+  idempotent: {
+    deeper:
+      "Idempotent maps stabilize after one application and characterize projection-like operators.",
+    useCases: [
+      "Projection matrices in least squares",
+      "Subspace extraction operators",
+      "State-update operators with one-step saturation",
+    ],
+    pitfalls: [
+      "Assuming every idempotent is orthogonal projection",
+      "Ignoring rank/trace constraints",
+    ],
+    quickCheck: "Numerically verify ||A^2 - A|| is near zero.",
+  },
+  nilpotent: {
+    deeper:
+      "Nilpotent matrices model transient dynamics that vanish after finite repeated composition.",
+    useCases: [
+      "Jordan form analysis",
+      "Linearized dynamics with finite-step decay",
+      "Algebraic decomposition theory",
+    ],
+    pitfalls: [
+      "Confusing nilpotent with merely small eigenvalues",
+      "Using too low a power before concluding non-nilpotent",
+    ],
+    quickCheck: "Find smallest k with A^k = 0 (within tolerance).",
+  },
+  involutory: {
+    deeper:
+      "Involutory operators reverse themselves in one extra step and often correspond to reflections or swaps.",
+    useCases: [
+      "Reflection operators in geometry",
+      "Swap/sign-flip transforms",
+      "Fast reversible transforms",
+    ],
+    pitfalls: [
+      "Assuming involutory implies orthogonal",
+      "Ignoring numerical drift when testing A^2=I",
+    ],
+    quickCheck: "Check A multiplied by itself equals identity.",
+  },
+  skewsymmetric: {
+    deeper:
+      "Skew-symmetric matrices encode antisymmetric coupling and generate rotations under matrix exponentials.",
+    useCases: [
+      "Cross-product and rotational dynamics models",
+      "Lie algebra representation in rigid-body systems",
+      "Energy-preserving coupling terms",
+    ],
+    pitfalls: [
+      "Expecting nonzero diagonal entries",
+      "Applying symmetric-matrix theorems directly",
+    ],
+    quickCheck: "Verify A^T + A = 0.",
+  },
+  orthogonalmatrix: {
+    deeper:
+      "Orthogonal matrices are distance-preserving isometries and are highly stable numerically.",
+    useCases: [
+      "Rotations/reflections in geometry pipelines",
+      "Stable basis changes in QR algorithms",
+      "Signal transforms preserving energy",
+    ],
+    pitfalls: [
+      "Forgetting column normalization in approximate Q",
+      "Treating near-orthogonal as exact in long products",
+    ],
+    quickCheck: "Compute ||Q^TQ - I||.",
+  },
+  stochastic: {
+    deeper:
+      "Stochastic matrices are Markov transition operators preserving total probability mass under evolution.",
+    useCases: [
+      "Markov chain modeling",
+      "PageRank and random walk algorithms",
+      "Population transition systems",
+    ],
+    pitfalls: [
+      "Allowing negative probabilities from numeric errors",
+      "Mixing row-stochastic and column-stochastic conventions",
+    ],
+    quickCheck: "Rows are nonnegative and each row sum is 1.",
+  },
+  doublystochastic: {
+    deeper:
+      "Doubly stochastic matrices represent balanced transport/mixing and lie in the Birkhoff polytope.",
+    useCases: [
+      "Assignment relaxations",
+      "Balanced diffusion and mixing models",
+      "Entropic transport formulations",
+    ],
+    pitfalls: [
+      "Checking only row sums and forgetting column sums",
+      "Ignoring tolerance when sums are near 1 numerically",
+    ],
+    quickCheck: "Both row sums and column sums are 1.",
+  },
+  diagonaldominant: {
+    deeper:
+      "Diagonal dominance often implies invertibility/stability and supports convergence guarantees for iterative methods.",
+    useCases: [
+      "Convergence checks for Jacobi/Gauss-Seidel",
+      "Finite-difference PDE system diagnostics",
+      "Preconditioner quality heuristics",
+    ],
+    pitfalls: [
+      "Assuming weak diagonal dominance always guarantees invertibility",
+      "Ignoring ordering/permutation effects on dominance",
+    ],
+    quickCheck: "Compare each |a_ii| to row off-diagonal absolute sum.",
+  },
+  sparse: {
+    deeper:
+      "Sparse matrices shift complexity from dense algebra to graph-aware storage and computation patterns.",
+    useCases: [
+      "Large graph and network algorithms",
+      "PDE discretizations at scale",
+      "Memory-efficient linear algebra in ML",
+    ],
+    pitfalls: [
+      "Using dense routines on sparse structures",
+      "Ignoring fill-in during factorization",
+    ],
+    quickCheck: "Compute sparsity ratio nnz/(m*n).",
+  },
+  toeplitz: {
+    deeper:
+      "Toeplitz structure captures shift invariance and enables fast structured linear algebra.",
+    useCases: [
+      "Convolution and filtering systems",
+      "Time-series covariance/autocorrelation modeling",
+      "Fast structured solves with specialized algorithms",
+    ],
+    pitfalls: [
+      "Breaking diagonal constancy during updates",
+      "Applying generic dense methods without exploiting structure",
+    ],
+    quickCheck: "Entries are constant on every i-j diagonal.",
+  },
+  laplacian: {
+    deeper:
+      "Graph Laplacians encode connectivity, smoothness, and diffusion behavior over networked systems.",
+    useCases: [
+      "Spectral clustering",
+      "Graph signal smoothing and regularization",
+      "Connectivity and cut analysis",
+    ],
+    pitfalls: [
+      "Mixing normalized and unnormalized Laplacian formulas",
+      "Misinterpreting multiplicity of zero eigenvalue",
+    ],
+    quickCheck:
+      "For undirected graphs, L is symmetric with nonnegative spectrum.",
+  },
+  covariancematrix: {
+    deeper:
+      "Covariance matrices summarize multivariate spread and linear dependence; they are symmetric PSD by construction.",
+    useCases: [
+      "PCA and dimensionality reduction",
+      "Uncertainty propagation and Gaussian modeling",
+      "Portfolio/risk and sensor fusion analysis",
+    ],
+    pitfalls: [
+      "Using uncentered data to compute covariance",
+      "Interpreting covariance scale without normalization",
+    ],
+    quickCheck: "Diagonal entries are variances and must be nonnegative.",
+  },
 };
 
 export const CONCEPT_EXPANSIONS = {
@@ -653,6 +864,187 @@ export const CONCEPT_EXPANSIONS = {
       "Dimension",
       "Change of basis",
       "Eigen/SVD coordinate systems",
+    ],
+  },
+  diagonal: {
+    algebraic:
+      "Diagonal matrices satisfy D_ij = 0 for i != j and act as coordinate-wise scalings.",
+    computation:
+      "Multiply/invert/power entrywise on the diagonal; complexity is linear in dimension.",
+    workedExample: "D=diag(2,0.5,-1) scales x1 by 2, x2 by 0.5, and flips x3.",
+    connections: [
+      "Diagonalization target form",
+      "Eigenvalues as diagonal entries",
+      "Fast matrix functions",
+    ],
+  },
+  triangular: {
+    algebraic:
+      "Upper/lower triangular matrices preserve one-sided dependency and have eigenvalues on the diagonal.",
+    computation:
+      "Solve Ux=b by backward substitution or Lx=b by forward substitution.",
+    workedExample: "For U=[[2,1],[0,3]], det(U)=2*3 and eigenvalues are 2,3.",
+    connections: [
+      "LU and Cholesky factors",
+      "Determinant from diagonal product",
+      "Substitution-based solves",
+    ],
+  },
+  permutation: {
+    algebraic:
+      "Permutation matrices represent elements of the symmetric group acting on coordinate indices.",
+    computation:
+      "Apply P by index reordering instead of dense multiplication for efficiency.",
+    workedExample:
+      "P swapping first two rows gives P[x1,x2,x3]^T = [x2,x1,x3]^T.",
+    connections: [
+      "Pivot matrices in LU",
+      "Orthogonal matrix subclass",
+      "Doubly stochastic extreme points",
+    ],
+  },
+  idempotent: {
+    algebraic:
+      "Idempotent condition A^2=A implies minimal polynomial divides x(x-1), so eigenvalues are 0 or 1.",
+    computation:
+      "Evaluate A^2-A; small norm confirms approximate idempotence numerically.",
+    workedExample: "P = u(u^Tu)^-1u^T is idempotent projection onto span(u).",
+    connections: [
+      "Projection operators",
+      "Rank-trace relation",
+      "Subspace decomposition",
+    ],
+  },
+  nilpotent: {
+    algebraic:
+      "Nilpotent A has only zero eigenvalues and Jordan blocks with zero diagonal.",
+    computation:
+      "Compute successive powers A, A^2, ... until zero pattern appears.",
+    workedExample: "N=[[0,1],[0,0]] satisfies N^2=0 but N!=0.",
+    connections: ["Jordan canonical form", "Transient dynamics", "Singularity"],
+  },
+  involutory: {
+    algebraic:
+      "Involutory condition A^2=I implies eigenvalues are ±1 and A^-1=A.",
+    computation:
+      "Test with one multiplication: if A^2 close to I, transformation is self-reversing.",
+    workedExample: "Reflection matrix R=diag(1,-1) is involutory.",
+    connections: [
+      "Reflections as orthogonal involutions",
+      "Self-inverse transforms",
+      "Eigenvalue sign structure",
+    ],
+  },
+  skewsymmetric: {
+    algebraic:
+      "Skew-symmetry A^T=-A forces zero diagonal and purely imaginary eigenvalues in complex view.",
+    computation: "Compute A+A^T and verify near-zero matrix under tolerance.",
+    workedExample: "A=[[0,-w],[w,0]] generates planar rotation flow.",
+    connections: [
+      "Rotation generators",
+      "Matrix exponentials to orthogonal maps",
+      "Antisymmetric coupling",
+    ],
+  },
+  orthogonalmatrix: {
+    algebraic: "Orthogonal matrices preserve inner products: (Qx)^T(Qy)=x^Ty.",
+    computation:
+      "Check Q^TQ and QQ^T against identity; monitor orthogonality loss in long products.",
+    workedExample: "2D rotation matrix keeps vector length exactly unchanged.",
+    connections: [
+      "QR and SVD orthogonal factors",
+      "Stable basis transforms",
+      "Determinant ±1",
+    ],
+  },
+  stochastic: {
+    algebraic:
+      "Row-stochastic matrices are linear operators on probability vectors with simplex-preserving rows.",
+    computation:
+      "Check nonnegativity and row sums; iterate x_{k+1}=x_k A to inspect stationary behavior.",
+    workedExample:
+      "Transition matrix for weather states gives next-day distribution from current distribution.",
+    connections: [
+      "Markov chains",
+      "Stationary distributions",
+      "Spectral mixing rates",
+    ],
+  },
+  doublystochastic: {
+    algebraic:
+      "Doubly stochastic matrices preserve the all-ones vector on both sides and form convex hull of permutations.",
+    computation:
+      "Normalize/check both row and column sums with tolerance in floating-point implementations.",
+    workedExample:
+      "Matrix with each entry 1/n is doubly stochastic and fully mixing.",
+    connections: [
+      "Birkhoff-von Neumann decomposition",
+      "Balanced transport maps",
+      "Permutation matrices",
+    ],
+  },
+  diagonaldominant: {
+    algebraic:
+      "Strict diagonal dominance (>) implies nonsingularity via Gershgorin-based arguments.",
+    computation: "Compute dominance margins |a_ii|-sum_{j!=i}|a_ij| row-wise.",
+    workedExample:
+      "A tridiagonal PDE matrix often satisfies diagonal dominance and convergent iterative solves.",
+    connections: [
+      "Iterative solver convergence",
+      "Stability diagnostics",
+      "Gershgorin discs",
+    ],
+  },
+  sparse: {
+    algebraic:
+      "Sparse matrices are best understood through graph structure induced by nonzero patterns.",
+    computation:
+      "Store with CSR/CSC formats and use sparse-optimized multiplication/factorization.",
+    workedExample:
+      "Finite-element stiffness matrices can be millions-by-millions but very sparse.",
+    connections: [
+      "Graph Laplacians",
+      "Fill-in during elimination",
+      "Scalable linear solvers",
+    ],
+  },
+  toeplitz: {
+    algebraic:
+      "Toeplitz matrices encode shift-invariant linear systems with diagonal-constant structure.",
+    computation:
+      "Exploit structured methods (FFT/circulant embedding variants) for faster operations.",
+    workedExample:
+      "1D convolution with fixed kernel corresponds to Toeplitz multiplication.",
+    connections: [
+      "Signal processing",
+      "Autocorrelation matrices",
+      "Structured linear algebra",
+    ],
+  },
+  laplacian: {
+    algebraic:
+      "Laplacian L=D-A has row sums zero and PSD spectrum for undirected graphs.",
+    computation:
+      "Build D from node degrees and subtract adjacency; inspect eigenvalues for connectivity.",
+    workedExample:
+      "Second-smallest eigenvalue (Fiedler value) indicates graph connectivity strength.",
+    connections: [
+      "Spectral clustering",
+      "Diffusion/random walks",
+      "Graph regularization",
+    ],
+  },
+  covariancematrix: {
+    algebraic:
+      "Covariance matrix Sigma = E[(x-mu)(x-mu)^T] is symmetric PSD and defines ellipsoidal uncertainty geometry.",
+    computation:
+      "Center data first, then compute sample covariance and possibly regularize/shrink.",
+    workedExample:
+      "Large off-diagonal covariance indicates strong linear co-movement between variables.",
+    connections: [
+      "PCA eigenstructure",
+      "Mahalanobis distance",
+      "Gaussian modeling",
     ],
   },
 };

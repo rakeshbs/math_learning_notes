@@ -1,3 +1,51 @@
+import React from "react";
+import { BlockMath } from "react-katex";
+
+function texify(str) {
+  if (!str) return "";
+  var res = str;
+  var symbols = [
+    "phi",
+    "theta",
+    "lambda",
+    "sigma",
+    "mu",
+    "alpha",
+    "beta",
+    "gamma",
+    "tau",
+    "eps",
+    "nabla",
+    "approx",
+    "sqrt",
+    "sum",
+    "integral",
+    "pi",
+    "det",
+    "exp",
+    "log",
+    "max",
+    "min",
+    "in",
+  ];
+  symbols.forEach(function (sym) {
+    res = res.replace(new RegExp("\\b" + sym + "\\b", "g"), "\\" + sym);
+  });
+  res = res.replace(/\\eps/g, "\\epsilon");
+  res = res.replace(/->/g, "\\rightarrow");
+  res = res.replace(/<=/g, "\\leq");
+  res = res.replace(/>=/g, "\\geq");
+  res = res.replace(/\bR\^/g, "\\mathbb{R}^");
+  res = res.replace(/\|\|/g, "\\|");
+  res = res.replace(/≈/g, "\\approx");
+  res = res.replace(/√/g, "\\sqrt ");
+  res = res.replace(/³/g, "^3");
+  res = res.replace(/Σ/g, "\\Sigma");
+  res = res.replace(/argmax/g, "\\operatorname{argmax}");
+  res = res.replace(/argmin/g, "\\operatorname{argmin}");
+  return res;
+}
+
 function splitIntoChecklist(text) {
   if (!text) return [];
   return text
@@ -618,15 +666,24 @@ export function ConceptDetailsPanel(props) {
         >
           Formula
         </div>
-        <code
-          style={{
-            fontFamily: "monospace",
-            fontSize: 12,
-            color: concept.accent,
-          }}
-        >
-          {explanation.formula}
-        </code>
+        <div style={{ color: concept.accent, overflowX: "auto" }}>
+          <BlockMath
+            math={texify(explanation.formula)}
+            renderError={function (error) {
+              return (
+                <code
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: 12,
+                    color: concept.accent,
+                  }}
+                >
+                  {explanation.formula}
+                </code>
+              );
+            }}
+          />
+        </div>
       </div>
 
       <div

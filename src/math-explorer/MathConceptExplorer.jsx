@@ -127,10 +127,9 @@ export default function MathConceptExplorer(props) {
 
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: 28,
-            alignItems: "start",
+            display: "flex",
+            flexDirection: "column",
+            gap: 40,
           }}
         >
           <div>

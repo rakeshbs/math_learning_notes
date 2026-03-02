@@ -132,12 +132,21 @@ export default function MathConceptExplorer(props) {
             gap: 40,
           }}
         >
-          <div>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 20,
+              alignItems: "flex-start",
+            }}
+          >
             {visualVariants.map(function (variant, idx) {
               var VariantComponent = variant.component;
-              var isLast = idx === visualVariants.length - 1;
               return (
-                <div key={variant.id} style={{ marginBottom: isLast ? 0 : 14 }}>
+                <div
+                  key={variant.id}
+                  style={{ flex: "1 1 300px", minWidth: 0 }}
+                >
                   {visualVariants.length > 1 ? (
                     <div
                       style={{

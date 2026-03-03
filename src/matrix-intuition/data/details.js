@@ -198,17 +198,21 @@ export const CONCEPT_DETAILS = {
   },
   svd: {
     deeper:
-      "SVD exposes rank, condition number, and dominant directions. It is the most informative all-purpose matrix decomposition.",
+      "SVD is the cornerstone of modern matrix analysis. Every m×n matrix of rank r can be written A = UΣV^T where U is m×m orthogonal (output rotation), Σ stores σ₁ ≥ σ₂ ≥ ... ≥ σᵣ > 0, and V is n×n orthogonal (input rotation). The key identity Avᵢ = σᵢuᵢ says each right singular vector vᵢ maps to output direction uᵢ scaled by σᵢ. Eckart-Young theorem: the best rank-k approximation is Aₖ = Σᵢ₌₁ᵏ σᵢuᵢvᵢ^T. This drives image compression, PCA, and recommender systems. The condition number κ = σ₁/σᵣ measures how amplified input noise becomes. The pseudoinverse A⁺ = VΣ⁺U^T directly generalizes inversion to any shape or rank.",
     useCases: [
-      "Low-rank compression",
-      "Pseudoinverse and least squares",
+      "Low-rank compression and image approximation",
+      "Pseudoinverse and least-squares solutions",
       "Latent semantic analysis and recommender systems",
+      "PCA of a data matrix",
+      "Computing condition number and diagnosing ill-conditioning",
     ],
     pitfalls: [
-      "Keeping too many tiny singular values in inversion",
-      "Ignoring centering/normalization before PCA-style use",
+      "Keeping too many tiny singular values when inverting (amplifies noise)",
+      "Ignoring data centering/normalization before PCA-style use",
+      "Confusing singular values with eigenvalues for non-symmetric matrices",
+      "Using full SVD when truncated SVD would be faster and sufficient",
     ],
-    quickCheck: "Count non-zero singular values to get rank.",
+    quickCheck: "Count nonzero singular values to get rank; σ₁/σᵣ gives condition number.",
   },
   diagonalization: {
     deeper:
@@ -577,6 +581,12 @@ export const CONCEPT_EXPANSIONS = {
       "SVD nonzero singular values",
       "Column space dimension",
     ],
+    howToCompute: [
+      "Write out matrix A.",
+      "Apply Gaussian elimination (row operations) to reach Row Echelon Form.",
+      "Count the pivot rows (rows with a leading nonzero entry). That count is rank(A).",
+      "Numerical alternative: compute SVD and count singular values above a threshold (e.g. ε × σ₁ where ε ≈ 1e-10).",
+    ],
   },
   determinant: {
     algebraic:
@@ -589,6 +599,12 @@ export const CONCEPT_EXPANSIONS = {
       "Invertibility test",
       "Product of eigenvalues",
       "Jacobian volume scaling",
+    ],
+    howToCompute: [
+      "For 2×2: det([[a,b],[c,d]]) = a·d − b·c directly.",
+      "For 3×3: use cofactor expansion along the first row — sum of a₁ⱼ·(−1)^(1+j)·M₁ⱼ where M₁ⱼ is the 2×2 minor.",
+      "For n×n: perform LU factorization PA = LU. Then det(A) = sign(P) × (product of diagonal entries of U).",
+      "If any step produces a zero diagonal in U that cannot be fixed by row swaps, det = 0.",
     ],
   },
   eigenvalues: {
@@ -603,6 +619,13 @@ export const CONCEPT_EXPANSIONS = {
       "Determinant is eigenvalue product",
       "Diagonalization needs eigenvectors",
     ],
+    howToCompute: [
+      "Form A − λI (subtract λ from every diagonal entry).",
+      "Solve the characteristic equation det(A − λI) = 0 to find all eigenvalues λ.",
+      "For each eigenvalue λᵢ, solve the homogeneous system (A − λᵢI)v = 0 by row reduction.",
+      "The solution space (null space of A − λᵢI) gives the eigenvectors for λᵢ.",
+      "Numerical approach for large matrices: use QR iteration, power iteration, or LAPACK's dsyev (symmetric) / dgeev (general).",
+    ],
   },
   nullspace: {
     algebraic:
@@ -615,6 +638,13 @@ export const CONCEPT_EXPANSIONS = {
       "Kernel in linear maps",
       "Underdetermined solution sets",
     ],
+    howToCompute: [
+      "Set up the augmented system [A | 0].",
+      "Row-reduce A to Reduced Row Echelon Form (RREF).",
+      "Identify pivot columns (basic variables) and free columns (free variables).",
+      "Assign a parameter tᵢ to each free variable.",
+      "Express pivot variables in terms of the tᵢ and write the solution as a linear combination of basis vectors, one per free variable.",
+    ],
   },
   trace: {
     algebraic:
@@ -625,6 +655,11 @@ export const CONCEPT_EXPANSIONS = {
       "Eigenvalue sum",
       "Matrix calculus identities",
       "Dynamical-system summary",
+    ],
+    howToCompute: [
+      "Read off the main diagonal entries a₁₁, a₂₂, ..., aₙₙ.",
+      "Add them: tr(A) = a₁₁ + a₂₂ + ... + aₙₙ.",
+      "Cross-check: should equal the sum of all eigenvalues.",
     ],
   },
   transpose: {
@@ -638,6 +673,11 @@ export const CONCEPT_EXPANSIONS = {
       "Orthogonal inverse Q^T",
       "Symmetry condition A = A^T",
     ],
+    howToCompute: [
+      "For each entry Aᵢⱼ, place its value at position (j,i) in the new matrix.",
+      "Equivalently: rows of A become columns of A^T.",
+      "An m×n matrix becomes n×m after transposing.",
+    ],
   },
   inverse: {
     algebraic:
@@ -650,6 +690,13 @@ export const CONCEPT_EXPANSIONS = {
       "Conditioning and error amplification",
       "Undoing transformations",
     ],
+    howToCompute: [
+      "For 2×2 A = [[a,b],[c,d]]: A⁻¹ = (1/det(A)) × [[d,−b],[−c,a]].",
+      "For n×n: form the augmented matrix [A | Iₙ].",
+      "Row-reduce until the left side becomes Iₙ. The right side is A⁻¹.",
+      "If row reduction fails (zero pivot, no valid swap), A is singular — no inverse exists.",
+      "Numerically: prefer LU or QR factorization to solve Ax=b rather than explicitly computing A⁻¹.",
+    ],
   },
   identity: {
     algebraic:
@@ -661,6 +708,11 @@ export const CONCEPT_EXPANSIONS = {
       "Neutral element under multiplication",
       "Inverse definitions",
       "Basis vectors fixed pointwise",
+    ],
+    howToCompute: [
+      "Set all diagonal entries Iᵢᵢ = 1.",
+      "Set all off-diagonal entries Iᵢⱼ = 0 for i ≠ j.",
+      "Choose size n to match the vector space or operator context.",
     ],
   },
   multiplication: {
@@ -675,6 +727,12 @@ export const CONCEPT_EXPANSIONS = {
       "Non-commutativity",
       "Matrix powers and exponentials",
     ],
+    howToCompute: [
+      "Check dimensions: A must be m×n and B must be n×p for AB to exist (result is m×p).",
+      "Compute entry (AB)ᵢⱼ = sum over k of Aᵢₖ · Bₖⱼ (row i of A dotted with column j of B).",
+      "Repeat for all (i,j) pairs. Naive cost: O(mnp).",
+      "Verify by applying the result matrix to a test vector and comparing with B(Ax).",
+    ],
   },
   noncommute: {
     algebraic:
@@ -688,6 +746,12 @@ export const CONCEPT_EXPANSIONS = {
       "Order-sensitive modeling",
       "Lie-theoretic structures",
     ],
+    howToCompute: [
+      "Compute AB using the standard row-column dot product.",
+      "Compute BA by the same rule with arguments swapped.",
+      "Compare element-wise: if AB = BA, the matrices commute.",
+      "Quantify mismatch: compute commutator [A,B] = AB − BA. Zero matrix = they commute.",
+    ],
   },
   span: {
     algebraic:
@@ -700,6 +764,12 @@ export const CONCEPT_EXPANSIONS = {
       "Column space concept",
       "Least-squares target space",
     ],
+    howToCompute: [
+      "Stack candidate vectors as columns of matrix A.",
+      "Row-reduce A to find pivot columns.",
+      "The pivot columns of the ORIGINAL A (not RREF) form a basis for the column space.",
+      "To test if vector b is in the span: form [A | b] and check if rank([A|b]) = rank(A).",
+    ],
   },
   orthogonal: {
     algebraic:
@@ -710,6 +780,12 @@ export const CONCEPT_EXPANSIONS = {
       "QR factorization",
       "Projection residual orthogonality",
       "Rotations/reflections",
+    ],
+    howToCompute: [
+      "To check two vectors u, v: compute u·v = sum(uᵢvᵢ). Zero means orthogonal.",
+      "To check a matrix Q: compute Q^T Q. If this equals Iₙ, Q is orthogonal.",
+      "To orthogonalize a set of vectors, use Gram-Schmidt (see QR).",
+      "Numerically verify: compute ‖Q^T Q − I‖_F and check it is below a small tolerance.",
     ],
   },
   projection: {
@@ -723,6 +799,13 @@ export const CONCEPT_EXPANSIONS = {
       "Orthogonality",
       "Idempotent matrices",
     ],
+    howToCompute: [
+      "1D onto vector u: proj = (u^T v / u^T u) × u.",
+      "Onto subspace spanned by columns of U: P = U(U^T U)⁻¹ U^T.",
+      "If U has orthonormal columns: P = U U^T (simpler).",
+      "Verify idempotency: compute P² and check P² = P.",
+      "Verify symmetry: check P = P^T.",
+    ],
   },
   norm: {
     algebraic:
@@ -735,18 +818,36 @@ export const CONCEPT_EXPANSIONS = {
       "Condition number dependence",
       "Error metrics",
     ],
+    howToCompute: [
+      "L2 (Euclidean): ‖v‖₂ = sqrt(v₁² + v₂² + ... + vₙ²).",
+      "L1 (Manhattan): ‖v‖₁ = |v₁| + |v₂| + ... + |vₙ|.",
+      "L∞: ‖v‖∞ = max(|v₁|, |v₂|, ..., |vₙ|).",
+      "Matrix Frobenius norm: ‖A‖_F = sqrt(sum of all squared entries) = sqrt(tr(A^T A)).",
+      "Matrix spectral norm: ‖A‖₂ = σ_max(A) (largest singular value).",
+    ],
   },
   svd: {
     algebraic:
-      "A = U Sigma V^T with orthogonal U,V and nonnegative singular values in Sigma. Singular vectors give principal action directions.",
+      "A = UΣV^T can be expanded as a sum of rank-1 outer products: A = σ₁u₁v₁^T + σ₂u₂v₂^T + ... + σᵣuᵣvᵣ^T. Each term σᵢuᵢvᵢ^T contributes σᵢ² to the Frobenius energy ‖A‖²_F. Truncating after k terms is optimal (Eckart-Young). Singular values come from eigenvalues of A^T A: σᵢ = sqrt(λᵢ(A^T A)). For a symmetric matrix A the SVD and eigendecomposition coincide, with σᵢ = |λᵢ|.",
     computation:
-      "Use thin/truncated SVD to reduce compute and keep dominant modes.",
+      "Full SVD: use LAPACK dgesdd (divide-and-conquer) or dgesvd. For thin SVD compute only the r nonzero modes. For large sparse matrices use randomized SVD or Lanczos iteration. Truncated SVD (top k modes) is far cheaper than full SVD when k << min(m,n). To threshold rank, discard singular values below ε·σ₁.",
     workedExample:
-      "If singular values are 10,2,0.1, a rank-2 approximation keeps most signal and drops weak mode.",
+      "A = [[3,1],[1,3]]: A^T A = [[10,6],[6,10]], eigenvalues 4 and 16, so σ₁=4, σ₂=2. Condition number κ = 2. Best rank-1 approximation keeps only σ₁=4 and captures 80% of Frobenius energy (16/20). For A = [[1,0],[0,0]]: SVD gives U=I, Σ=diag(1,0), V=I; rank=1, pseudoinverse A⁺=diag(1,0).",
     connections: [
-      "Rank from nonzero singular values",
-      "Condition number from sigma ratio",
-      "Pseudoinverse",
+      "Rank = number of nonzero singular values",
+      "Condition number = σ_max / σ_min",
+      "Pseudoinverse A^+ = V Sigma^+ U^T",
+      "PCA = SVD of the centered data matrix",
+      "Eckart-Young: best rank-k approximation",
+      "Eigendecomposition for symmetric matrices (σᵢ = |λᵢ|)",
+    ],
+    howToCompute: [
+      "Compute A^T A (an n×n symmetric positive semi-definite matrix).",
+      "Find eigenvalues λᵢ of A^T A and sort descending. Singular values: σᵢ = sqrt(λᵢ).",
+      "Right singular vectors: columns of V = unit eigenvectors of A^T A (in same order).",
+      "Left singular vectors: for each nonzero σᵢ, compute uᵢ = A vᵢ / σᵢ.",
+      "Extend {uᵢ} to a full orthonormal basis for R^m if needed (null space of A^T).",
+      "Assemble U = [u₁ ... u_m], Σ = diag(σ₁,...), V = [v₁ ... v_n]. Verify A = UΣV^T.",
     ],
   },
   diagonalization: {
@@ -761,6 +862,13 @@ export const CONCEPT_EXPANSIONS = {
       "Matrix powers",
       "Symmetric spectral theorem",
     ],
+    howToCompute: [
+      "Find all eigenvalues λᵢ by solving det(A − λI) = 0.",
+      "For each λᵢ solve (A − λᵢI)v = 0 to get eigenvectors.",
+      "Check: do you have n linearly independent eigenvectors? If not, A is not diagonalizable.",
+      "Form P = [v₁ | v₂ | ... | vₙ] and D = diag(λ₁, ..., λₙ).",
+      "Verify: A = P D P⁻¹ (or equivalently AP = PD).",
+    ],
   },
   lu: {
     algebraic:
@@ -772,6 +880,13 @@ export const CONCEPT_EXPANSIONS = {
       "Determinant from U diagonal",
       "Pivoting for stability",
     ],
+    howToCompute: [
+      "Use partial pivoting: for each column j, swap the row with the largest |entry| in column j to position j.",
+      "Compute multipliers mᵢⱼ = Uᵢⱼ / Uⱼⱼ for all rows i > j. Store them in L.",
+      "Subtract mᵢⱼ × row j from row i in U to create zeros below the pivot.",
+      "Repeat for all columns to get L (unit lower triangular) and U (upper triangular).",
+      "To solve Ax = b: form Pb, forward-substitute Ly = Pb, back-substitute Ux = y.",
+    ],
   },
   qr: {
     algebraic:
@@ -780,6 +895,14 @@ export const CONCEPT_EXPANSIONS = {
     workedExample:
       "Least squares becomes Rx = Q^T b, solved by back substitution.",
     connections: ["Orthogonality", "Least squares", "Eigenvalue QR iteration"],
+    howToCompute: [
+      "Start with columns a₁, ..., aₙ of matrix A (Gram-Schmidt method).",
+      "Set u₁ = a₁, q₁ = u₁/‖u₁‖.",
+      "For k = 2,...,n: remove projections onto all previous qⱼ: uₖ = aₖ − sum_{j<k}(aₖ·qⱼ)qⱼ. Normalize: qₖ = uₖ/‖uₖ‖.",
+      "Build R upper triangular: Rᵢⱼ = aⱼ · qᵢ for i ≤ j; zeros below diagonal.",
+      "Assemble Q = [q₁ ... qₙ] and verify Q^T Q = I and A = QR.",
+      "For numerical stability prefer Householder QR (LAPACK dgeqrf) over classical Gram-Schmidt.",
+    ],
   },
   cholesky: {
     algebraic:
@@ -791,6 +914,13 @@ export const CONCEPT_EXPANSIONS = {
       "Positive definiteness",
       "Fast SPD solves",
       "Covariance factorization",
+    ],
+    howToCompute: [
+      "Verify A is symmetric and positive definite first.",
+      "For j = 1,...,n: compute Lⱼⱼ = sqrt(Aⱼⱼ − sum_{k<j} Lⱼₖ²).",
+      "For i > j: compute Lᵢⱼ = (Aᵢⱼ − sum_{k<j} Lᵢₖ · Lⱼₖ) / Lⱼⱼ.",
+      "If the expression under sqrt is negative, A is not positive definite — stop.",
+      "To solve Ax = b: forward-substitute Ly = b, then back-substitute L^T x = y.",
     ],
   },
   posdef: {
@@ -805,6 +935,12 @@ export const CONCEPT_EXPANSIONS = {
       "Cholesky methods",
       "Covariance structure",
     ],
+    howToCompute: [
+      "Method 1 (eigenvalues): compute all eigenvalues of symmetric A. If all λᵢ > 0, it is PD.",
+      "Method 2 (Cholesky): attempt Cholesky factorization. If it completes without negative sqrt, A is PD.",
+      "Method 3 (Sylvester's criterion): compute determinants of leading principal submatrices (1×1, 2×2, ..., n×n). All positive ⟹ PD.",
+      "For PSD (semi-definite) check: use eigenvalues ≥ 0 or Cholesky with a small diagonal regularizer.",
+    ],
   },
   symmetric: {
     algebraic:
@@ -817,6 +953,12 @@ export const CONCEPT_EXPANSIONS = {
       "Positive-definite tests",
       "Covariance/Hessian matrices",
     ],
+    howToCompute: [
+      "Check: is Aᵢⱼ = Aⱼᵢ for every (i,j)? Equivalently, is A − A^T = 0?",
+      "To symmetrize any matrix: compute (A + A^T) / 2.",
+      "To eigendecompose: use a symmetric eigensolver (LAPACK dsyev) to get A = Q Λ Q^T with real Λ and orthogonal Q.",
+      "Verify orthogonality of eigenvectors: check Q^T Q = I.",
+    ],
   },
   condition: {
     algebraic:
@@ -826,6 +968,13 @@ export const CONCEPT_EXPANSIONS = {
     workedExample:
       "kappa = 10^6 implies tiny data noise can massively perturb computed answers.",
     connections: ["Near singularity", "SVD", "Numerical stability limits"],
+    howToCompute: [
+      "Compute the SVD of A to obtain singular values σ₁ ≥ σ₂ ≥ ... ≥ σₙ.",
+      "κ₂(A) = σ₁ / σₙ (largest over smallest nonzero singular value).",
+      "If σₙ ≈ 0 (rank-deficient), the condition number is effectively infinite.",
+      "Rough rule: solving Ax = b loses about log₁₀(κ) decimal digits of accuracy in double precision.",
+      "To reduce κ: scale rows and columns (equilibration/preconditioning) before solving.",
+    ],
   },
   pseudoinverse: {
     algebraic:
@@ -838,6 +987,13 @@ export const CONCEPT_EXPANSIONS = {
       "Least squares projection",
       "SVD truncation/regularization",
       "Generalized inverses",
+    ],
+    howToCompute: [
+      "Compute the full SVD: A = U Σ V^T.",
+      "Form Σ⁺: replace each nonzero diagonal σᵢ with 1/σᵢ; leave zero entries as zero.",
+      "For numerical stability, threshold: treat σᵢ as zero if σᵢ < ε · σ₁ (e.g. ε = 1e-10).",
+      "Compute A⁺ = V Σ⁺ U^T.",
+      "To get the minimum-norm least-squares solution: x* = A⁺ b.",
     ],
   },
   linindep: {
@@ -852,6 +1008,13 @@ export const CONCEPT_EXPANSIONS = {
       "Rank",
       "Determinant test in square case",
     ],
+    howToCompute: [
+      "Stack the vectors as columns of matrix A.",
+      "Row-reduce A to RREF. Each pivot column corresponds to an independent vector.",
+      "If every column has a pivot, the set is linearly independent.",
+      "For the square case: det(A) ≠ 0 iff columns are independent.",
+      "Numerically: compute singular values — if σ_min is near zero, the set is near-dependent.",
+    ],
   },
   basis: {
     algebraic:
@@ -865,6 +1028,12 @@ export const CONCEPT_EXPANSIONS = {
       "Change of basis",
       "Eigen/SVD coordinate systems",
     ],
+    howToCompute: [
+      "From a spanning set: stack vectors as columns, row-reduce, and keep only the pivot columns of the original matrix.",
+      "Dimension = number of pivot columns = number of basis vectors.",
+      "Change of basis: if B = [b₁ ... bₙ], the coordinate vector [x]_B = B⁻¹ x.",
+      "To verify: check the basis vectors span the space and are linearly independent (every column has a pivot).",
+    ],
   },
   diagonal: {
     algebraic:
@@ -877,6 +1046,12 @@ export const CONCEPT_EXPANSIONS = {
       "Eigenvalues as diagonal entries",
       "Fast matrix functions",
     ],
+    howToCompute: [
+      "Set all off-diagonal entries to zero.",
+      "Keep desired values d₁,...,dₙ on the main diagonal.",
+      "Powers: D^k = diag(d₁^k,...,dₙ^k).",
+      "Inverse: D⁻¹ = diag(1/d₁,...,1/dₙ) — only if all dᵢ ≠ 0.",
+    ],
   },
   triangular: {
     algebraic:
@@ -888,6 +1063,13 @@ export const CONCEPT_EXPANSIONS = {
       "LU and Cholesky factors",
       "Determinant from diagonal product",
       "Substitution-based solves",
+    ],
+    howToCompute: [
+      "Upper triangular: set all entries below the diagonal to zero (Uᵢⱼ = 0 for i > j).",
+      "Lower triangular: set all entries above the diagonal to zero (Lᵢⱼ = 0 for i < j).",
+      "Determinant = product of all diagonal entries.",
+      "Solve Ux = b by back substitution: start from the last equation and work upward.",
+      "Solve Lx = b by forward substitution: start from the first equation and work downward.",
     ],
   },
   permutation: {
@@ -902,6 +1084,12 @@ export const CONCEPT_EXPANSIONS = {
       "Orthogonal matrix subclass",
       "Doubly stochastic extreme points",
     ],
+    howToCompute: [
+      "Define the permutation σ (e.g. σ = [2,1,3] means row 2 goes first, then row 1, then row 3).",
+      "Set P[i][σ(i)] = 1 for each row i; all other entries are 0.",
+      "Verify: every row and column has exactly one 1.",
+      "Inverse: P⁻¹ = P^T (just transpose).",
+    ],
   },
   idempotent: {
     algebraic:
@@ -914,6 +1102,12 @@ export const CONCEPT_EXPANSIONS = {
       "Rank-trace relation",
       "Subspace decomposition",
     ],
+    howToCompute: [
+      "Compute A² and check if A² = A (element-wise).",
+      "Numerically verify: ‖A² − A‖_F should be near zero.",
+      "For orthogonal projection onto span of columns U: P = U(U^T U)⁻¹ U^T.",
+      "Check rank = trace for any idempotent matrix.",
+    ],
   },
   nilpotent: {
     algebraic:
@@ -922,6 +1116,12 @@ export const CONCEPT_EXPANSIONS = {
       "Compute successive powers A, A^2, ... until zero pattern appears.",
     workedExample: "N=[[0,1],[0,0]] satisfies N^2=0 but N!=0.",
     connections: ["Jordan canonical form", "Transient dynamics", "Singularity"],
+    howToCompute: [
+      "Compute A, A², A³, ... until you reach the zero matrix.",
+      "The smallest k with A^k = 0 is the nilpotency index.",
+      "Verify all eigenvalues are zero (characteristic polynomial = (−λ)^n).",
+      "Jordan form: consists of Jordan blocks with 0 on diagonal, 1 on superdiagonal.",
+    ],
   },
   involutory: {
     algebraic:
@@ -934,6 +1134,12 @@ export const CONCEPT_EXPANSIONS = {
       "Self-inverse transforms",
       "Eigenvalue sign structure",
     ],
+    howToCompute: [
+      "Compute A² and check if it equals Iₙ.",
+      "Numerically: ‖A² − I‖_F should be near zero.",
+      "Eigenvalues must all be +1 or −1.",
+      "If A is involutory, then A⁻¹ = A — no separate inversion needed.",
+    ],
   },
   skewsymmetric: {
     algebraic:
@@ -945,6 +1151,12 @@ export const CONCEPT_EXPANSIONS = {
       "Matrix exponentials to orthogonal maps",
       "Antisymmetric coupling",
     ],
+    howToCompute: [
+      "Check: A^T = −A, equivalently A + A^T = 0.",
+      "Diagonal entries must all be zero (since aᵢᵢ = −aᵢᵢ ⟹ aᵢᵢ = 0).",
+      "To build a skew-symmetric matrix from any B: compute (B − B^T) / 2.",
+      "Verify by computing A + A^T and checking it is the zero matrix.",
+    ],
   },
   orthogonalmatrix: {
     algebraic: "Orthogonal matrices preserve inner products: (Qx)^T(Qy)=x^Ty.",
@@ -955,6 +1167,12 @@ export const CONCEPT_EXPANSIONS = {
       "QR and SVD orthogonal factors",
       "Stable basis transforms",
       "Determinant ±1",
+    ],
+    howToCompute: [
+      "Compute Q^T Q and verify it equals Iₙ.",
+      "Check each column has unit norm: ‖qᵢ‖₂ = 1.",
+      "Check distinct columns are orthogonal: qᵢ · qⱼ = 0 for i ≠ j.",
+      "Verify det(Q) = ±1 (rotation if +1, reflection if −1).",
     ],
   },
   stochastic: {
@@ -969,6 +1187,12 @@ export const CONCEPT_EXPANSIONS = {
       "Stationary distributions",
       "Spectral mixing rates",
     ],
+    howToCompute: [
+      "Check all entries are nonnegative: Aᵢⱼ ≥ 0.",
+      "Check each row sums to 1: sum_j Aᵢⱼ = 1 for all i.",
+      "To find stationary distribution π: solve π^T A = π^T (left eigenvector for eigenvalue 1).",
+      "Alternatively iterate: π_{t+1} = π_t · A until convergence.",
+    ],
   },
   doublystochastic: {
     algebraic:
@@ -982,6 +1206,12 @@ export const CONCEPT_EXPANSIONS = {
       "Balanced transport maps",
       "Permutation matrices",
     ],
+    howToCompute: [
+      "Check nonnegativity: all Aᵢⱼ ≥ 0.",
+      "Check row sums = 1: sum_j Aᵢⱼ = 1 for all i.",
+      "Check column sums = 1: sum_i Aᵢⱼ = 1 for all j.",
+      "Birkhoff-von Neumann: decompose as a convex combination of permutation matrices using the Birkhoff algorithm.",
+    ],
   },
   diagonaldominant: {
     algebraic:
@@ -993,6 +1223,12 @@ export const CONCEPT_EXPANSIONS = {
       "Iterative solver convergence",
       "Stability diagnostics",
       "Gershgorin discs",
+    ],
+    howToCompute: [
+      "For each row i, compute the diagonal magnitude |aᵢᵢ|.",
+      "Compute the off-diagonal sum: Sᵢ = sum_{j≠i} |aᵢⱼ|.",
+      "Margin for row i: mᵢ = |aᵢᵢ| − Sᵢ. Positive margin = that row is strictly dominant.",
+      "If all margins are positive, the matrix is strictly diagonally dominant (and therefore invertible).",
     ],
   },
   sparse: {
@@ -1007,6 +1243,12 @@ export const CONCEPT_EXPANSIONS = {
       "Fill-in during elimination",
       "Scalable linear solvers",
     ],
+    howToCompute: [
+      "Identify nonzero entries and compute sparsity: nnz / (m·n).",
+      "Store using CSR (Compressed Sparse Row) or COO (coordinate) format.",
+      "For SpMV (sparse matrix-vector product): iterate only over stored nonzero entries.",
+      "For sparse solves: use SuperLU, CHOLMOD, or UMFPACK; be aware of fill-in during factorization.",
+    ],
   },
   toeplitz: {
     algebraic:
@@ -1019,6 +1261,12 @@ export const CONCEPT_EXPANSIONS = {
       "Signal processing",
       "Autocorrelation matrices",
       "Structured linear algebra",
+    ],
+    howToCompute: [
+      "Define the matrix by its first row [c₀, c₁, ..., c_{n-1}] and first column [c₀, c_{-1}, ..., c_{-(m-1)}].",
+      "Entry (i,j) = c_{j−i} (depends only on the difference j−i).",
+      "Check: verify all entries along each diagonal are equal.",
+      "For matrix-vector multiplication: use FFT-based convolution in O(n log n) instead of O(n²).",
     ],
   },
   laplacian: {
@@ -1033,6 +1281,13 @@ export const CONCEPT_EXPANSIONS = {
       "Diffusion/random walks",
       "Graph regularization",
     ],
+    howToCompute: [
+      "Compute degree matrix D: Dᵢᵢ = sum of edge weights incident to node i.",
+      "Compute adjacency matrix A: Aᵢⱼ = weight of edge (i,j), 0 if no edge.",
+      "Laplacian: L = D − A.",
+      "Verify: L is symmetric, all row sums equal zero, and spectrum is nonnegative.",
+      "Eigendecompose L: smallest eigenvalue = 0 (eigenvector = all-ones); second-smallest (Fiedler value) measures graph connectivity.",
+    ],
   },
   covariancematrix: {
     algebraic:
@@ -1045,6 +1300,13 @@ export const CONCEPT_EXPANSIONS = {
       "PCA eigenstructure",
       "Mahalanobis distance",
       "Gaussian modeling",
+    ],
+    howToCompute: [
+      "Center the data: subtract the mean from each row (observation) to form X_c.",
+      "Compute sample covariance: Σ = (1/(N−1)) × X_c^T X_c.",
+      "Verify symmetry and positive semi-definiteness (all eigenvalues ≥ 0).",
+      "For PCA: eigendecompose Σ (or equivalently do SVD of X_c). Eigenvectors are principal components.",
+      "Regularize if needed: Σ_reg = Σ + λI to ensure strict positive definiteness.",
     ],
   },
 };

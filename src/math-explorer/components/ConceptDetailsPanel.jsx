@@ -266,6 +266,23 @@ export function ConceptDetailsPanel(props) {
         </div>
       )}
 
+      {/* ── How to Calculate ── */}
+      {expansion.howToCompute && expansion.howToCompute.length > 0 && (
+        <div
+          style={{
+            ...CARD,
+            borderColor: concept.color + "35",
+          }}
+        >
+          <SectionLabel>How to Calculate</SectionLabel>
+          <BulletList
+            items={expansion.howToCompute}
+            marker={function (i) { return String(i + 1) + "."; }}
+            markerColor={concept.accent}
+          />
+        </div>
+      )}
+
       {/* ── Use Cases + Connections ── */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
         {details.useCases && details.useCases.length > 0 && (

@@ -6,6 +6,7 @@ import { REINFORCEMENT_LEARNING_DOMAIN } from "./reinforcement-learning";
 import { STATISTICS_DOMAIN } from "./statistics";
 import { BAYESIAN_DOMAIN } from "./bayesian";
 import { ACTIVATION_FUNCTIONS_DOMAIN } from "./activation-functions";
+import { GPU_DOMAIN } from "./gpu";
 
 export {
   MATRICES_DOMAIN,
@@ -16,6 +17,7 @@ export {
   STATISTICS_DOMAIN,
   BAYESIAN_DOMAIN,
   ACTIVATION_FUNCTIONS_DOMAIN,
+  GPU_DOMAIN,
 };
 
 export const ALL_DOMAINS = [
@@ -27,4 +29,5 @@ export const ALL_DOMAINS = [
   STATISTICS_DOMAIN,
   BAYESIAN_DOMAIN,
   ACTIVATION_FUNCTIONS_DOMAIN,
+  GPU_DOMAIN,
 ];

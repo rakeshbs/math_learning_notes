@@ -404,10 +404,10 @@ export function ConditionVis() {
       "rgba(255,255,255,0.45)",
       11,
     );
-    drawText(ctx, "kappa(A) ~= " + amp.toFixed(1), 10, 22, "#FDA4AF", 14);
+    drawText(ctx, "amplification ~= " + amp.toFixed(1), 10, 22, "#FDA4AF", 14);
     drawText(
       ctx,
-      "Nearby inputs can separate sharply after A",
+      "Nearby inputs stretch apart — high kappa = sensitive to perturbation",
       10,
       h - 14,
       "rgba(255,255,255,0.5)",

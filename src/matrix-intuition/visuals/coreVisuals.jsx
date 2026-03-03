@@ -151,16 +151,21 @@ export function DetVis() {
       var cx = w / 2;
       var cy = h / 2;
       var s = 50;
+      // Reference unit square
       ctx.strokeStyle = "rgba(255,255,255,0.15)";
       ctx.lineWidth = 1;
       ctx.setLineDash([3, 3]);
       ctx.strokeRect(cx, cy - s, s, s);
       ctx.setLineDash([]);
+      // v1 scales with slider (can go negative → orientation flip)
+      // v2 is FIXED so det = scale × 1 − 0 × 0.3 = scale (signed)
       var v1x = scale * s;
-      var v2x = 0.3 * scale * s;
-      var v2y = -scale * s;
-      ctx.fillStyle = "rgba(106,76,147,0.15)";
-      ctx.strokeStyle = "#6A4C93";
+      var v2x = 0.3 * s;
+      var v2y = -s;
+      var det = scale; // exactly v1x/s * 1 - 0 * 0.3
+      ctx.fillStyle =
+        det < 0 ? "rgba(214,40,40,0.13)" : "rgba(106,76,147,0.15)";
+      ctx.strokeStyle = det < 0 ? "#D62828" : "#6A4C93";
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(cx, cy);
@@ -170,9 +175,8 @@ export function DetVis() {
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
-      drawArrow(ctx, cx, cy, cx + v1x, cy, "#6A4C93");
+      drawArrow(ctx, cx, cy, cx + v1x, cy, det < 0 ? "#D62828" : "#6A4C93");
       drawArrow(ctx, cx, cy, cx + v2x, cy + v2y, "#B8A9C9");
-      var det = scale * scale;
       drawText(ctx, "det = " + det.toFixed(2), 10, 24, "#B8A9C9", 14);
       drawText(
         ctx,
@@ -180,7 +184,9 @@ export function DetVis() {
           ? "Space expanded"
           : det > 0
             ? "Space shrunk"
-            : "Space collapsed!",
+            : det === 0
+              ? "Collapsed to a line (det = 0)"
+              : "Orientation flipped! (det < 0)",
         10,
         h - 14,
         "rgba(255,255,255,0.5)",
@@ -294,58 +300,56 @@ export function NullVis() {
     drawGrid(ctx, w, h);
     var cx = w / 2;
     var cy = h / 2;
-    var a = t * 0.2;
+    // FIXED null space direction — the matrix is constant, so null(A) is constant
+    var a = 0.62;
     var dx = Math.cos(a);
     var dy = Math.sin(a);
-    var px = -dy;
+    var px = -dy; // column space: perpendicular to null space
     var py = dx;
+
+    // Column space line (orange)
     ctx.strokeStyle = "rgba(246,127,0,0.35)";
     ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(cx - dx * 160, cy + dy * 160);
-    ctx.lineTo(cx + dx * 160, cy - dy * 160);
-    ctx.stroke();
-    ctx.strokeStyle = "rgba(214,40,40,0.4)";
-    ctx.lineWidth = 2;
-    ctx.setLineDash([5, 5]);
     ctx.beginPath();
     ctx.moveTo(cx - px * 160, cy + py * 160);
     ctx.lineTo(cx + px * 160, cy - py * 160);
     ctx.stroke();
+
+    // Null space line (red, dashed)
+    ctx.strokeStyle = "rgba(214,40,40,0.4)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(cx - dx * 160, cy + dy * 160);
+    ctx.lineTo(cx + dx * 160, cy - dy * 160);
+    ctx.stroke();
     ctx.setLineDash([]);
-    var pulse = (Math.sin(t * 2) + 1) / 2;
-    for (var i = -2; i <= 2; i++) {
+
+    // Fixed sample vectors on the null space line with arrows converging to origin
+    var i;
+    for (i = -2; i <= 2; i++) {
       if (i === 0) continue;
-      drawArrow(
-        ctx,
-        cx,
-        cy,
-        cx + px * i * 40 * (1 - pulse * 0.8),
-        cy - py * i * 40 * (1 - pulse * 0.8),
-        "rgba(214,40,40," + (0.3 + pulse * 0.4) + ")",
-        1.5,
-      );
+      var nvx = cx + dx * i * 42;
+      var nvy = cy - dy * i * 42;
+      drawDot(ctx, nvx, nvy, 3.5, "rgba(214,40,40,0.85)");
+      drawArrow(ctx, nvx, nvy, cx, cy, "rgba(247,127,0,0.4)", 1.4);
     }
+
+    // Animated probe: a point sliding along the null space line
+    var probe = Math.sin(t * 0.9) * 100;
+    var pvx = cx + dx * probe;
+    var pvy = cy - dy * probe;
+    var pulseAlpha = 0.55 + 0.45 * Math.sin(t * 2.2);
+    drawDot(ctx, pvx, pvy, 5, "rgba(214,40,40," + pulseAlpha + ")");
+    drawArrow(ctx, pvx, pvy, cx, cy, "rgba(255,90,0,0.65)", 2.5);
+
     drawDot(ctx, cx, cy, 4, "#fff");
+    drawText(ctx, "Ax = 0", cx + 7, cy - 8, "#fff", 11);
+    drawText(ctx, "Column space", cx + px * 100 + 5, cy - py * 100 - 5, "#F77F00", 11);
+    drawText(ctx, "Null space", cx + dx * 80 + 5, cy - dy * 80 - 5, "#D62828", 11);
     drawText(
       ctx,
-      "Column space",
-      cx + dx * 100 + 5,
-      cy - dy * 100 - 5,
-      "#F77F00",
-      11,
-    );
-    drawText(
-      ctx,
-      "Null space",
-      cx + px * 80 + 5,
-      cy - py * 80 - 5,
-      "#D62828",
-      11,
-    );
-    drawText(
-      ctx,
-      "Null space vectors collapse to origin",
+      "Every null vector maps to origin under A",
       10,
       h - 14,
       "rgba(255,255,255,0.5)",
@@ -476,67 +480,91 @@ export function TransposeVis() {
 }
 
 export function InverseVis() {
+  // A = [[2, 0.5], [0, 1.5]], det = 3
+  // A^-1 = (1/3)*[[1.5, -0.5], [0, 2]] = [[0.5, -1/6], [0, 2/3]]
   var draw = useCallback(function (ctx, w, h, t) {
     drawGrid(ctx, w, h);
     var cx = w / 2;
     var cy = h / 2;
-    var s = 50;
-    var phase = (Math.sin(t * 0.8) + 1) / 2;
+    var s = 52;
+    var cycle = (t * 0.38) % (Math.PI * 2);
+    var norm = cycle / (Math.PI * 2); // 0..1
+
+    // Phases: 0..0.35 apply A | 0.35..0.55 hold | 0.55..0.90 apply A^-1 | 0.90..1 hold at I
+    var pA =
+      norm < 0.35
+        ? norm / 0.35
+        : 1;
+    var pInv =
+      norm < 0.55
+        ? 0
+        : norm < 0.9
+          ? (norm - 0.55) / 0.35
+          : 1;
+
+    var phase =
+      norm < 0.35
+        ? "Applying A..."
+        : norm < 0.55
+          ? "A transforms: [[2, 0.5], [0, 1.5]]"
+          : norm < 0.9
+            ? "Applying A^-1 (undoing A)..."
+            : "A^-1 A = I";
+
+    function applyA(x, y) {
+      return [2 * x + 0.5 * y, 1.5 * y];
+    }
+
     var pts = [
       [0, 0],
       [1, 0],
       [1, 1],
       [0, 1],
     ];
-    function lerp(a, b, p) {
-      return a + (b - a) * p;
+
+    // Reference (ghost) unit square
+    ctx.beginPath();
+    for (var k = 0; k < pts.length; k++) {
+      var gx = cx + pts[k][0] * s;
+      var gy = cy - pts[k][1] * s;
+      if (k === 0) ctx.moveTo(gx, gy);
+      else ctx.lineTo(gx, gy);
     }
-    function drawShape(transformFn, alpha, color) {
-      ctx.beginPath();
-      for (var i = 0; i < pts.length; i++) {
-        var r = transformFn(pts[i][0], pts[i][1]);
-        var sx = cx + r[0] * s;
-        var sy = cy - r[1] * s;
-        if (i === 0) ctx.moveTo(sx, sy);
-        else ctx.lineTo(sx, sy);
-      }
-      ctx.closePath();
-      ctx.fillStyle = color;
-      ctx.globalAlpha = alpha;
-      ctx.fill();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.globalAlpha = alpha + 0.3;
-      ctx.stroke();
-      ctx.globalAlpha = 1;
+    ctx.closePath();
+    ctx.strokeStyle = "rgba(255,255,255,0.12)";
+    ctx.setLineDash([3, 4]);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Animated parallelogram
+    ctx.beginPath();
+    for (var i = 0; i < pts.length; i++) {
+      var ax = pts[i][0];
+      var ay = pts[i][1];
+      var a = applyA(ax, ay);
+      // Phase 1: lerp towards A(pt)
+      var cx2 = ax + (a[0] - ax) * pA;
+      var cy2 = ay + (a[1] - ay) * pA;
+      // Phase 2: lerp back towards pt (A^-1 applied to A(pt) = pt)
+      cx2 = cx2 + (ax - a[0]) * pInv;
+      cy2 = cy2 + (ay - a[1]) * pInv;
+      var sx = cx + cx2 * s;
+      var sy = cy - cy2 * s;
+      if (i === 0) ctx.moveTo(sx, sy);
+      else ctx.lineTo(sx, sy);
     }
-    drawShape(
-      function (x, y) {
-        return [x, y];
-      },
-      0.15,
-      "rgba(255,255,255,0.5)",
-    );
-    drawShape(
-      function (x, y) {
-        var fx = 2 * x + 0.5 * y;
-        var fy = 1.5 * y;
-        return [lerp(x, fx, phase), lerp(y, fy, phase)];
-      },
-      0.2,
-      "#0077B6",
-    );
+    ctx.closePath();
+    ctx.fillStyle = "rgba(0,119,182,0.18)";
+    ctx.fill();
+    ctx.strokeStyle = "#0077B6";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    drawText(ctx, phase, 10, 22, "#0077B6", 13);
     drawText(
       ctx,
-      phase < 0.5 ? "A * x transforming..." : "A^-1 * (Ax) undoing...",
-      10,
-      22,
-      "#0077B6",
-      13,
-    );
-    drawText(
-      ctx,
-      "A^-1 A = I : Inverse perfectly reverses A",
+      "A^-1 A = I : inverse exactly undoes the transform",
       10,
       h - 14,
       "rgba(255,255,255,0.5)",

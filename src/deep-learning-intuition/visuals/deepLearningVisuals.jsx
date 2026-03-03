@@ -126,12 +126,13 @@ export function InitGradientFlowVis() {
     ctx.lineTo(right, cy);
     ctx.stroke();
 
+    var mode = (Math.sin(t * 0.45) + 1) / 2;
+
     for (var i = 0; i < n; i++) {
       var x = left + i * step;
       var stable = 30 + 10 * Math.sin(t * 0.8 + i * 0.4);
       var vanishing = 60 * Math.pow(0.72, i);
       var exploding = 8 * Math.pow(1.35, i);
-      var mode = (Math.sin(t * 0.45) + 1) / 2;
       var hBar = stable * (1 - mode) + (mode < 0.5 ? vanishing : exploding) * mode;
 
       ctx.strokeStyle = "rgba(96,165,250,0.5)";
@@ -142,7 +143,20 @@ export function InitGradientFlowVis() {
       ctx.stroke();
     }
 
-    drawText(ctx, "Layerwise gradient magnitude", 10, 22, "#93C5FD", 12);
+    var modeLabel;
+    var modeColor;
+    if (mode < 0.3) {
+      modeLabel = "Stable gradient flow";
+      modeColor = "#60A5FA";
+    } else if (mode > 0.7) {
+      modeLabel = "Exploding / vanishing gradient";
+      modeColor = "#F87171";
+    } else {
+      modeLabel = "Gradient signal";
+      modeColor = "#9CA3AF";
+    }
+
+    drawText(ctx, modeLabel, 10, 22, modeColor, 12);
     drawText(ctx, "Initialization quality controls signal flow", 10, h - 14, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
@@ -152,23 +166,51 @@ export function NormDropoutVis() {
   var draw = useCallback(function (ctx, w, h, t) {
     drawGrid(ctx, w, h);
 
-    var cx = w * 0.33;
-    var cy = h * 0.52;
-    for (var i = 0; i < 64; i++) {
-      var angle = (i / 64) * Math.PI * 2;
-      var r = 18 + (i % 8) * 2;
-      var x = cx + Math.cos(angle) * r + 24;
-      var y = cy + Math.sin(angle) * r - 16;
-      drawDot(ctx, x, y, 2.2, "rgba(34,211,238,0.25)");
+    // Left half: BatchNorm — show before/after distribution bell curves
+    var midX = w * 0.5;
+    var curveY = h * 0.52;
+    var scaleY = h * 0.28;
+
+    function bellCurve(ctx, meanX, sigma, color, alpha) {
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = alpha;
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      var steps = 60;
+      for (var s = 0; s <= steps; s++) {
+        var xOff = ((s / steps) - 0.5) * sigma * 6;
+        var xPos = meanX + xOff;
+        var gauss = Math.exp(-(xOff * xOff) / (2 * sigma * sigma));
+        var yPos = curveY - gauss * scaleY;
+        if (s === 0) ctx.moveTo(xPos, yPos);
+        else ctx.lineTo(xPos, yPos);
+      }
+      ctx.stroke();
+      ctx.globalAlpha = 1.0;
     }
 
-    for (var j = 0; j < 64; j++) {
-      var a = (j / 64) * Math.PI * 2;
-      var x2 = cx + Math.cos(a) * 30;
-      var y2 = cy + Math.sin(a) * 22;
-      drawDot(ctx, x2, y2, 2.2, "rgba(103,232,249,0.55)");
-    }
+    var beforeMeanX = midX * 0.42;
+    var afterMeanX = midX * 0.65;
+    var beforeSigma = midX * 0.22;
+    var afterSigma = midX * 0.13;
 
+    // Before: offset, wider, lighter
+    bellCurve(ctx, beforeMeanX, beforeSigma, "#22D3EE", 0.38);
+    // After: centered on afterMeanX, narrower, brighter
+    bellCurve(ctx, afterMeanX, afterSigma, "#06B6D4", 0.88);
+
+    // Baseline
+    ctx.strokeStyle = "rgba(255,255,255,0.15)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(10, curveY);
+    ctx.lineTo(midX - 8, curveY);
+    ctx.stroke();
+
+    drawText(ctx, "before", beforeMeanX - 18, curveY + 18, "rgba(34,211,238,0.55)", 10);
+    drawText(ctx, "after", afterMeanX - 12, curveY + 18, "#06B6D4", 10);
+
+    // Right half: Dropout grid with X marks
     var startX = w * 0.58;
     var startY = h * 0.3;
     var cols = 4;
@@ -181,15 +223,18 @@ export function NormDropoutVis() {
         drawDot(ctx, nx, ny, 7, keep ? "#7DD3FC" : "rgba(125,211,252,0.2)");
         if (!keep) {
           ctx.strokeStyle = "rgba(248,113,113,0.75)";
+          ctx.lineWidth = 1.5;
           ctx.beginPath();
           ctx.moveTo(nx - 7, ny - 7);
           ctx.lineTo(nx + 7, ny + 7);
+          ctx.moveTo(nx + 7, ny - 7);
+          ctx.lineTo(nx - 7, ny + 7);
           ctx.stroke();
         }
       }
     }
 
-    drawText(ctx, "Left: BatchNorm recenter/rescale", 10, 22, "#67E8F9", 12);
+    drawText(ctx, "Left: BatchNorm — before/after", 10, 22, "#67E8F9", 12);
     drawText(ctx, "Right: Dropout random subnetworks", 10, 40, "#7DD3FC", 12);
     drawText(ctx, "Stability + regularization", 10, h - 14, "rgba(255,255,255,0.55)", 11);
   }, []);
@@ -429,22 +474,34 @@ export function EmbeddingVis() {
     var cx = w / 2;
     var cy = h / 2;
 
-    function cluster(x0, y0, color, phase) {
+    var clusterDefs = [
+      { x0: -75, y0: -35, color: "rgba(248,113,113,0.75)", dotColor: "#F87171", label: "cat A", phase: 0 },
+      { x0: 70, y0: -20, color: "rgba(96,165,250,0.75)", dotColor: "#60A5FA", label: "cat B", phase: 1 },
+      { x0: 5, y0: 65, color: "rgba(52,211,153,0.75)", dotColor: "#34D399", label: "cat C", phase: 2 },
+    ];
+
+    for (var ci = 0; ci < clusterDefs.length; ci++) {
+      var cd = clusterDefs[ci];
       for (var i = 0; i < 20; i++) {
         var a = (i / 20) * Math.PI * 2;
-        var r = 18 + 8 * Math.sin(t + i * 0.4 + phase);
-        var x = cx + x0 + Math.cos(a) * r;
-        var y = cy + y0 + Math.sin(a) * r * 0.7;
-        drawDot(ctx, x, y, 2.6, color);
+        var r = 18 + 8 * Math.sin(t + i * 0.4 + cd.phase);
+        var x = cx + cd.x0 + Math.cos(a) * r;
+        var y = cy + cd.y0 + Math.sin(a) * r * 0.7;
+        drawDot(ctx, x, y, 2.6, cd.color);
       }
     }
 
-    cluster(-75, -35, "rgba(248,113,113,0.65)", 0);
-    cluster(70, -20, "rgba(252,165,165,0.65)", 1);
-    cluster(5, 70, "rgba(239,68,68,0.65)", 2);
+    // Legend
+    var legendX = w - 74;
+    var legendY = 18;
+    for (var li = 0; li < clusterDefs.length; li++) {
+      var lc = clusterDefs[li];
+      drawDot(ctx, legendX, legendY + li * 18, 5, lc.dotColor);
+      drawText(ctx, lc.label, legendX + 10, legendY + li * 18 + 4, lc.dotColor, 11);
+    }
 
     drawText(ctx, "Embedding clusters by semantics", 10, 22, "#FCA5A5", 12);
-    drawText(ctx, "Distance encodes relational similarity", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Nearby points share learned features", 10, h - 14, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -485,6 +542,581 @@ export function LossLandscapeVis() {
 
     drawText(ctx, "Optimization path on loss surface", 10, 22, "#6EE7B7", 12);
     drawText(ctx, "Sharp vs flat basin geometry", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+// ─── New Visualizations ───────────────────────────────────────────────────────
+
+export function SoftmaxOutputVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    var n = 4;
+    var logits = [2.1, 1.0 + 1.2 * Math.sin(t * 1.3), -0.5, 0.8];
+    var exps = logits.map(function (v) { return Math.exp(v); });
+    var sumExp = exps.reduce(function (a, b) { return a + b; }, 0);
+    var probs = exps.map(function (e) { return e / sumExp; });
+
+    var colW = w * 0.18;
+    var barW = colW * 0.55;
+    var maxLogit = 4;
+    var leftX = w * 0.12;
+    var rightX = w * 0.62;
+    var baseY = h * 0.82;
+    var maxH = h * 0.52;
+
+    // Column headers
+    drawText(ctx, "logits", leftX + colW * 0.5 - 18, h * 0.14, "#FDBA74", 12);
+    drawText(ctx, "probs", rightX + colW * 0.5 - 14, h * 0.14, "#86EFAC", 12);
+
+    // Arrow between columns
+    drawArrow(ctx, leftX + colW + 12, h * 0.5, rightX - 12, h * 0.5, "rgba(255,255,255,0.5)", 2);
+    drawText(ctx, "softmax", leftX + colW + 14, h * 0.5 - 8, "rgba(255,255,255,0.55)", 10);
+
+    for (var i = 0; i < n; i++) {
+      var yCenter = h * (0.24 + i * 0.175);
+      var barH = Math.max(4, (logits[i] / maxLogit) * maxH * 0.5);
+      var probH = Math.max(4, probs[i] * maxH);
+
+      // Logit bars
+      var logitColor = i === 1 ? "#FCD34D" : "#FDBA74";
+      ctx.fillStyle = logitColor;
+      drawRoundRect(ctx, leftX, yCenter - barH, barW, barH, 3);
+      ctx.fill();
+      drawText(ctx, logits[i].toFixed(2), leftX + barW + 4, yCenter - barH / 2 + 4, "rgba(255,255,255,0.65)", 10);
+
+      // Prob bars
+      ctx.fillStyle = "#86EFAC";
+      drawRoundRect(ctx, rightX, yCenter - probH, barW, probH, 3);
+      ctx.fill();
+      drawText(ctx, probs[i].toFixed(3), rightX + barW + 4, yCenter - probH / 2 + 4, "rgba(255,255,255,0.65)", 10);
+    }
+
+    // Sum = 1 label
+    var sumVal = probs.reduce(function (a, b) { return a + b; }, 0);
+    drawText(ctx, "sum = " + sumVal.toFixed(2), rightX, baseY + 14, "#86EFAC", 11);
+
+    drawText(ctx, "Logits → softmax probabilities", 10, 22, "#FDBA74", 12);
+    drawText(ctx, "Oscillating bar shows input sensitivity", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+export function LabelSmoothingVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    var n = 4;
+    var correctIdx = 1;
+    var eps = 0.15 + 0.15 * (Math.sin(t * 0.6) + 1) / 2; // animates 0.15..0.30
+
+    var hardLabels = [0, 0, 0, 0];
+    hardLabels[correctIdx] = 1.0;
+
+    var softLabels = hardLabels.map(function (v, i) {
+      if (i === correctIdx) return 1 - eps;
+      return eps / (n - 1);
+    });
+
+    var colW = w * 0.3;
+    var barW = colW * 0.45;
+    var leftX = w * 0.08;
+    var rightX = w * 0.55;
+    var maxBarH = h * 0.48;
+
+    drawText(ctx, "Hard label", leftX, h * 0.12, "#E5E7EB", 12);
+    drawText(ctx, "Soft label (\u03b5=" + eps.toFixed(2) + ")", rightX, h * 0.12, "#A3E635", 12);
+
+    for (var i = 0; i < n; i++) {
+      var yBase = h * 0.78;
+      var gap = colW / n;
+      var lx = leftX + i * gap;
+      var rx = rightX + i * gap;
+
+      var hardH = Math.max(3, hardLabels[i] * maxBarH);
+      var softH = Math.max(3, softLabels[i] * maxBarH);
+
+      var hardColor = i === correctIdx ? "#4ADE80" : "rgba(96,165,250,0.45)";
+      var softColor = i === correctIdx ? "#4ADE80" : "rgba(96,165,250,0.55)";
+
+      ctx.fillStyle = hardColor;
+      drawRoundRect(ctx, lx, yBase - hardH, barW, hardH, 3);
+      ctx.fill();
+      drawText(ctx, hardLabels[i].toFixed(2), lx, yBase + 12, "rgba(255,255,255,0.55)", 9);
+
+      ctx.fillStyle = softColor;
+      drawRoundRect(ctx, rx, yBase - softH, barW, softH, 3);
+      ctx.fill();
+      drawText(ctx, softLabels[i].toFixed(2), rx, yBase + 12, "rgba(255,255,255,0.55)", 9);
+    }
+
+    drawText(ctx, "Label smoothing regularizes overconfidence", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+export function DiffusionVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    var steps = 5;
+    var cx = w / 2;
+    var cy = h * 0.44;
+    var spacing = (w - 60) / (steps - 1);
+
+    for (var si = 0; si < steps; si++) {
+      var stepX = 30 + si * spacing;
+      var spread = 4 + si * 14;
+      var nDots = 18;
+
+      for (var di = 0; di < nDots; di++) {
+        var angle = (di / nDots) * Math.PI * 2;
+        var noiseX = Math.sin(angle * (si + 1) * 0.8 + t * 0.4) * spread;
+        var noiseY = Math.cos(angle * (si + 1) * 0.8 + t * 0.35) * spread;
+        var dx = stepX + Math.cos(angle) * spread * 0.5 + noiseX * 0.6;
+        var dy = cy + Math.sin(angle) * spread * 0.35 + noiseY * 0.6;
+        var alpha = 0.85 - si * 0.12;
+        drawDot(ctx, dx, dy, 2.4, "rgba(147,197,253," + alpha.toFixed(2) + ")");
+      }
+
+      // Step label
+      drawText(ctx, "t=" + si, stepX - 8, cy + spread + 22, "rgba(255,255,255,0.55)", 10);
+    }
+
+    // Bidirectional arrows below clusters
+    var arrowY = h * 0.78;
+    drawArrow(ctx, 30, arrowY, w - 30, arrowY, "rgba(96,165,250,0.65)", 1.8);
+    drawArrow(ctx, w - 30, arrowY + 14, 30, arrowY + 14, "rgba(249,168,212,0.65)", 1.8);
+
+    drawText(ctx, "q(x_t|x_0)", w * 0.35, arrowY - 6, "rgba(96,165,250,0.75)", 10);
+    drawText(ctx, "p_\u03b8(x_{t-1}|x_t)", w * 0.28, arrowY + 28, "rgba(249,168,212,0.75)", 10);
+
+    drawText(ctx, "t=0 clean", 10, 22, "#93C5FD", 12);
+    drawText(ctx, "t=T noisy", w - 68, 22, "#F9A8D4", 12);
+    drawText(ctx, "Forward noising process (left\u2192right)", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+export function GANVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    var genX = w * 0.08;
+    var genY = h * 0.25;
+    var boxW = w * 0.24;
+    var boxH = h * 0.3;
+    var discX = w * 0.68;
+    var discY = h * 0.25;
+
+    // Generator box
+    ctx.fillStyle = "rgba(236,72,153,0.12)";
+    drawRoundRect(ctx, genX, genY, boxW, boxH, 10);
+    ctx.fill();
+    ctx.strokeStyle = "#F472B6";
+    ctx.lineWidth = 2;
+    drawRoundRect(ctx, genX, genY, boxW, boxH, 10);
+    ctx.stroke();
+    drawText(ctx, "Generator", genX + 8, genY + boxH / 2 - 6, "#F472B6", 12);
+    drawText(ctx, "G", genX + 8, genY + boxH / 2 + 10, "#F472B6", 11);
+
+    // Discriminator box
+    ctx.fillStyle = "rgba(59,130,246,0.12)";
+    drawRoundRect(ctx, discX, discY, boxW, boxH, 10);
+    ctx.fill();
+    ctx.strokeStyle = "#60A5FA";
+    ctx.lineWidth = 2;
+    drawRoundRect(ctx, discX, discY, boxW, boxH, 10);
+    ctx.stroke();
+    drawText(ctx, "Discriminator", discX + 4, discY + boxH / 2 - 6, "#60A5FA", 12);
+    drawText(ctx, "D", discX + 8, discY + boxH / 2 + 10, "#60A5FA", 11);
+    drawText(ctx, "Real/Fake?", discX + 4, discY + boxH + 14, "rgba(255,255,255,0.55)", 10);
+
+    // Fake samples moving from G to D
+    var nFake = 5;
+    for (var i = 0; i < nFake; i++) {
+      var phase = ((t * 0.4 + i / nFake) % 1.0);
+      var fx = genX + boxW + (discX - genX - boxW) * phase;
+      var fy = genY + boxH * 0.5 + Math.sin(t + i * 1.2) * 10;
+      drawDot(ctx, fx, fy, 4, "rgba(244,114,182,0.8)");
+    }
+
+    // Real samples entering from below
+    var nReal = 5;
+    for (var j = 0; j < nReal; j++) {
+      var rPhase = ((t * 0.35 + j / nReal) % 1.0);
+      var rx2 = discX + boxW * 0.5 + Math.sin(t * 0.7 + j) * 14;
+      var ry2 = h * 0.85 - (h * 0.85 - (discY + boxH)) * rPhase;
+      drawDot(ctx, rx2, ry2, 4, "rgba(52,211,153,0.8)");
+    }
+
+    // Real label
+    drawText(ctx, "Real samples", discX + 4, h * 0.88, "#34D399", 10);
+    drawText(ctx, "Fake samples", genX + boxW + 8, genY + boxH * 0.5 - 18, "#F472B6", 10);
+
+    // Gradient arrow from D back to G
+    var gradY = genY - 22;
+    drawArrow(ctx, discX, gradY, genX + boxW, gradY, "#FBBF24", 2);
+    drawText(ctx, "gradient", w * 0.38, gradY - 8, "#FBBF24", 10);
+
+    drawText(ctx, "Adversarial minimax game", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+export function LSTMVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    var cellX = w * 0.15;
+    var cellY = h * 0.22;
+    var cellW = w * 0.7;
+    var cellH = h * 0.52;
+
+    // Cell border
+    ctx.fillStyle = "rgba(109,40,217,0.1)";
+    drawRoundRect(ctx, cellX, cellY, cellW, cellH, 14);
+    ctx.fill();
+    ctx.strokeStyle = "#A78BFA";
+    ctx.lineWidth = 2;
+    drawRoundRect(ctx, cellX, cellY, cellW, cellH, 14);
+    ctx.stroke();
+
+    // Cell state line at top
+    var csY = cellY + cellH * 0.22;
+    ctx.strokeStyle = "#C4B5FD";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(cellX + 14, csY);
+    ctx.lineTo(cellX + cellW - 14, csY);
+    ctx.stroke();
+    drawText(ctx, "c_t  (cell state)", cellX + cellW * 0.35, csY - 8, "#C4B5FD", 11);
+
+    // Gate definitions: forget, input, output
+    var gateColors = ["#F87171", "#4ADE80", "#60A5FA"];
+    var gateLabels = ["f", "i", "o"];
+    var gateNames = ["forget", "input", "output"];
+    var gateXs = [cellX + cellW * 0.22, cellX + cellW * 0.5, cellX + cellW * 0.78];
+    var gateY = cellY + cellH * 0.65;
+    var gateR = 16;
+
+    for (var gi = 0; gi < 3; gi++) {
+      var pulse = 0.3 + 0.7 * ((Math.sin(t * 1.5 + gi * 1.0) + 1) / 2);
+      var gx = gateXs[gi];
+      drawDot(ctx, gx, gateY, gateR, gateColors[gi].replace(")", "," + pulse.toFixed(2) + ")").replace("rgb", "rgba"));
+      ctx.strokeStyle = "rgba(255,255,255,0.3)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(gx, gateY, gateR, 0, Math.PI * 2);
+      ctx.stroke();
+      drawText(ctx, gateLabels[gi], gx - 4, gateY + 4, "#fff", 12);
+      drawText(ctx, gateNames[gi], gx - 14, gateY + gateR + 14, gateColors[gi], 10);
+
+      // Connect gate to cell state
+      ctx.strokeStyle = "rgba(196,181,253,0.35)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(gx, gateY - gateR);
+      ctx.lineTo(gx, csY);
+      ctx.stroke();
+    }
+
+    // Input arrow from bottom-left
+    drawArrow(ctx, cellX - 30, cellY + cellH * 0.65, cellX + 6, cellY + cellH * 0.65, "#D8B4FE", 2);
+    drawText(ctx, "x_t", cellX - 38, cellY + cellH * 0.65 - 8, "#D8B4FE", 10);
+
+    // Output arrow to bottom-right
+    drawArrow(ctx, cellX + cellW - 6, cellY + cellH * 0.65, cellX + cellW + 30, cellY + cellH * 0.65, "#D8B4FE", 2);
+    drawText(ctx, "h_t", cellX + cellW + 32, cellY + cellH * 0.65 - 8, "#D8B4FE", 10);
+
+    // Hidden state arrows (h_{t-1} in, h_t out at top)
+    drawArrow(ctx, cellX - 24, csY, cellX + 6, csY, "#A78BFA", 1.8);
+    drawText(ctx, "h_{t-1}", cellX - 52, csY - 6, "#A78BFA", 9);
+
+    drawText(ctx, "Gated cell state preserves long-range memory", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+export function ContrastiveLearningVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    var phase = (Math.sin(t * 0.4) + 1) / 2;
+    var midX = w / 2;
+
+    // Divider
+    ctx.strokeStyle = "rgba(255,255,255,0.12)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(midX, 10);
+    ctx.lineTo(midX, h - 10);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    drawText(ctx, "before training", 10, 22, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "after training", midX + 8, 22, "rgba(255,255,255,0.55)", 11);
+
+    // Cluster definitions: before and after positions
+    var clusters = [
+      {
+        beforeX: midX * 0.38, beforeY: h * 0.48,
+        afterX: midX * 0.26, afterY: h * 0.3,
+        color: "rgba(248,113,113,", dot: "#F87171"
+      },
+      {
+        beforeX: midX * 0.62, beforeY: h * 0.38,
+        afterX: midX * 0.72, afterY: h * 0.28,
+        color: "rgba(96,165,250,", dot: "#60A5FA"
+      },
+      {
+        beforeX: midX * 0.5, beforeY: h * 0.65,
+        afterX: midX * 0.5, afterY: h * 0.72,
+        color: "rgba(52,211,153,", dot: "#34D399"
+      },
+    ];
+
+    var sides = [
+      { offsetX: 0, half: "left" },
+      { offsetX: midX, half: "right" },
+    ];
+
+    for (var si = 0; si < 2; si++) {
+      var offX = sides[si].offsetX;
+      var isAfter = si === 1;
+      var spread = isAfter ? (1 - phase) * 24 + 6 : phase * 18 + 14;
+
+      for (var ci = 0; ci < clusters.length; ci++) {
+        var cl = clusters[ci];
+        var cx2 = isAfter
+          ? offX + cl.afterX - midX / 2 + midX * 0.26
+          : offX + cl.beforeX;
+        var cy2 = isAfter ? cl.afterY : cl.beforeY;
+
+        if (isAfter) {
+          cx2 = offX + (cl.afterX * 0.85 + midX * 0.08);
+          cy2 = cl.afterY;
+        } else {
+          cx2 = cl.beforeX;
+          cy2 = cl.beforeY;
+        }
+
+        for (var di = 0; di < 12; di++) {
+          var ang = (di / 12) * Math.PI * 2;
+          var dr = spread + 5 * Math.sin(t * 0.5 + di + ci);
+          var dx2 = cx2 + Math.cos(ang) * dr;
+          var dy2 = cy2 + Math.sin(ang) * dr * 0.75;
+          drawDot(ctx, dx2, dy2, 3, cl.color + "0.72)");
+        }
+      }
+    }
+
+    // Pull arrows: same color, within left half, between two cluster centroids
+    ctx.strokeStyle = "rgba(74,222,128,0.5)";
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(clusters[0].beforeX, clusters[0].beforeY);
+    ctx.lineTo(clusters[1].beforeX, clusters[1].beforeY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    drawText(ctx, "pull", (clusters[0].beforeX + clusters[1].beforeX) / 2 - 8, (clusters[0].beforeY + clusters[1].beforeY) / 2 - 8, "#4ADE80", 9);
+
+    // Push arrows between different classes
+    ctx.strokeStyle = "rgba(248,113,113,0.5)";
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(clusters[0].beforeX, clusters[0].beforeY);
+    ctx.lineTo(clusters[2].beforeX, clusters[2].beforeY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    drawText(ctx, "push", (clusters[0].beforeX + clusters[2].beforeX) / 2 - 8, (clusters[0].beforeY + clusters[2].beforeY) / 2, "#F87171", 9);
+
+    drawText(ctx, "Pull positives together, push negatives apart", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+export function LearnRateScheduleVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    var padL = 40;
+    var padR = 20;
+    var padT = 30;
+    var padB = 36;
+    var plotW = w - padL - padR;
+    var plotH = h - padT - padB;
+
+    // Axes
+    ctx.strokeStyle = "rgba(255,255,255,0.25)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padL, padT);
+    ctx.lineTo(padL, padT + plotH);
+    ctx.lineTo(padL + plotW, padT + plotH);
+    ctx.stroke();
+
+    drawText(ctx, "0", padL - 8, padT + plotH + 14, "rgba(255,255,255,0.4)", 9);
+    drawText(ctx, "1", padL + plotW - 4, padT + plotH + 14, "rgba(255,255,255,0.4)", 9);
+    drawText(ctx, "lr", padL - 22, padT + 6, "rgba(255,255,255,0.4)", 9);
+    drawText(ctx, "steps", padL + plotW / 2 - 12, padT + plotH + 26, "rgba(255,255,255,0.4)", 9);
+
+    var curves = [
+      {
+        name: "Constant",
+        color: "#FDBA74",
+        fn: function (x) { return 0.5; },
+      },
+      {
+        name: "Cosine",
+        color: "#60A5FA",
+        fn: function (x) { return 0.025 + 0.475 * (1 + Math.cos(Math.PI * x)); },
+      },
+      {
+        name: "Warmup+Cosine",
+        color: "#4ADE80",
+        fn: function (x) {
+          if (x < 0.1) return (x / 0.1) * 0.95;
+          return 0.025 + 0.475 * (1 + Math.cos(Math.PI * ((x - 0.1) / 0.9)));
+        },
+      },
+    ];
+
+    var pts = 80;
+    for (var ci = 0; ci < curves.length; ci++) {
+      var curve = curves[ci];
+      ctx.strokeStyle = curve.color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (var pi = 0; pi <= pts; pi++) {
+        var x = pi / pts;
+        var y = curve.fn(x);
+        var px = padL + x * plotW;
+        var py = padT + (1 - y) * plotH;
+        if (pi === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    }
+
+    // Animated current step line
+    var stepPhase = (Math.sin(t * 0.35) + 1) / 2;
+    var lineX = padL + stepPhase * plotW;
+    ctx.strokeStyle = "rgba(255,255,255,0.55)";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    ctx.moveTo(lineX, padT);
+    ctx.lineTo(lineX, padT + plotH);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Legend
+    for (var li = 0; li < curves.length; li++) {
+      drawText(ctx, curves[li].name, padL + 6, padT + 12 + li * 15, curves[li].color, 10);
+    }
+
+    drawText(ctx, "Schedule controls training pace and convergence", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+export function PositionalEncodingVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    var positions = 8;
+    var dims = 16;
+    var padL = 32;
+    var padT = 26;
+    var padB = 28;
+    var padR = 14;
+    var cellW = (w - padL - padR) / dims;
+    var cellH = (h - padT - padB) / positions;
+
+    // Axis labels
+    drawText(ctx, "dim \u2192", padL + (w - padL - padR) / 2 - 16, h - 8, "rgba(255,255,255,0.45)", 10);
+
+    // Rotated "position" label — approximate with text at left
+    ctx.save();
+    ctx.translate(10, padT + (h - padT - padB) / 2);
+    ctx.rotate(-Math.PI / 2);
+    drawText(ctx, "pos", -12, 0, "rgba(255,255,255,0.45)", 10);
+    ctx.restore();
+
+    for (var pos = 0; pos < positions; pos++) {
+      for (var dim = 0; dim < dims; dim++) {
+        var val;
+        if (dim % 2 === 0) {
+          val = Math.sin(pos / Math.pow(10000, (2 * dim) / dims));
+        } else {
+          val = Math.cos(pos / Math.pow(10000, (2 * (dim - 1)) / dims));
+        }
+        // Gentle time pulse
+        val = val * (0.92 + 0.08 * Math.sin(t * 0.3 + pos * 0.2 + dim * 0.15));
+
+        // Map -1..1 to color: blue → white → orange
+        var cx3 = padL + dim * cellW;
+        var cy3 = padT + pos * cellH;
+        var r2, g2, b2;
+        if (val < 0) {
+          var u = -val; // 0..1
+          r2 = Math.round(30 + u * (96 - 30));
+          g2 = Math.round(80 + u * (165 - 80));
+          b2 = Math.round(180 + u * (250 - 180));
+        } else {
+          var v = val; // 0..1
+          r2 = Math.round(248 - v * (248 - 251));
+          g2 = Math.round(248 - v * (248 - 113));
+          b2 = Math.round(248 - v * (248 - 33));
+        }
+        ctx.fillStyle = "rgb(" + r2 + "," + g2 + "," + b2 + ")";
+        drawRoundRect(ctx, cx3 + 1, cy3 + 1, cellW - 2, cellH - 2, 2);
+        ctx.fill();
+      }
+    }
+
+    drawText(ctx, "Sinusoidal encoding injects position order", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+  }, []);
+  return <Canvas2D draw={draw} />;
+}
+
+export function BeamSearchVis() {
+  var draw = useCallback(function (ctx, w, h, t) {
+    var beamWidth = 3;
+    var nSteps = 4;
+    var rootX = w * 0.08;
+    var rootY = h * 0.5;
+    var stepGap = (w * 0.86) / nSteps;
+
+    // Candidate nodes per step (beam candidates survive, others pruned)
+    // Layout: 3 beams at each of nSteps columns
+    var nodeYs = [-0.3, 0, 0.3]; // relative to center in terms of h fraction
+
+    var expandPhase = (Math.sin(t * 0.45) + 1) / 2;
+    var visibleSteps = Math.max(1, Math.floor(expandPhase * (nSteps + 1)));
+
+    // Root node
+    drawDot(ctx, rootX, rootY, 7, "#F9A8D4");
+
+    for (var step = 0; step < Math.min(visibleSteps, nSteps); step++) {
+      var x = rootX + (step + 1) * stepGap;
+
+      for (var bi = 0; bi < beamWidth; bi++) {
+        var y = h * (0.5 + nodeYs[bi]);
+        var prevX = rootX + step * stepGap;
+        var prevY = step === 0 ? rootY : h * (0.5 + nodeYs[bi]);
+
+        // Also show pruned siblings (dim)
+        var prunedCount = 2;
+        for (var pi = 0; pi < prunedCount; pi++) {
+          var pruneY = y + (pi + 1) * h * 0.1 * (bi % 2 === 0 ? 1 : -1);
+          ctx.strokeStyle = "rgba(255,255,255,0.12)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(prevX, prevY);
+          ctx.lineTo(x, pruneY);
+          ctx.stroke();
+          drawDot(ctx, x, pruneY, 3.5, "rgba(255,255,255,0.12)");
+        }
+
+        // Surviving beam edge
+        drawArrow(ctx, prevX + 8, prevY, x - 8, y, "#F472B6", 1.8);
+        // Surviving beam node
+        drawDot(ctx, x, y, 6, "#F9A8D4");
+      }
+    }
+
+    drawText(ctx, "beam width=3", 10, 22, "#F9A8D4", 12);
+    drawText(ctx, "Top-k paths survive at each step", 10, h - 14, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }

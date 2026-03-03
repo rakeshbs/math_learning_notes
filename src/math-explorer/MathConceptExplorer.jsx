@@ -84,23 +84,24 @@ export default function MathConceptExplorer(props) {
         background: "#09090f",
         color: "#e8e8e8",
         fontFamily: "system-ui, -apple-system, sans-serif",
-        padding: "24px 16px",
+        padding: "24px 16px 48px",
       }}
     >
-      <div style={{ maxWidth: 960, margin: "0 auto" }}>
+      <div style={{ maxWidth: 1000, margin: "0 auto" }}>
         {headerSlot ? (
-          <div style={{ marginBottom: 20 }}>{headerSlot}</div>
+          <div style={{ marginBottom: 18 }}>{headerSlot}</div>
         ) : null}
 
-        <div style={{ marginBottom: 28 }}>
+        <div style={{ marginBottom: 20 }}>
           <h1
             style={{
               fontFamily: "Georgia, serif",
-              fontSize: 34,
+              fontSize: 30,
               fontWeight: 400,
               letterSpacing: "-0.02em",
               color: "#fff",
-              lineHeight: 1.1,
+              lineHeight: 1.15,
+              margin: 0,
             }}
           >
             {title}
@@ -108,9 +109,9 @@ export default function MathConceptExplorer(props) {
           <p
             style={{
               fontFamily: "monospace",
-              fontSize: 12,
-              color: "rgba(255,255,255,0.3)",
-              marginTop: 6,
+              fontSize: 11,
+              color: "rgba(255,255,255,0.28)",
+              margin: "5px 0 0",
             }}
           >
             {subtitle ||
@@ -125,22 +126,18 @@ export default function MathConceptExplorer(props) {
           onSelect={setActive}
         />
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 40,
-          }}
-        >
+        {/* Visual canvases */}
+        {visualVariants.length > 0 && (
           <div
             style={{
               display: "flex",
               flexWrap: "wrap",
-              gap: 20,
+              gap: 16,
               alignItems: "flex-start",
+              marginBottom: 28,
             }}
           >
-            {visualVariants.map(function (variant, idx) {
+            {visualVariants.map(function (variant) {
               var VariantComponent = variant.component;
               return (
                 <div
@@ -151,12 +148,12 @@ export default function MathConceptExplorer(props) {
                     <div
                       style={{
                         fontFamily: "monospace",
-                        fontSize: 11,
+                        fontSize: 10,
                         color: concept.accent,
-                        opacity: 0.75,
+                        opacity: 0.7,
                         marginBottom: 6,
                         textTransform: "uppercase",
-                        letterSpacing: "0.08em",
+                        letterSpacing: "0.1em",
                       }}
                     >
                       {variant.label}
@@ -167,13 +164,25 @@ export default function MathConceptExplorer(props) {
               );
             })}
           </div>
-          <ConceptDetailsPanel
-            concept={concept}
-            explanation={explanation}
-            details={details}
-            expansion={expansion}
+        )}
+
+        {/* Divider */}
+        {visualVariants.length > 0 && (
+          <div
+            style={{
+              height: 1,
+              background: "rgba(255,255,255,0.06)",
+              marginBottom: 28,
+            }}
           />
-        </div>
+        )}
+
+        <ConceptDetailsPanel
+          concept={concept}
+          explanation={explanation}
+          details={details}
+          expansion={expansion}
+        />
       </div>
     </div>
   );

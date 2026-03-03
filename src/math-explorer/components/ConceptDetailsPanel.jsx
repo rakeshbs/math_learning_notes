@@ -46,15 +46,91 @@ function texify(str) {
   return res;
 }
 
-function splitIntoChecklist(text) {
-  if (!text) return [];
-  return text
-    .split(/[.;]/)
-    .map(function (item) {
-      return item.trim();
-    })
-    .filter(Boolean)
-    .slice(0, 4);
+var CARD = {
+  background: "rgba(255,255,255,0.025)",
+  border: "1px solid rgba(255,255,255,0.07)",
+  borderRadius: 12,
+  padding: "16px 18px",
+};
+
+var CARD_ACCENT = {
+  background: "rgba(255,255,255,0.03)",
+  border: "1px solid rgba(255,255,255,0.07)",
+  borderRadius: 12,
+  padding: "16px 18px",
+};
+
+function SectionLabel(props) {
+  return (
+    <div
+      style={{
+        fontFamily: "monospace",
+        fontSize: 10,
+        color: "rgba(255,255,255,0.3)",
+        textTransform: "uppercase",
+        letterSpacing: "0.12em",
+        marginBottom: 8,
+        fontWeight: 600,
+      }}
+    >
+      {props.children}
+    </div>
+  );
+}
+
+function BodyText(props) {
+  return (
+    <p
+      style={{
+        margin: 0,
+        fontSize: 13.5,
+        lineHeight: 1.7,
+        color: "rgba(255,255,255,0.72)",
+      }}
+    >
+      {props.children}
+    </p>
+  );
+}
+
+function BulletList(props) {
+  var items = props.items;
+  var marker = props.marker;
+  var markerColor = props.markerColor;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+      {items.map(function (item, i) {
+        return (
+          <div
+            key={i}
+            style={{ display: "flex", gap: 10, alignItems: "flex-start" }}
+          >
+            <span
+              style={{
+                color: markerColor,
+                fontFamily: "monospace",
+                fontSize: 11,
+                lineHeight: "1.9",
+                flexShrink: 0,
+                opacity: 0.85,
+              }}
+            >
+              {marker(i)}
+            </span>
+            <span
+              style={{
+                fontSize: 13,
+                lineHeight: 1.65,
+                color: "rgba(255,255,255,0.68)",
+              }}
+            >
+              {item}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function buildSelfTestPrompts(concept, details, expansion) {
@@ -68,712 +144,199 @@ function buildSelfTestPrompts(concept, details, expansion) {
   ];
 }
 
-function buildDetailedVisualIntuition(
-  concept,
-  explanation,
-  details,
-  expansion,
-) {
-  var intuition = explanation.intuition || [];
-  var firstConnection = expansion.connections[0] || concept.title;
-  var firstPitfall =
-    details.pitfalls[0] || "Check orientation, scale, and domain assumptions.";
-  return [
-    "Scene setup: " + explanation.visual,
-    "Primary signal to track: " +
-      (intuition[0] || "Track direction and magnitude changes."),
-    "Secondary signal to track: " +
-      (intuition[1] || "Compare input geometry against output geometry."),
-    "Quantitative anchor: " + explanation.formula,
-    "Interpretation bridge: connect the picture to " + firstConnection + ".",
-    "Guardrail while interpreting: " + firstPitfall,
-  ];
-}
-
-function buildDetailedUseCases(concept, details, expansion) {
-  var useCases =
-    details.useCases && details.useCases.length
-      ? details.useCases
-      : [
-          "Use " +
-            concept.title +
-            " to reason about structure and behavior in models.",
-        ];
-  return useCases.map(function (useCase, i) {
-    var connection =
-      expansion.connections[i % Math.max(expansion.connections.length, 1)] ||
-      concept.title;
-    var pitfall =
-      details.pitfalls[i % Math.max(details.pitfalls.length, 1)] ||
-      "Validate assumptions before applying formulas directly.";
-    return (
-      useCase +
-      ". Visual cue: relate it to " +
-      connection +
-      ". Validation step: " +
-      details.quickCheck +
-      ". Common failure mode: " +
-      pitfall
-    );
-  });
-}
-
 export function ConceptDetailsPanel(props) {
   var concept = props.concept;
   var explanation = props.explanation;
   var details = props.details;
   var expansion = props.expansion;
-  var checklist = splitIntoChecklist(expansion.computation);
   var selfTestPrompts = buildSelfTestPrompts(concept, details, expansion);
-  var visualDeepDive = buildDetailedVisualIntuition(
-    concept,
-    explanation,
-    details,
-    expansion,
-  );
-  var detailedUseCases = buildDetailedUseCases(concept, details, expansion);
 
   return (
-    <div>
-      <h2
-        style={{
-          fontFamily: "Georgia, serif",
-          fontSize: 26,
-          fontWeight: 400,
-          color: concept.color,
-          marginBottom: 3,
-        }}
-      >
-        {concept.title}
-      </h2>
-      <p
-        style={{
-          fontFamily: "monospace",
-          fontSize: 11,
-          color: concept.accent,
-          marginBottom: 18,
-          opacity: 0.6,
-        }}
-      >
-        {concept.subtitle}
-      </p>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
 
-      <div style={{ marginBottom: 16 }}>
+      {/* ── Title + Formula ── */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "stretch" }}>
+        {/* Title block */}
+        <div style={{ flex: "1 1 220px" }}>
+          <h2
+            style={{
+              fontFamily: "Georgia, serif",
+              fontSize: 28,
+              fontWeight: 400,
+              color: concept.color,
+              margin: "0 0 4px",
+              lineHeight: 1.2,
+            }}
+          >
+            {concept.title}
+          </h2>
+          <p
+            style={{
+              fontFamily: "monospace",
+              fontSize: 11,
+              color: concept.accent,
+              margin: 0,
+              opacity: 0.7,
+            }}
+          >
+            {concept.subtitle}
+          </p>
+        </div>
+
+        {/* Formula card */}
         <div
           style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: 5,
+            flex: "2 1 320px",
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid " + concept.color + "30",
+            borderRadius: 12,
+            padding: "12px 18px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
           }}
         >
-          Definition
-        </div>
-        <p
-          style={{
-            fontSize: 13,
-            lineHeight: 1.65,
-            color: "rgba(255,255,255,0.68)",
-          }}
-        >
-          {explanation.what}
-        </p>
-      </div>
-
-      <div style={{ marginBottom: 16 }}>
-        <div
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: 5,
-          }}
-        >
-          Visual Intuition
-        </div>
-        <p
-          style={{
-            fontSize: 13,
-            lineHeight: 1.65,
-            color: "rgba(255,255,255,0.68)",
-          }}
-        >
-          {explanation.visual}
-        </p>
-      </div>
-
-      <div style={{ marginBottom: 18 }}>
-        <div
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: 8,
-          }}
-        >
-          Detailed Visual Intuition
-        </div>
-        {visualDeepDive.map(function (item, i) {
-          return (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                gap: 10,
-                marginBottom: 6,
-                alignItems: "baseline",
+          <SectionLabel>Formula</SectionLabel>
+          <div style={{ color: concept.accent, overflowX: "auto" }}>
+            <BlockMath
+              math={texify(explanation.formula)}
+              renderError={function () {
+                return (
+                  <code
+                    style={{
+                      fontFamily: "monospace",
+                      fontSize: 13,
+                      color: concept.accent,
+                    }}
+                  >
+                    {explanation.formula}
+                  </code>
+                );
               }}
-            >
-              <span
-                style={{
-                  color: concept.color,
-                  fontFamily: "monospace",
-                  fontSize: 10,
-                  opacity: 0.65,
-                  flexShrink: 0,
-                }}
-              >
-                {"::"}
-              </span>
-              <span
-                style={{
-                  fontSize: 12.5,
-                  lineHeight: 1.55,
-                  color: "rgba(255,255,255,0.62)",
-                }}
-              >
-                {item}
-              </span>
-            </div>
-          );
-        })}
+            />
+          </div>
+        </div>
       </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <div
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: 5,
-          }}
-        >
-          Deeper View
+      {/* ── Definition + Visual Intuition ── */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+        <div style={{ ...CARD, flex: "1 1 260px" }}>
+          <SectionLabel>Definition</SectionLabel>
+          <BodyText>{explanation.what}</BodyText>
         </div>
-        <p
-          style={{
-            fontSize: 13,
-            lineHeight: 1.65,
-            color: "rgba(255,255,255,0.68)",
-          }}
-        >
-          {details.deeper}
-        </p>
+        <div style={{ ...CARD, flex: "1 1 260px" }}>
+          <SectionLabel>Visual Intuition</SectionLabel>
+          <BodyText>{explanation.visual}</BodyText>
+        </div>
       </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <div
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: 5,
-          }}
-        >
-          Algebraic Lens
+      {/* ── Key Insights ── */}
+      {explanation.intuition && explanation.intuition.length > 0 && (
+        <div style={CARD}>
+          <SectionLabel>Key Insights</SectionLabel>
+          <BulletList
+            items={explanation.intuition}
+            marker={function (i) { return String(i + 1).padStart(2, "0"); }}
+            markerColor={concept.color}
+          />
         </div>
-        <p
-          style={{
-            fontSize: 13,
-            lineHeight: 1.65,
-            color: "rgba(255,255,255,0.68)",
-          }}
-        >
-          {expansion.algebraic}
-        </p>
-      </div>
+      )}
 
-      <div style={{ marginBottom: 16 }}>
-        <div
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: 5,
-          }}
-        >
-          Computation Notes
-        </div>
-        <p
-          style={{
-            fontSize: 13,
-            lineHeight: 1.65,
-            color: "rgba(255,255,255,0.68)",
-          }}
-        >
-          {expansion.computation}
-        </p>
-      </div>
-
-      <div style={{ marginBottom: 18 }}>
-        <div
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: 8,
-          }}
-        >
-          Computation Checklist
-        </div>
-        {(checklist.length ? checklist : [expansion.computation]).map(
-          function (item, i) {
-            return (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  gap: 10,
-                  marginBottom: 6,
-                  alignItems: "baseline",
-                }}
-              >
-                <span
-                  style={{
-                    color: concept.accent,
-                    fontFamily: "monospace",
-                    fontSize: 10,
-                    opacity: 0.7,
-                    flexShrink: 0,
-                  }}
-                >
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span
-                  style={{
-                    fontSize: 12.5,
-                    lineHeight: 1.55,
-                    color: "rgba(255,255,255,0.62)",
-                  }}
-                >
-                  {item}
-                </span>
-              </div>
-            );
-          },
+      {/* ── Algebraic Lens + Deeper View ── */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+        {expansion.algebraic && (
+          <div style={{ ...CARD, flex: "1 1 260px" }}>
+            <SectionLabel>Algebraic Lens</SectionLabel>
+            <BodyText>{expansion.algebraic}</BodyText>
+          </div>
+        )}
+        {details.deeper && (
+          <div style={{ ...CARD, flex: "1 1 260px" }}>
+            <SectionLabel>Deeper View</SectionLabel>
+            <BodyText>{details.deeper}</BodyText>
+          </div>
         )}
       </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <div
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: 5,
-          }}
-        >
-          Micro Example
+      {/* ── Computation Notes ── */}
+      {expansion.computation && (
+        <div style={CARD}>
+          <SectionLabel>Computation Notes</SectionLabel>
+          <BodyText>{expansion.computation}</BodyText>
         </div>
-        <p
-          style={{
-            fontSize: 13,
-            lineHeight: 1.65,
-            color: "rgba(255,255,255,0.68)",
-          }}
-        >
-          {expansion.workedExample}
-        </p>
+      )}
+
+      {/* ── Use Cases + Connections ── */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+        {details.useCases && details.useCases.length > 0 && (
+          <div style={{ ...CARD, flex: "1 1 260px" }}>
+            <SectionLabel>Practical Use Cases</SectionLabel>
+            <BulletList
+              items={details.useCases}
+              marker={function (i) { return String(i + 1).padStart(2, "0"); }}
+              markerColor={concept.accent}
+            />
+          </div>
+        )}
+        {expansion.connections && expansion.connections.length > 0 && (
+          <div style={{ ...CARD, flex: "1 1 260px" }}>
+            <SectionLabel>Connected Ideas</SectionLabel>
+            <BulletList
+              items={expansion.connections}
+              marker={function () { return "→"; }}
+              markerColor={concept.color}
+            />
+          </div>
+        )}
       </div>
 
-      <div style={{ marginBottom: 18 }}>
-        <div
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: 8,
-          }}
-        >
-          Key Insights
-        </div>
-        {explanation.intuition.map(function (item, i) {
-          return (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                gap: 10,
-                marginBottom: 6,
-                alignItems: "baseline",
-              }}
-            >
-              <span
-                style={{
-                  color: concept.color,
-                  fontFamily: "monospace",
-                  fontSize: 10,
-                  opacity: 0.5,
-                  flexShrink: 0,
-                }}
-              >
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span
-                style={{
-                  fontSize: 12.5,
-                  lineHeight: 1.55,
-                  color: "rgba(255,255,255,0.6)",
-                }}
-              >
-                {item}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      <div style={{ marginBottom: 18 }}>
-        <div
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: 8,
-          }}
-        >
-          Detailed Use-Case Walkthroughs
-        </div>
-        {detailedUseCases.map(function (item, i) {
-          return (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                gap: 10,
-                marginBottom: 6,
-                alignItems: "baseline",
-              }}
-            >
-              <span
-                style={{
-                  color: concept.accent,
-                  fontFamily: "monospace",
-                  fontSize: 10,
-                  opacity: 0.75,
-                  flexShrink: 0,
-                }}
-              >
-                {"=>"}
-              </span>
-              <span
-                style={{
-                  fontSize: 12.5,
-                  lineHeight: 1.55,
-                  color: "rgba(255,255,255,0.62)",
-                }}
-              >
-                {item}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      <div style={{ marginBottom: 18 }}>
-        <div
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: 8,
-          }}
-        >
-          Connected Ideas
-        </div>
-        {expansion.connections.map(function (item, i) {
-          return (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                gap: 10,
-                marginBottom: 6,
-                alignItems: "baseline",
-              }}
-            >
-              <span
-                style={{
-                  color: concept.color,
-                  fontFamily: "monospace",
-                  fontSize: 10,
-                  opacity: 0.65,
-                  flexShrink: 0,
-                }}
-              >
-                {"->"}
-              </span>
-              <span
-                style={{
-                  fontSize: 12.5,
-                  lineHeight: 1.55,
-                  color: "rgba(255,255,255,0.6)",
-                }}
-              >
-                {item}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      <div style={{ marginBottom: 18 }}>
-        <div
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: 8,
-          }}
-        >
-          Practical Use Cases
-        </div>
-        {details.useCases.map(function (item, i) {
-          return (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                gap: 10,
-                marginBottom: 6,
-                alignItems: "baseline",
-              }}
-            >
-              <span
-                style={{
-                  color: concept.accent,
-                  fontFamily: "monospace",
-                  fontSize: 10,
-                  opacity: 0.7,
-                  flexShrink: 0,
-                }}
-              >
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span
-                style={{
-                  fontSize: 12.5,
-                  lineHeight: 1.55,
-                  color: "rgba(255,255,255,0.6)",
-                }}
-              >
-                {item}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      <div style={{ marginBottom: 18 }}>
-        <div
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: 8,
-          }}
-        >
-          Common Pitfalls
-        </div>
-        {details.pitfalls.map(function (item, i) {
-          return (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                gap: 10,
-                marginBottom: 6,
-                alignItems: "baseline",
-              }}
-            >
-              <span
-                style={{
-                  color: "rgba(255,184,107,0.9)",
-                  fontFamily: "monospace",
-                  fontSize: 11,
-                  flexShrink: 0,
-                }}
-              >
-                !!
-              </span>
-              <span
-                style={{
-                  fontSize: 12.5,
-                  lineHeight: 1.55,
-                  color: "rgba(255,255,255,0.58)",
-                }}
-              >
-                {item}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      <div
-        style={{
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.05)",
-          borderRadius: 10,
-          padding: "10px 14px",
-        }}
-      >
-        <div
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: 5,
-          }}
-        >
-          Formula
-        </div>
-        <div style={{ color: concept.accent, overflowX: "auto" }}>
-          <BlockMath
-            math={texify(explanation.formula)}
-            renderError={function (error) {
-              return (
-                <code
-                  style={{
-                    fontFamily: "monospace",
-                    fontSize: 12,
-                    color: concept.accent,
-                  }}
-                >
-                  {explanation.formula}
-                </code>
-              );
+      {/* ── Pitfalls + Quick Check ── */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+        {details.pitfalls && details.pitfalls.length > 0 && (
+          <div
+            style={{
+              ...CARD,
+              flex: "1 1 260px",
+              borderColor: "rgba(255,184,107,0.18)",
             }}
-          />
-        </div>
+          >
+            <SectionLabel>Common Pitfalls</SectionLabel>
+            <BulletList
+              items={details.pitfalls}
+              marker={function () { return "!"; }}
+              markerColor="rgba(255,184,107,0.9)"
+            />
+          </div>
+        )}
+        {details.quickCheck && (
+          <div style={{ ...CARD, flex: "1 1 260px" }}>
+            <SectionLabel>Quick Check</SectionLabel>
+            <BodyText>{details.quickCheck}</BodyText>
+          </div>
+        )}
       </div>
 
-      <div
-        style={{
-          marginTop: 12,
-          background: "rgba(255,255,255,0.02)",
-          border: "1px solid rgba(255,255,255,0.05)",
-          borderRadius: 10,
-          padding: "10px 14px",
-        }}
-      >
-        <div
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: 5,
-          }}
-        >
-          Quick Check
+      {/* ── Worked Example ── */}
+      {expansion.workedExample && (
+        <div style={CARD}>
+          <SectionLabel>Micro Example</SectionLabel>
+          <BodyText>{expansion.workedExample}</BodyText>
         </div>
-        <p
-          style={{
-            margin: 0,
-            fontSize: 12.5,
-            lineHeight: 1.6,
-            color: "rgba(255,255,255,0.65)",
-          }}
-        >
-          {details.quickCheck}
-        </p>
-      </div>
+      )}
 
+      {/* ── Self-Test Prompts ── */}
       <div
         style={{
-          marginTop: 12,
-          background: "rgba(255,255,255,0.02)",
-          border: "1px solid rgba(255,255,255,0.05)",
-          borderRadius: 10,
-          padding: "10px 14px",
+          ...CARD_ACCENT,
+          borderColor: concept.color + "28",
         }}
       >
-        <div
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: 8,
-          }}
-        >
-          Self-Test Prompts
-        </div>
-        {selfTestPrompts.map(function (item, i) {
-          return (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                gap: 10,
-                marginBottom: 6,
-                alignItems: "baseline",
-              }}
-            >
-              <span
-                style={{
-                  color: concept.color,
-                  fontFamily: "monospace",
-                  fontSize: 10,
-                  opacity: 0.6,
-                  flexShrink: 0,
-                }}
-              >
-                {"??"}
-              </span>
-              <span
-                style={{
-                  fontSize: 12.5,
-                  lineHeight: 1.55,
-                  color: "rgba(255,255,255,0.62)",
-                }}
-              >
-                {item}
-              </span>
-            </div>
-          );
-        })}
+        <SectionLabel>Self-Test Prompts</SectionLabel>
+        <BulletList
+          items={selfTestPrompts}
+          marker={function () { return "?"; }}
+          markerColor={concept.color}
+        />
       </div>
     </div>
   );

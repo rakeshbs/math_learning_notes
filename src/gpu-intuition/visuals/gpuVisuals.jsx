@@ -25,18 +25,28 @@ export function SMVis() {
         var cx = w / 2;
         var smW = Math.min(240, w - 20);
         var smH = 200;
-        var sx = cx - smW / 2, sy = 30;
+        var sx = cx - smW / 2,
+          sy = 30;
 
         ctx.strokeStyle = "#76B900";
         ctx.lineWidth = 2;
         drawRoundRect(ctx, sx, sy, smW, smH, 10);
         ctx.stroke();
-        drawCenteredText(ctx, "Streaming Multiprocessor", cx, sy + 18, "#A8E063", 11);
+        drawCenteredText(
+          ctx,
+          "Streaming Multiprocessor",
+          cx,
+          sy + 18,
+          "#A8E063",
+          11,
+        );
 
         // Warp schedulers — 4 equal boxes filling row
         var schCount = 4;
         var schPad = 10;
-        var schW = Math.floor((smW - schPad * 2 - (schCount - 1) * 4) / schCount);
+        var schW = Math.floor(
+          (smW - schPad * 2 - (schCount - 1) * 4) / schCount,
+        );
         var schH = 28;
         var schColors = ["#00A3E0", "#3B82F6", "#7C3AED", "#EF4444"];
         for (var i = 0; i < schCount; i++) {
@@ -47,14 +57,31 @@ export function SMVis() {
           drawRoundRect(ctx, schX, sy + 28, schW, schH, 6);
           ctx.fill();
           ctx.stroke();
-          drawCenteredText(ctx, "WS" + (i + 1), schX + schW / 2, sy + 47, schColors[i], 10);
+          drawCenteredText(
+            ctx,
+            "WS" + (i + 1),
+            schX + schW / 2,
+            sy + 47,
+            schColors[i],
+            10,
+          );
         }
-        drawText(ctx, "Warp Schedulers", sx + schPad, sy + 74, "rgba(255,255,255,0.4)", 9);
+        drawText(
+          ctx,
+          "Warp Schedulers",
+          sx + schPad,
+          sy + 74,
+          "rgba(255,255,255,0.4)",
+          9,
+        );
 
         // CUDA cores grid
-        var cols = 8, rows = 4;
-        var coreSize = 16, coreGap = 3;
-        var gridX = sx + schPad, gridY = sy + 86;
+        var cols = 8,
+          rows = 4;
+        var coreSize = 16,
+          coreGap = 3;
+        var gridX = sx + schPad,
+          gridY = sy + 86;
         for (var r = 0; r < rows; r++) {
           for (var c = 0; c < cols; c++) {
             var idx = r * cols + c;
@@ -62,15 +89,30 @@ export function SMVis() {
             ctx.fillStyle = active ? "#76B900cc" : "rgba(118,185,0,0.15)";
             ctx.strokeStyle = "#76B900";
             ctx.lineWidth = 1;
-            drawRoundRect(ctx, gridX + c * (coreSize + coreGap), gridY + r * (coreSize + coreGap), coreSize, coreSize, 3);
+            drawRoundRect(
+              ctx,
+              gridX + c * (coreSize + coreGap),
+              gridY + r * (coreSize + coreGap),
+              coreSize,
+              coreSize,
+              3,
+            );
             ctx.fill();
             ctx.stroke();
           }
         }
-        drawText(ctx, "CUDA Cores (32×)", sx + schPad, sy + smH - 12, "rgba(255,255,255,0.4)", 9);
+        drawText(
+          ctx,
+          "CUDA Cores (32×)",
+          sx + schPad,
+          sy + smH - 12,
+          "rgba(255,255,255,0.4)",
+          9,
+        );
 
         // Register file
-        var rfW = 42, rfH = 76;
+        var rfW = 42,
+          rfH = 76;
         var rfX = sx + smW - rfW - schPad;
         ctx.fillStyle = "rgba(245,158,11,0.12)";
         ctx.strokeStyle = "#F59E0B";
@@ -78,9 +120,471 @@ export function SMVis() {
         drawRoundRect(ctx, rfX, gridY, rfW, rfH, 6);
         ctx.fill();
         ctx.stroke();
-        drawCenteredText(ctx, "RF", rfX + rfW / 2, gridY + rfH / 2 + 4, "#FCD34D", 10);
+        drawCenteredText(
+          ctx,
+          "RF",
+          rfX + rfW / 2,
+          gridY + rfH / 2 + 4,
+          "#FCD34D",
+          10,
+        );
 
-        drawText(ctx, "One SM: 128 cores, 4 warp schedulers", sx, h - 12, "rgba(255,255,255,0.35)", 10);
+        drawText(
+          ctx,
+          "One SM: 128 cores, 4 warp schedulers",
+          sx,
+          h - 12,
+          "rgba(255,255,255,0.35)",
+          10,
+        );
+      }, [])}
+    />
+  );
+}
+
+// ── Stream Processors (CUDA Cores) ────────────────────────────────────────
+export function StreamProcessorsVis() {
+  return (
+    <Canvas2D
+      draw={useCallback(function (ctx, w, h, t) {
+        drawGrid(ctx, w, h);
+        var cx = w / 2;
+
+        drawCenteredText(
+          ctx,
+          "Stream Processors Inside One SM",
+          cx,
+          24,
+          "#67D8FF",
+          12,
+        );
+        drawCenteredText(
+          ctx,
+          "Warp lanes feed FP32/INT pipelines",
+          cx,
+          38,
+          "rgba(255,255,255,0.38)",
+          9,
+        );
+
+        var laneCount = 8;
+        var laneW = 26,
+          laneH = 20,
+          laneGap = 5;
+        var lanesX = cx - (laneCount * (laneW + laneGap)) / 2 + laneGap / 2;
+        var lanesY = 54;
+        var opName = ["FFMA", "FADD", "IADD", "FMUL"][Math.floor(t * 1.6) % 4];
+
+        for (var i = 0; i < laneCount; i++) {
+          ctx.fillStyle = "#00A3E0aa";
+          ctx.strokeStyle = "#67D8FF";
+          ctx.lineWidth = 1.2;
+          drawRoundRect(
+            ctx,
+            lanesX + i * (laneW + laneGap),
+            lanesY,
+            laneW,
+            laneH,
+            4,
+          );
+          ctx.fill();
+          ctx.stroke();
+          drawCenteredText(
+            ctx,
+            "L" + i,
+            lanesX + i * (laneW + laneGap) + laneW / 2,
+            lanesY + 14,
+            "#fff",
+            8,
+          );
+        }
+
+        var issueW = 180,
+          issueH = 26;
+        var issueX = cx - issueW / 2,
+          issueY = 88;
+        ctx.fillStyle = "rgba(59,130,246,0.12)";
+        ctx.strokeStyle = "#3B82F6";
+        ctx.lineWidth = 1.4;
+        drawRoundRect(ctx, issueX, issueY, issueW, issueH, 7);
+        ctx.fill();
+        ctx.stroke();
+        drawCenteredText(
+          ctx,
+          "Issued warp op: " + opName,
+          cx,
+          issueY + 17,
+          "#93C5FD",
+          10,
+        );
+
+        var clusterCount = 4;
+        var clW = 64,
+          clH = 86,
+          clGap = 8;
+        var clusterX = cx - (clusterCount * (clW + clGap)) / 2 + clGap / 2;
+        var clusterY = 132;
+        var clLabels = ["FP32 SP", "FP32 SP", "INT/SFU", "LD/ST"];
+        var clColors = ["#A8E063", "#86EFAC", "#F59E0B", "#FFB74D"];
+
+        for (var c = 0; c < clusterCount; c++) {
+          var bx = clusterX + c * (clW + clGap);
+          ctx.fillStyle = clColors[c] + "20";
+          ctx.strokeStyle = clColors[c];
+          ctx.lineWidth = 1.5;
+          drawRoundRect(ctx, bx, clusterY, clW, clH, 7);
+          ctx.fill();
+          ctx.stroke();
+          drawCenteredText(
+            ctx,
+            clLabels[c],
+            bx + clW / 2,
+            clusterY + 14,
+            clColors[c],
+            8,
+          );
+
+          for (var u = 0; u < 8; u++) {
+            var ux = bx + 8 + (u % 4) * 13;
+            var uy = clusterY + 24 + Math.floor(u / 4) * 20;
+            var pulse = Math.sin(t * 2.4 + c * 0.8 + u * 0.45) > 0.1;
+            ctx.fillStyle = pulse ? clColors[c] + "cc" : clColors[c] + "33";
+            ctx.beginPath();
+            ctx.arc(ux, uy, 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          drawCenteredText(
+            ctx,
+            "8 lanes",
+            bx + clW / 2,
+            clusterY + clH - 8,
+            "rgba(255,255,255,0.45)",
+            8,
+          );
+        }
+
+        for (var a = 0; a < laneCount; a++) {
+          var lx = lanesX + a * (laneW + laneGap) + laneW / 2;
+          var tx = clusterX + (a % clusterCount) * (clW + clGap) + clW / 2;
+          ctx.strokeStyle = "rgba(103,216,255,0.28)";
+          ctx.lineWidth = 0.9;
+          ctx.beginPath();
+          ctx.moveTo(lx, lanesY + laneH);
+          ctx.quadraticCurveTo(
+            (lx + tx) / 2,
+            issueY + issueH + 10,
+            tx,
+            clusterY,
+          );
+          ctx.stroke();
+        }
+
+        drawText(
+          ctx,
+          "Architectural counts vary by generation; execution model remains warp-centric",
+          6,
+          h - 12,
+          "rgba(255,255,255,0.35)",
+          9,
+        );
+      }, [])}
+    />
+  );
+}
+
+// ── Warp Scheduler & Dispatch ─────────────────────────────────────────────
+export function WarpSchedulerDeepVis() {
+  return (
+    <Canvas2D
+      draw={useCallback(function (ctx, w, h, t) {
+        drawGrid(ctx, w, h);
+        var cx = w / 2;
+        drawCenteredText(
+          ctx,
+          "Warp Schedulers Select Ready Warps",
+          cx,
+          22,
+          "#67D8FF",
+          12,
+        );
+
+        var schedCount = 4;
+        var sW = 58,
+          sH = 46,
+          sGap = 8;
+        var sX0 = cx - (schedCount * (sW + sGap)) / 2 + sGap / 2;
+        var sY = 36;
+        var sColors = ["#00A3E0", "#3B82F6", "#7C3AED", "#EF4444"];
+
+        for (var s = 0; s < schedCount; s++) {
+          var sx = sX0 + s * (sW + sGap);
+          var selected = Math.floor(t * 1.8 + s) % 4;
+          ctx.fillStyle = sColors[s] + "22";
+          ctx.strokeStyle = sColors[s];
+          ctx.lineWidth = 1.4;
+          drawRoundRect(ctx, sx, sY, sW, sH, 7);
+          ctx.fill();
+          ctx.stroke();
+          drawCenteredText(
+            ctx,
+            "WS" + (s + 1),
+            sx + sW / 2,
+            sY + 13,
+            sColors[s],
+            9,
+          );
+
+          for (var q = 0; q < 4; q++) {
+            var qx = sx + 8 + q * 11;
+            var qy = sY + 26;
+            var active = q === selected;
+            ctx.fillStyle = active ? "#A8E063" : "rgba(255,255,255,0.18)";
+            ctx.beginPath();
+            ctx.arc(qx, qy, active ? 4 : 3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          drawCenteredText(
+            ctx,
+            "ready warps",
+            sx + sW / 2,
+            sY + 40,
+            "rgba(255,255,255,0.38)",
+            7,
+          );
+        }
+
+        var dY = 108;
+        for (var d = 0; d < schedCount; d++) {
+          var dx = sX0 + d * (sW + sGap) + sW / 2 - 20;
+          ctx.fillStyle = "rgba(245,158,11,0.14)";
+          ctx.strokeStyle = "#F59E0B";
+          ctx.lineWidth = 1.2;
+          drawRoundRect(ctx, dx, dY, 40, 22, 5);
+          ctx.fill();
+          ctx.stroke();
+          drawCenteredText(ctx, "DISP", dx + 20, dY + 15, "#FCD34D", 8);
+
+          ctx.strokeStyle = "rgba(255,255,255,0.22)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(dx + 20, sY + sH);
+          ctx.lineTo(dx + 20, dY);
+          ctx.stroke();
+        }
+
+        var pipeY = 154;
+        var pW = 68,
+          pH = 58,
+          pGap = 7;
+        var pNames = ["FP32", "Tensor", "LD/ST", "SFU"];
+        var pColors = ["#A8E063", "#00BCD4", "#FFB74D", "#F87171"];
+        var pX0 = cx - (pNames.length * (pW + pGap)) / 2 + pGap / 2;
+
+        for (var p = 0; p < pNames.length; p++) {
+          var px = pX0 + p * (pW + pGap);
+          ctx.fillStyle = pColors[p] + "20";
+          ctx.strokeStyle = pColors[p];
+          ctx.lineWidth = 1.4;
+          drawRoundRect(ctx, px, pipeY, pW, pH, 7);
+          ctx.fill();
+          ctx.stroke();
+          drawCenteredText(
+            ctx,
+            pNames[p],
+            px + pW / 2,
+            pipeY + 15,
+            pColors[p],
+            9,
+          );
+
+          var util = 0.4 + 0.35 * Math.sin(t * 1.9 + p * 0.9);
+          ctx.fillStyle = pColors[p] + "99";
+          ctx.fillRect(
+            px + 9,
+            pipeY + 34,
+            Math.max(4, Math.floor((pW - 18) * util)),
+            10,
+          );
+          ctx.strokeStyle = "rgba(255,255,255,0.2)";
+          ctx.strokeRect(px + 9, pipeY + 34, pW - 18, 10);
+          drawCenteredText(
+            ctx,
+            Math.round(util * 100) + "%",
+            px + pW / 2,
+            pipeY + 52,
+            "rgba(255,255,255,0.42)",
+            7,
+          );
+        }
+
+        drawText(
+          ctx,
+          "Per cycle: each scheduler picks one eligible warp, then dispatches to matching pipeline",
+          6,
+          h - 12,
+          "rgba(255,255,255,0.34)",
+          9,
+        );
+      }, [])}
+    />
+  );
+}
+
+// ── Warp Scoreboard & Stall Reasons ───────────────────────────────────────
+export function WarpScoreboardVis() {
+  return (
+    <Canvas2D
+      draw={useCallback(function (ctx, w, h, t) {
+        drawGrid(ctx, w, h);
+        var cx = w / 2;
+        drawCenteredText(
+          ctx,
+          "Scoreboard Controls Which Warp Can Issue",
+          cx,
+          22,
+          "#67D8FF",
+          12,
+        );
+
+        var tableX = 12;
+        var tableY = 42;
+        var rowH = 24;
+        var rowCount = 8;
+        var statePalette = {
+          READY: "#A8E063",
+          MEM: "#EF4444",
+          DEP: "#F59E0B",
+          SYNC: "#7C3AED",
+        };
+
+        drawText(
+          ctx,
+          "Warp",
+          tableX + 2,
+          tableY - 8,
+          "rgba(255,255,255,0.4)",
+          9,
+        );
+        drawText(
+          ctx,
+          "State",
+          tableX + 56,
+          tableY - 8,
+          "rgba(255,255,255,0.4)",
+          9,
+        );
+
+        for (var r = 0; r < rowCount; r++) {
+          var y = tableY + r * rowH;
+          var phase = (Math.floor(t * 2) + r) % 5;
+          var state =
+            phase === 0 || phase === 3
+              ? "READY"
+              : phase === 1
+                ? "MEM"
+                : phase === 2
+                  ? "DEP"
+                  : "SYNC";
+          var color = statePalette[state];
+
+          ctx.fillStyle = "rgba(255,255,255,0.03)";
+          ctx.strokeStyle = "rgba(255,255,255,0.08)";
+          ctx.lineWidth = 1;
+          drawRoundRect(ctx, tableX, y, 128, 20, 4);
+          ctx.fill();
+          ctx.stroke();
+
+          drawText(
+            ctx,
+            "W" + r,
+            tableX + 8,
+            y + 14,
+            "rgba(255,255,255,0.7)",
+            9,
+          );
+          ctx.fillStyle = color + "33";
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1;
+          drawRoundRect(ctx, tableX + 50, y + 3, 70, 14, 4);
+          ctx.fill();
+          ctx.stroke();
+          drawCenteredText(ctx, state, tableX + 85, y + 13, color, 8);
+        }
+
+        var scoreX = 154,
+          scoreY = 42;
+        var cols = 8,
+          rows = 8,
+          cell = 20;
+        drawText(
+          ctx,
+          "Scoreboard bits (reg dependencies)",
+          scoreX,
+          scoreY - 8,
+          "rgba(255,255,255,0.42)",
+          9,
+        );
+        for (var rr = 0; rr < rows; rr++) {
+          for (var cc = 0; cc < cols; cc++) {
+            var busy = Math.sin(t * 1.6 + rr * 0.8 + cc * 0.5) > 0.35;
+            ctx.fillStyle = busy
+              ? "rgba(245,158,11,0.55)"
+              : "rgba(255,255,255,0.04)";
+            ctx.strokeStyle = busy ? "#F59E0B" : "rgba(255,255,255,0.12)";
+            ctx.lineWidth = 1;
+            drawRoundRect(
+              ctx,
+              scoreX + cc * cell,
+              scoreY + rr * cell,
+              16,
+              16,
+              3,
+            );
+            ctx.fill();
+            ctx.stroke();
+          }
+        }
+
+        var timeY = 230;
+        drawText(
+          ctx,
+          "Issue timeline (green = issued, gray = stalled)",
+          12,
+          timeY - 8,
+          "rgba(255,255,255,0.4)",
+          9,
+        );
+        var slotW = 28;
+        for (var c2 = 0; c2 < 10; c2++) {
+          var x = 12 + c2 * (slotW + 3);
+          var canIssue = Math.sin(t * 2 + c2 * 0.7) > -0.1;
+          ctx.fillStyle = canIssue
+            ? "rgba(168,224,99,0.6)"
+            : "rgba(255,255,255,0.12)";
+          ctx.strokeStyle = canIssue ? "#A8E063" : "rgba(255,255,255,0.25)";
+          ctx.lineWidth = 1.1;
+          drawRoundRect(ctx, x, timeY, slotW, 24, 4);
+          ctx.fill();
+          ctx.stroke();
+          drawCenteredText(
+            ctx,
+            "C" + c2,
+            x + slotW / 2,
+            timeY + 16,
+            canIssue ? "#A8E063" : "rgba(255,255,255,0.45)",
+            8,
+          );
+        }
+
+        drawText(
+          ctx,
+          "Scheduler can only issue warps marked READY by scoreboard",
+          6,
+          h - 12,
+          "rgba(255,255,255,0.35)",
+          9,
+        );
       }, [])}
     />
   );
@@ -95,12 +599,22 @@ export function WarpVis() {
         var cx = w / 2;
         var step = Math.floor(t * 1.2) % 6;
 
-        var cols = 8, rows = 4;
-        var tW = 28, tH = 22, gap = 4;
+        var cols = 8,
+          rows = 4;
+        var tW = 28,
+          tH = 22,
+          gap = 4;
         var gx = cx - (cols * (tW + gap)) / 2 + gap / 2;
         var gy = 58;
 
-        drawCenteredText(ctx, "32 Threads — one Warp", cx, gy - 12, "#67D8FF", 12);
+        drawCenteredText(
+          ctx,
+          "32 Threads — one Warp",
+          cx,
+          gy - 12,
+          "#67D8FF",
+          12,
+        );
 
         for (var r = 0; r < rows; r++) {
           for (var c = 0; c < cols; c++) {
@@ -108,15 +622,36 @@ export function WarpVis() {
             ctx.fillStyle = "#00A3E0cc";
             ctx.strokeStyle = "#67D8FF";
             ctx.lineWidth = 1.5;
-            drawRoundRect(ctx, gx + c * (tW + gap), gy + r * (tH + gap), tW, tH, 4);
+            drawRoundRect(
+              ctx,
+              gx + c * (tW + gap),
+              gy + r * (tH + gap),
+              tW,
+              tH,
+              4,
+            );
             ctx.fill();
             ctx.stroke();
-            drawCenteredText(ctx, "" + tid, gx + c * (tW + gap) + tW / 2, gy + r * (tH + gap) + 15, "#fff", 9);
+            drawCenteredText(
+              ctx,
+              "" + tid,
+              gx + c * (tW + gap) + tW / 2,
+              gy + r * (tH + gap) + 15,
+              "#fff",
+              9,
+            );
           }
         }
 
         var instY = gy + rows * (tH + gap) + 18;
-        var instructions = ["LOAD r0, [addr]", "FMUL r1, r0, r2", "FADD r3, r1, r4", "STORE [addr], r3", "BRA .loop", "NOP / sync"];
+        var instructions = [
+          "LOAD r0, [addr]",
+          "FMUL r1, r0, r2",
+          "FADD r3, r1, r4",
+          "STORE [addr], r3",
+          "BRA .loop",
+          "NOP / sync",
+        ];
         var inst = instructions[step % instructions.length];
         ctx.fillStyle = "rgba(0,163,224,0.12)";
         ctx.strokeStyle = "#00A3E0";
@@ -125,8 +660,22 @@ export function WarpVis() {
         ctx.fill();
         ctx.stroke();
         drawCenteredText(ctx, "→  " + inst, cx, instY + 21, "#A8E063", 12);
-        drawCenteredText(ctx, "All 32 threads: same instruction", cx, instY + 48, "rgba(255,255,255,0.4)", 10);
-        drawText(ctx, "Warp = SIMT unit of execution", 6, h - 12, "rgba(255,255,255,0.35)", 10);
+        drawCenteredText(
+          ctx,
+          "All 32 threads: same instruction",
+          cx,
+          instY + 48,
+          "rgba(255,255,255,0.4)",
+          10,
+        );
+        drawText(
+          ctx,
+          "Warp = SIMT unit of execution",
+          6,
+          h - 12,
+          "rgba(255,255,255,0.35)",
+          10,
+        );
       }, [])}
     />
   );
@@ -146,11 +695,20 @@ export function ThreadHierarchyVis() {
         ctx.lineWidth = 2;
         drawRoundRect(ctx, cx - boxW / 2, 12, boxW, 48, 10);
         ctx.stroke();
-        drawCenteredText(ctx, "Grid  (all blocks for this kernel)", cx, 40, "#FFB74D", 11);
+        drawCenteredText(
+          ctx,
+          "Grid  (all blocks for this kernel)",
+          cx,
+          40,
+          "#FFB74D",
+          11,
+        );
 
         // 4 blocks
         var blockColors = ["#3B82F6", "#7C3AED", "#EF4444", "#10B981"];
-        var blockW = 54, blockH = 90, blockGap = 8;
+        var blockW = 54,
+          blockH = 90,
+          blockGap = 8;
         var blocksTotal = 4 * blockW + 3 * blockGap;
         var bStartX = cx - blocksTotal / 2;
 
@@ -162,19 +720,35 @@ export function ThreadHierarchyVis() {
           drawRoundRect(ctx, bx, 78, blockW, blockH, 8);
           ctx.fill();
           ctx.stroke();
-          drawCenteredText(ctx, "B" + b, bx + blockW / 2, 96, blockColors[b], 10);
+          drawCenteredText(
+            ctx,
+            "B" + b,
+            bx + blockW / 2,
+            96,
+            blockColors[b],
+            10,
+          );
 
           for (var ti = 0; ti < 6; ti++) {
             var tx = bx + 5 + (ti % 3) * 15;
             var ty = 103 + Math.floor(ti / 3) * 15;
             var pulse = Math.sin(t * 2.5 + b * 1.1 + ti * 0.4) > 0.2;
-            ctx.fillStyle = pulse ? blockColors[b] + "cc" : blockColors[b] + "33";
+            ctx.fillStyle = pulse
+              ? blockColors[b] + "cc"
+              : blockColors[b] + "33";
             ctx.beginPath();
             ctx.arc(tx + 6, ty + 6, 5.5, 0, Math.PI * 2);
             ctx.fill();
           }
         }
-        drawCenteredText(ctx, "Blocks (share shmem + can sync)", cx, 182, "rgba(255,255,255,0.4)", 9);
+        drawCenteredText(
+          ctx,
+          "Blocks (share shmem + can sync)",
+          cx,
+          182,
+          "rgba(255,255,255,0.4)",
+          9,
+        );
 
         // Warp grouping
         ctx.setLineDash([4, 4]);
@@ -183,9 +757,23 @@ export function ThreadHierarchyVis() {
         drawRoundRect(ctx, bStartX, 194, blocksTotal / 2 - 4, 28, 6);
         ctx.stroke();
         ctx.setLineDash([]);
-        drawCenteredText(ctx, "Warp (32 threads)", bStartX + (blocksTotal / 2 - 4) / 2, 212, "#67D8FF", 10);
+        drawCenteredText(
+          ctx,
+          "Warp (32 threads)",
+          bStartX + (blocksTotal / 2 - 4) / 2,
+          212,
+          "#67D8FF",
+          10,
+        );
 
-        drawText(ctx, "Thread → Block → Grid hierarchy", 6, h - 12, "rgba(255,255,255,0.35)", 10);
+        drawText(
+          ctx,
+          "Thread → Block → Grid hierarchy",
+          6,
+          h - 12,
+          "rgba(255,255,255,0.35)",
+          10,
+        );
       }, [])}
     />
   );
@@ -200,13 +788,20 @@ export function TensorCoreVis() {
         var cx = w / 2;
 
         var sz = 52;
-        var ax = cx - 115, ay = 50;
-        var bx = cx - 50, by = 50;
-        var outX = cx + 30, outY = 50;
+        var ax = cx - 115,
+          ay = 50;
+        var bx = cx - 50,
+          by = 50;
+        var outX = cx + 30,
+          outY = 50;
 
         function drawTile(x, y, label, color, pulse) {
-          var alpha = pulse ? (0.6 + Math.sin(t * 3) * 0.3) : 0.3;
-          ctx.fillStyle = color + Math.round(alpha * 255).toString(16).padStart(2, "0");
+          var alpha = pulse ? 0.6 + Math.sin(t * 3) * 0.3 : 0.3;
+          ctx.fillStyle =
+            color +
+            Math.round(alpha * 255)
+              .toString(16)
+              .padStart(2, "0");
           ctx.strokeStyle = color;
           ctx.lineWidth = 1.5;
           drawRoundRect(ctx, x, y, sz, sz, 6);
@@ -215,8 +810,14 @@ export function TensorCoreVis() {
           for (var i = 1; i < 4; i++) {
             ctx.strokeStyle = color + "44";
             ctx.lineWidth = 0.5;
-            ctx.beginPath(); ctx.moveTo(x + i * sz / 4, y); ctx.lineTo(x + i * sz / 4, y + sz); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(x, y + i * sz / 4); ctx.lineTo(x + sz, y + i * sz / 4); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x + (i * sz) / 4, y);
+            ctx.lineTo(x + (i * sz) / 4, y + sz);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y + (i * sz) / 4);
+            ctx.lineTo(x + sz, y + (i * sz) / 4);
+            ctx.stroke();
           }
           drawCenteredText(ctx, label, x + sz / 2, y + sz / 2 + 5, "#fff", 14);
           drawCenteredText(ctx, "16×16", x + sz / 2, y + sz + 14, color, 9);
@@ -224,10 +825,31 @@ export function TensorCoreVis() {
 
         drawTile(ax, ay, "A", "#00BCD4", true);
         drawTile(bx, by, "B", "#3B82F6", false);
-        drawArrow(ctx, bx + sz + 6, ay + sz / 2, outX - 6, outY + sz / 2, "#80DEEA");
-        drawCenteredText(ctx, "MMA", cx - 10, ay + sz / 2 - 10, "rgba(255,255,255,0.4)", 9);
+        drawArrow(
+          ctx,
+          bx + sz + 6,
+          ay + sz / 2,
+          outX - 6,
+          outY + sz / 2,
+          "#80DEEA",
+        );
+        drawCenteredText(
+          ctx,
+          "MMA",
+          cx - 10,
+          ay + sz / 2 - 10,
+          "rgba(255,255,255,0.4)",
+          9,
+        );
         drawTile(outX, outY, "D", "#A8E063", false);
-        drawCenteredText(ctx, "D = A×B + C", outX + sz / 2, outY + sz + 28, "#A8E063", 10);
+        drawCenteredText(
+          ctx,
+          "D = A×B + C",
+          outX + sz / 2,
+          outY + sz + 28,
+          "#A8E063",
+          10,
+        );
 
         drawCenteredText(ctx, "FP16", ax + sz / 2, ay - 8, "#80DEEA", 9);
         drawCenteredText(ctx, "FP16", bx + sz / 2, by - 8, "#93C5FD", 9);
@@ -240,8 +862,22 @@ export function TensorCoreVis() {
         drawRoundRect(ctx, cx - noteW / 2, h - 68, noteW, 40, 8);
         ctx.fill();
         ctx.stroke();
-        drawCenteredText(ctx, "1 TC op = 256 FMAs / clock", cx, h - 50, "#80DEEA", 10);
-        drawCenteredText(ctx, "vs 1 FMA/clock on CUDA core", cx, h - 34, "rgba(255,255,255,0.4)", 10);
+        drawCenteredText(
+          ctx,
+          "1 TC op = 256 FMAs / clock",
+          cx,
+          h - 50,
+          "#80DEEA",
+          10,
+        );
+        drawCenteredText(
+          ctx,
+          "vs 1 FMA/clock on CUDA core",
+          cx,
+          h - 34,
+          "rgba(255,255,255,0.4)",
+          10,
+        );
       }, [])}
     />
   );
@@ -257,10 +893,34 @@ export function MemoryHierarchyVis() {
         var maxW = Math.min(240, w - 20);
 
         var levels = [
-          { label: "Registers", bw: "~20 TB/s", lat: "~1 cy", color: "#A8E063", w: Math.round(maxW * 0.34) },
-          { label: "Shared Mem / L1$", bw: "~19 TB/s", lat: "~20 cy", color: "#67D8FF", w: Math.round(maxW * 0.62) },
-          { label: "L2 Cache", bw: "~4 TB/s", lat: "~200 cy", color: "#FFB74D", w: Math.round(maxW * 0.83) },
-          { label: "Global (HBM)", bw: "~2 TB/s", lat: "~600 cy", color: "#F87171", w: maxW },
+          {
+            label: "Registers",
+            bw: "~20 TB/s",
+            lat: "~1 cy",
+            color: "#A8E063",
+            w: Math.round(maxW * 0.34),
+          },
+          {
+            label: "Shared Mem / L1$",
+            bw: "~19 TB/s",
+            lat: "~20 cy",
+            color: "#67D8FF",
+            w: Math.round(maxW * 0.62),
+          },
+          {
+            label: "L2 Cache",
+            bw: "~4 TB/s",
+            lat: "~200 cy",
+            color: "#FFB74D",
+            w: Math.round(maxW * 0.83),
+          },
+          {
+            label: "Global (HBM)",
+            bw: "~2 TB/s",
+            lat: "~600 cy",
+            color: "#F87171",
+            w: maxW,
+          },
         ];
 
         var startY = 26;
@@ -271,7 +931,11 @@ export function MemoryHierarchyVis() {
           var bx = cx - lev.w / 2;
           var by = startY + i * (blockH + gap);
           var pulse = Math.sin(t * 1.5 + i * 0.8) * 0.1 + 0.15;
-          ctx.fillStyle = lev.color + Math.round(pulse * 255).toString(16).padStart(2, "0");
+          ctx.fillStyle =
+            lev.color +
+            Math.round(pulse * 255)
+              .toString(16)
+              .padStart(2, "0");
           ctx.strokeStyle = lev.color;
           ctx.lineWidth = 1.5;
           drawRoundRect(ctx, bx, by, lev.w, blockH, 8);
@@ -296,7 +960,14 @@ export function MemoryHierarchyVis() {
           }
         });
 
-        drawText(ctx, "Bandwidth ↑  Latency ↓  going up", 8, h - 12, "rgba(255,255,255,0.35)", 10);
+        drawText(
+          ctx,
+          "Bandwidth ↑  Latency ↓  going up",
+          8,
+          h - 12,
+          "rgba(255,255,255,0.35)",
+          10,
+        );
       }, [])}
     />
   );
@@ -318,12 +989,20 @@ export function SIMTVis() {
         ctx.fill();
         ctx.stroke();
         drawCenteredText(ctx, "FADD r1, r2, r3", cx, instY + 22, "#93C5FD", 13);
-        drawCenteredText(ctx, "One Instruction", cx, instY - 10, "rgba(255,255,255,0.4)", 9);
+        drawCenteredText(
+          ctx,
+          "One Instruction",
+          cx,
+          instY - 10,
+          "rgba(255,255,255,0.4)",
+          9,
+        );
 
         var laneCount = 8;
-        var laneW = 28, laneH = 118;
+        var laneW = 28,
+          laneH = 118;
         var laneGap = 4;
-        var startX = cx - laneCount * (laneW + laneGap) / 2;
+        var startX = cx - (laneCount * (laneW + laneGap)) / 2;
         var laneY = 100;
 
         for (var i = 0; i < laneCount; i++) {
@@ -344,13 +1023,43 @@ export function SIMTVis() {
           ctx.stroke();
 
           for (var row = 0; row < 4; row++) {
-            var val = ((i * 7 + row * 3 + Math.floor(t)) % 16).toString(16).toUpperCase();
-            drawCenteredText(ctx, val, lx + laneW / 2, laneY + 22 + row * 24, active ? "#fff" : "rgba(255,255,255,0.2)", 9);
+            var val = ((i * 7 + row * 3 + Math.floor(t)) % 16)
+              .toString(16)
+              .toUpperCase();
+            drawCenteredText(
+              ctx,
+              val,
+              lx + laneW / 2,
+              laneY + 22 + row * 24,
+              active ? "#fff" : "rgba(255,255,255,0.2)",
+              9,
+            );
           }
-          drawCenteredText(ctx, "T" + i, lx + laneW / 2, laneY + laneH + 13, "#93C5FD", 9);
+          drawCenteredText(
+            ctx,
+            "T" + i,
+            lx + laneW / 2,
+            laneY + laneH + 13,
+            "#93C5FD",
+            9,
+          );
         }
-        drawCenteredText(ctx, "(×4 = 32 lanes total)", cx, laneY + laneH + 26, "rgba(255,255,255,0.3)", 9);
-        drawText(ctx, "SIMT: same instruction, independent data", 4, h - 12, "rgba(255,255,255,0.35)", 10);
+        drawCenteredText(
+          ctx,
+          "(×4 = 32 lanes total)",
+          cx,
+          laneY + laneH + 26,
+          "rgba(255,255,255,0.3)",
+          9,
+        );
+        drawText(
+          ctx,
+          "SIMT: same instruction, independent data",
+          4,
+          h - 12,
+          "rgba(255,255,255,0.35)",
+          10,
+        );
       }, [])}
     />
   );
@@ -365,8 +1074,10 @@ export function WarpDivergenceVis() {
         var cx = w / 2;
 
         var laneCount = 8;
-        var laneW = 26, laneH = 72, laneGap = 5;
-        var gx = cx - laneCount * (laneW + laneGap) / 2;
+        var laneW = 26,
+          laneH = 72,
+          laneGap = 5;
+        var gx = cx - (laneCount * (laneW + laneGap)) / 2;
 
         ctx.fillStyle = "rgba(239,68,68,0.15)";
         ctx.strokeStyle = "#EF4444";
@@ -386,7 +1097,14 @@ export function WarpDivergenceVis() {
           drawRoundRect(ctx, lx, 80, laneW, laneH, 4);
           ctx.fill();
           ctx.stroke();
-          drawCenteredText(ctx, taken ? "ON" : "OFF", lx + laneW / 2, 80 + laneH / 2 + 4, taken ? "#A8E063" : "rgba(255,255,255,0.2)", 8);
+          drawCenteredText(
+            ctx,
+            taken ? "ON" : "OFF",
+            lx + laneW / 2,
+            80 + laneH / 2 + 4,
+            taken ? "#A8E063" : "rgba(255,255,255,0.2)",
+            8,
+          );
         }
 
         drawText(ctx, "Pass 2 — ELSE branch active", gx, 168, "#F87171", 10);
@@ -399,7 +1117,14 @@ export function WarpDivergenceVis() {
           drawRoundRect(ctx, lx2, 174, laneW, laneH, 4);
           ctx.fill();
           ctx.stroke();
-          drawCenteredText(ctx, elseActive ? "ON" : "OFF", lx2 + laneW / 2, 174 + laneH / 2 + 4, elseActive ? "#F87171" : "rgba(255,255,255,0.2)", 8);
+          drawCenteredText(
+            ctx,
+            elseActive ? "ON" : "OFF",
+            lx2 + laneW / 2,
+            174 + laneH / 2 + 4,
+            elseActive ? "#F87171" : "rgba(255,255,255,0.2)",
+            8,
+          );
         }
 
         var costW = Math.min(220, w - 20);
@@ -409,8 +1134,22 @@ export function WarpDivergenceVis() {
         drawRoundRect(ctx, cx - costW / 2, 260, costW, 30, 6);
         ctx.fill();
         ctx.stroke();
-        drawCenteredText(ctx, "2× serialized passes = 2× slower", cx, 279, "#F87171", 11);
-        drawText(ctx, "Avoid divergence within a warp", 8, h - 12, "rgba(255,255,255,0.35)", 10);
+        drawCenteredText(
+          ctx,
+          "2× serialized passes = 2× slower",
+          cx,
+          279,
+          "#F87171",
+          11,
+        );
+        drawText(
+          ctx,
+          "Avoid divergence within a warp",
+          8,
+          h - 12,
+          "rgba(255,255,255,0.35)",
+          10,
+        );
       }, [])}
     />
   );
@@ -425,7 +1164,8 @@ export function OccupancyVis() {
         var cx = w / 2;
         var smW = Math.min(w - 20, 270);
         var smH = 198;
-        var sx = cx - smW / 2, sy = 26;
+        var sx = cx - smW / 2,
+          sy = 26;
 
         ctx.strokeStyle = "#76B900";
         ctx.lineWidth = 2;
@@ -438,18 +1178,27 @@ export function OccupancyVis() {
         var wcols = 8;
         var wW = Math.floor((smW - 24) / wcols) - 3;
         var wH = 18;
-        var wgx = sx + 10, wgy = sy + 28;
+        var wgx = sx + 10,
+          wgy = sy + 28;
         for (var i = 0; i < maxWarps; i++) {
           var wx = wgx + (i % wcols) * (wW + 3);
           var wy = wgy + Math.floor(i / wcols) * (wH + 3);
-          ctx.fillStyle = i < activeWarps ? "#76B900bb" : "rgba(118,185,0,0.12)";
+          ctx.fillStyle =
+            i < activeWarps ? "#76B900bb" : "rgba(118,185,0,0.12)";
           ctx.strokeStyle = "#76B900";
           ctx.lineWidth = 1;
           drawRoundRect(ctx, wx, wy, wW, wH, 3);
           ctx.fill();
           ctx.stroke();
         }
-        drawText(ctx, "Warps: " + activeWarps + "/" + maxWarps, wgx, wgy + 2 * (wH + 3) + 16, "#A8E063", 10);
+        drawText(
+          ctx,
+          "Warps: " + activeWarps + "/" + maxWarps,
+          wgx,
+          wgy + 2 * (wH + 3) + 16,
+          "#A8E063",
+          10,
+        );
 
         var barW = smW - 20;
         var regY = sy + 105;
@@ -464,7 +1213,14 @@ export function OccupancyVis() {
         ctx.beginPath();
         ctx.roundRect(sx + 12, regY + 2, (barW - 4) * regFill, 24, 4);
         ctx.fill();
-        drawText(ctx, "Registers: " + Math.round(regFill * 100) + "% used", sx + 16, regY + 18, "#FCD34D", 10);
+        drawText(
+          ctx,
+          "Registers: " + Math.round(regFill * 100) + "% used",
+          sx + 16,
+          regY + 18,
+          "#FCD34D",
+          10,
+        );
 
         var shY = sy + 142;
         ctx.fillStyle = "rgba(0,163,224,0.12)";
@@ -478,11 +1234,32 @@ export function OccupancyVis() {
         ctx.beginPath();
         ctx.roundRect(sx + 12, shY + 2, (barW - 4) * shFill, 24, 4);
         ctx.fill();
-        drawText(ctx, "Shared Mem: " + Math.round(shFill * 100) + "% used", sx + 16, shY + 18, "#67D8FF", 10);
+        drawText(
+          ctx,
+          "Shared Mem: " + Math.round(shFill * 100) + "% used",
+          sx + 16,
+          shY + 18,
+          "#67D8FF",
+          10,
+        );
 
         var occ = Math.round((activeWarps / maxWarps) * 100);
-        drawCenteredText(ctx, "Occupancy: " + occ + "%" + (occ >= 75 ? "  ✓ Good" : "  ↑ Low"), cx, sy + smH + 20, occ >= 75 ? "#A8E063" : "#F87171", 13);
-        drawText(ctx, "High occupancy hides memory latency", 8, h - 12, "rgba(255,255,255,0.35)", 10);
+        drawCenteredText(
+          ctx,
+          "Occupancy: " + occ + "%" + (occ >= 75 ? "  ✓ Good" : "  ↑ Low"),
+          cx,
+          sy + smH + 20,
+          occ >= 75 ? "#A8E063" : "#F87171",
+          13,
+        );
+        drawText(
+          ctx,
+          "High occupancy hides memory latency",
+          8,
+          h - 12,
+          "rgba(255,255,255,0.35)",
+          10,
+        );
       }, [])}
     />
   );
@@ -517,7 +1294,14 @@ export function LatencyHidingVis() {
         ctx.moveTo(timelineX, startY + warps * rowH + 8);
         ctx.lineTo(timelineX + timelineW, startY + warps * rowH + 8);
         ctx.stroke();
-        drawText(ctx, "Time →", timelineX + timelineW - 38, startY + warps * rowH + 22, "rgba(255,255,255,0.3)", 9);
+        drawText(
+          ctx,
+          "Time →",
+          timelineX + timelineW - 38,
+          startY + warps * rowH + 22,
+          "rgba(255,255,255,0.3)",
+          9,
+        );
 
         for (var w2 = 0; w2 < warps; w2++) {
           var ry = startY + w2 * rowH;
@@ -534,7 +1318,8 @@ export function LatencyHidingVis() {
             drawRoundRect(ctx, px, ry + 4, msW, 28, 4);
             ctx.fill();
             ctx.stroke();
-            if (msW > 30) drawCenteredText(ctx, "MEM", px + msW / 2, ry + 22, "#F87171", 9);
+            if (msW > 30)
+              drawCenteredText(ctx, "MEM", px + msW / 2, ry + 22, "#F87171", 9);
           }
 
           var cpStart = px + memLen;
@@ -546,12 +1331,34 @@ export function LatencyHidingVis() {
             drawRoundRect(ctx, cpStart, ry + 4, cpW, 28, 4);
             ctx.fill();
             ctx.stroke();
-            if (cpW > 22) drawCenteredText(ctx, "EXEC", cpStart + cpW / 2, ry + 22, warpColors[w2], 9);
+            if (cpW > 22)
+              drawCenteredText(
+                ctx,
+                "EXEC",
+                cpStart + cpW / 2,
+                ry + 22,
+                warpColors[w2],
+                9,
+              );
           }
         }
 
-        drawText(ctx, "Staggered warps fill memory stall slots", 4, h - 26, "rgba(255,255,255,0.4)", 10);
-        drawText(ctx, "→ compute unit stays busy", 4, h - 12, "rgba(255,255,255,0.3)", 9);
+        drawText(
+          ctx,
+          "Staggered warps fill memory stall slots",
+          4,
+          h - 26,
+          "rgba(255,255,255,0.4)",
+          10,
+        );
+        drawText(
+          ctx,
+          "→ compute unit stays busy",
+          4,
+          h - 12,
+          "rgba(255,255,255,0.3)",
+          9,
+        );
       }, [])}
     />
   );
@@ -569,8 +1376,10 @@ export function CoalescingVis() {
       var cx = w / 2;
 
       var tCount = 8;
-      var tW = 28, tH = 22, tGap = 4;
-      var gx = cx - tCount * (tW + tGap) / 2;
+      var tW = 28,
+        tH = 22,
+        tGap = 4;
+      var gx = cx - (tCount * (tW + tGap)) / 2;
       var gy = 36;
       for (var i = 0; i < tCount; i++) {
         ctx.fillStyle = "#00A3E0aa";
@@ -579,7 +1388,14 @@ export function CoalescingVis() {
         drawRoundRect(ctx, gx + i * (tW + tGap), gy, tW, tH, 4);
         ctx.fill();
         ctx.stroke();
-        drawCenteredText(ctx, "T" + i, gx + i * (tW + tGap) + tW / 2, gy + 15, "#fff", 9);
+        drawCenteredText(
+          ctx,
+          "T" + i,
+          gx + i * (tW + tGap) + tW / 2,
+          gy + 15,
+          "#fff",
+          9,
+        );
       }
       drawText(ctx, "Threads", gx, gy - 10, "rgba(255,255,255,0.4)", 9);
 
@@ -594,7 +1410,9 @@ export function CoalescingVis() {
         var targetCell = coalesced ? j : (j * 2) % memCount;
         var memCX = memX + targetCell * (cellW + 2) + cellW / 2;
         var anim = Math.sin(t * 2.5 + j * 0.4) * 0.3 + 0.7;
-        ctx.strokeStyle = coalesced ? "rgba(168,224,99," + anim + ")" : "rgba(239,68,68," + anim + ")";
+        ctx.strokeStyle = coalesced
+          ? "rgba(168,224,99," + anim + ")"
+          : "rgba(239,68,68," + anim + ")";
         ctx.lineWidth = 1.2;
         ctx.beginPath();
         ctx.moveTo(threadCX, gy + tH);
@@ -603,28 +1421,60 @@ export function CoalescingVis() {
       }
 
       for (var k = 0; k < memCount; k++) {
-        var accessed = coalesced ? k < tCount : (k % 2 === 0 && k / 2 < tCount);
-        ctx.fillStyle = accessed ? (coalesced ? "#A8E063aa" : "#EF4444aa") : "rgba(255,255,255,0.06)";
-        ctx.strokeStyle = accessed ? (coalesced ? "#A8E063" : "#EF4444") : "rgba(255,255,255,0.15)";
+        var accessed = coalesced ? k < tCount : k % 2 === 0 && k / 2 < tCount;
+        ctx.fillStyle = accessed
+          ? coalesced
+            ? "#A8E063aa"
+            : "#EF4444aa"
+          : "rgba(255,255,255,0.06)";
+        ctx.strokeStyle = accessed
+          ? coalesced
+            ? "#A8E063"
+            : "#EF4444"
+          : "rgba(255,255,255,0.15)";
         ctx.lineWidth = 1;
         drawRoundRect(ctx, memX + k * (cellW + 2), memY, cellW, cellH, 3);
         ctx.fill();
         ctx.stroke();
-        if (cellW >= 14) drawCenteredText(ctx, "" + k, memX + k * (cellW + 2) + cellW / 2, memY + 15, "rgba(255,255,255,0.5)", 8);
+        if (cellW >= 14)
+          drawCenteredText(
+            ctx,
+            "" + k,
+            memX + k * (cellW + 2) + cellW / 2,
+            memY + 15,
+            "rgba(255,255,255,0.5)",
+            8,
+          );
       }
-      drawText(ctx, "Global Memory", memX, memY + cellH + 12, "rgba(255,255,255,0.3)", 9);
+      drawText(
+        ctx,
+        "Global Memory",
+        memX,
+        memY + cellH + 12,
+        "rgba(255,255,255,0.3)",
+        9,
+      );
 
       var txns = coalesced ? 1 : tCount;
       var statusW = Math.min(200, w - 20);
-      ctx.fillStyle = coalesced ? "rgba(168,224,99,0.1)" : "rgba(239,68,68,0.1)";
+      ctx.fillStyle = coalesced
+        ? "rgba(168,224,99,0.1)"
+        : "rgba(239,68,68,0.1)";
       ctx.strokeStyle = coalesced ? "#A8E063" : "#EF4444";
       ctx.lineWidth = 1.5;
       drawRoundRect(ctx, cx - statusW / 2, memY + cellH + 28, statusW, 30, 8);
       ctx.fill();
       ctx.stroke();
-      drawCenteredText(ctx, txns + " memory transaction" + (txns > 1 ? "s" : ""), cx, memY + cellH + 48, coalesced ? "#A8E063" : "#F87171", 12);
+      drawCenteredText(
+        ctx,
+        txns + " memory transaction" + (txns > 1 ? "s" : ""),
+        cx,
+        memY + cellH + 48,
+        coalesced ? "#A8E063" : "#F87171",
+        12,
+      );
     },
-    [coalesced]
+    [coalesced],
   );
 
   return (
@@ -635,13 +1485,20 @@ export function CoalescingVis() {
           return (
             <button
               key={String(c)}
-              onClick={function () { setCoalesced(c); }}
+              onClick={function () {
+                setCoalesced(c);
+              }}
               style={{
                 padding: "6px 16px",
                 borderRadius: 8,
                 border: "none",
                 cursor: "pointer",
-                background: coalesced === c ? (c ? "#A8E063" : "#EF4444") : "rgba(255,255,255,0.08)",
+                background:
+                  coalesced === c
+                    ? c
+                      ? "#A8E063"
+                      : "#EF4444"
+                    : "rgba(255,255,255,0.08)",
                 color: coalesced === c ? "#000" : "rgba(255,255,255,0.5)",
                 fontFamily: "monospace",
                 fontSize: 12,
@@ -675,8 +1532,10 @@ export function BankConflictsVis() {
       var bankY = h - 76;
 
       var tCount = 8;
-      var tW = 28, tH = 22, tGap = 4;
-      var tgx = cx - tCount * (tW + tGap) / 2;
+      var tW = 28,
+        tH = 22,
+        tGap = 4;
+      var tgx = cx - (tCount * (tW + tGap)) / 2;
       var tgy = 32;
 
       for (var i = 0; i < tCount; i++) {
@@ -686,7 +1545,14 @@ export function BankConflictsVis() {
         drawRoundRect(ctx, tgx + i * (tW + tGap), tgy, tW, tH, 4);
         ctx.fill();
         ctx.stroke();
-        drawCenteredText(ctx, "T" + i, tgx + i * (tW + tGap) + tW / 2, tgy + 15, "#fff", 9);
+        drawCenteredText(
+          ctx,
+          "T" + i,
+          tgx + i * (tW + tGap) + tW / 2,
+          tgy + 15,
+          "#fff",
+          9,
+        );
       }
 
       for (var j = 0; j < tCount; j++) {
@@ -694,7 +1560,9 @@ export function BankConflictsVis() {
         var targetBank = conflict ? 0 : j;
         var bcx = bStartX + targetBank * (bW + 3) + bW / 2;
         var anim = 0.5 + Math.sin(t * 2 + j * 0.5) * 0.3;
-        ctx.strokeStyle = conflict ? "rgba(239,68,68," + anim + ")" : "rgba(168,224,99," + anim + ")";
+        ctx.strokeStyle = conflict
+          ? "rgba(239,68,68," + anim + ")"
+          : "rgba(168,224,99," + anim + ")";
         ctx.lineWidth = 1.2;
         ctx.beginPath();
         ctx.moveTo(tcx, tgy + tH);
@@ -704,15 +1572,38 @@ export function BankConflictsVis() {
 
       for (var k = 0; k < bankCount; k++) {
         var hot = conflict ? k === 0 : k < tCount;
-        ctx.fillStyle = hot ? (conflict ? "#EF444488" : "#A8E06388") : "rgba(255,255,255,0.06)";
-        ctx.strokeStyle = hot ? (conflict ? "#EF4444" : "#A8E063") : "rgba(255,255,255,0.15)";
+        ctx.fillStyle = hot
+          ? conflict
+            ? "#EF444488"
+            : "#A8E06388"
+          : "rgba(255,255,255,0.06)";
+        ctx.strokeStyle = hot
+          ? conflict
+            ? "#EF4444"
+            : "#A8E063"
+          : "rgba(255,255,255,0.15)";
         ctx.lineWidth = 1;
         drawRoundRect(ctx, bStartX + k * (bW + 3), bankY, bW, bH, 3);
         ctx.fill();
         ctx.stroke();
-        if (bW >= 10) drawCenteredText(ctx, "" + k, bStartX + k * (bW + 3) + bW / 2, bankY + 19, "rgba(255,255,255,0.5)", 7);
+        if (bW >= 10)
+          drawCenteredText(
+            ctx,
+            "" + k,
+            bStartX + k * (bW + 3) + bW / 2,
+            bankY + 19,
+            "rgba(255,255,255,0.5)",
+            7,
+          );
       }
-      drawCenteredText(ctx, "Shared Memory Banks (×2 = 32)", cx, bankY + bH + 14, "rgba(255,255,255,0.3)", 9);
+      drawCenteredText(
+        ctx,
+        "Shared Memory Banks (×2 = 32)",
+        cx,
+        bankY + bH + 14,
+        "rgba(255,255,255,0.3)",
+        9,
+      );
 
       var serialized = conflict ? tCount : 1;
       var msgW = Math.min(210, w - 20);
@@ -722,9 +1613,16 @@ export function BankConflictsVis() {
       drawRoundRect(ctx, cx - msgW / 2, tgy + tH + 18, msgW, 28, 8);
       ctx.fill();
       ctx.stroke();
-      drawCenteredText(ctx, conflict ? "8-way conflict → 8 serial passes" : "No conflict — 1 pass", cx, tgy + tH + 36, conflict ? "#F87171" : "#A8E063", 10);
+      drawCenteredText(
+        ctx,
+        conflict ? "8-way conflict → 8 serial passes" : "No conflict — 1 pass",
+        cx,
+        tgy + tH + 36,
+        conflict ? "#F87171" : "#A8E063",
+        10,
+      );
     },
-    [conflict]
+    [conflict],
   );
 
   return (
@@ -735,14 +1633,26 @@ export function BankConflictsVis() {
           return (
             <button
               key={String(c)}
-              onClick={function () { setConflict(c); }}
+              onClick={function () {
+                setConflict(c);
+              }}
               style={{
                 padding: "6px 16px",
                 borderRadius: 8,
                 border: "none",
                 cursor: "pointer",
-                background: conflict === c ? (c ? "#EF4444" : "#A8E063") : "rgba(255,255,255,0.08)",
-                color: conflict === c ? (c ? "#fff" : "#000") : "rgba(255,255,255,0.5)",
+                background:
+                  conflict === c
+                    ? c
+                      ? "#EF4444"
+                      : "#A8E063"
+                    : "rgba(255,255,255,0.08)",
+                color:
+                  conflict === c
+                    ? c
+                      ? "#fff"
+                      : "#000"
+                    : "rgba(255,255,255,0.5)",
                 fontFamily: "monospace",
                 fontSize: 12,
                 fontWeight: 600,
@@ -777,7 +1687,14 @@ export function RooflineVis() {
         ctx.lineTo(ox + chartW, oy);
         ctx.stroke();
 
-        drawCenteredText(ctx, "Arith. Intensity (FLOP/byte) →", ox + chartW / 2, oy + 18, "rgba(255,255,255,0.35)", 9);
+        drawCenteredText(
+          ctx,
+          "Arith. Intensity (FLOP/byte) →",
+          ox + chartW / 2,
+          oy + 18,
+          "rgba(255,255,255,0.35)",
+          9,
+        );
         drawText(ctx, "TFLOP/s", ox + 4, pad + 10, "rgba(255,255,255,0.4)", 9);
 
         var ridgeX = ox + chartW * 0.55;
@@ -789,7 +1706,14 @@ export function RooflineVis() {
         ctx.moveTo(ox, oy);
         ctx.lineTo(ridgeX, roofY);
         ctx.stroke();
-        drawText(ctx, "Mem BW roof", ox + 14, oy - chartH * 0.35, "#FCD34D", 10);
+        drawText(
+          ctx,
+          "Mem BW roof",
+          ox + 14,
+          oy - chartH * 0.35,
+          "#FCD34D",
+          10,
+        );
 
         ctx.strokeStyle = "#00A3E0";
         ctx.lineWidth = 2.5;
@@ -800,7 +1724,14 @@ export function RooflineVis() {
         drawText(ctx, "Compute roof", ridgeX + 8, roofY - 12, "#67D8FF", 10);
 
         drawDot(ctx, ridgeX, roofY, 5 + Math.sin(t * 2) * 1.5, "#fff");
-        drawText(ctx, "Ridge", ridgeX + 6, roofY + 14, "rgba(255,255,255,0.5)", 9);
+        drawText(
+          ctx,
+          "Ridge",
+          ridgeX + 6,
+          roofY + 14,
+          "rgba(255,255,255,0.5)",
+          9,
+        );
 
         var kernels = [
           { name: "Copy", ai: 0.1, perf: 0.25, color: "#F87171" },
@@ -810,17 +1741,30 @@ export function RooflineVis() {
 
         kernels.forEach(function (k) {
           var kx = ox + k.ai * chartW * 0.95;
-          var roofAtX = kx < ridgeX ? (oy - (kx - ox) * (oy - roofY) / (ridgeX - ox)) : roofY;
+          var roofAtX =
+            kx < ridgeX
+              ? oy - ((kx - ox) * (oy - roofY)) / (ridgeX - ox)
+              : roofY;
           var ky = oy - k.perf * (oy - roofY);
           drawDot(ctx, kx, ky, 7, k.color);
           drawText(ctx, k.name, kx + 6, ky - 6, k.color, 10);
           ctx.strokeStyle = k.color + "66";
           ctx.lineWidth = 1;
           ctx.setLineDash([3, 3]);
-          ctx.beginPath(); ctx.moveTo(kx, ky); ctx.lineTo(kx, roofAtX); ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(kx, ky);
+          ctx.lineTo(kx, roofAtX);
+          ctx.stroke();
           ctx.setLineDash([]);
         });
-        drawText(ctx, "Green = compute-bound (near roof)", 8, oy - chartH - 10, "rgba(255,255,255,0.35)", 9);
+        drawText(
+          ctx,
+          "Green = compute-bound (near roof)",
+          8,
+          oy - chartH - 10,
+          "rgba(255,255,255,0.35)",
+          9,
+        );
       }, [])}
     />
   );
@@ -841,7 +1785,9 @@ export function TilingVis() {
         var matW = mSize * step; // 56px
 
         // A at cx-110, B at cx-27, C at cx+55
-        var aX = cx - 110, bX = cx - 27, cX = cx + 56;
+        var aX = cx - 110,
+          bX = cx - 27,
+          cX = cx + 56;
         var matY = 60;
 
         function drawMat(x, y, label, color, hlRow, hlCol) {
@@ -849,9 +1795,17 @@ export function TilingVis() {
             for (var c = 0; c < mSize; c++) {
               var isHlRow = hlRow !== undefined && r === hlRow;
               var isHlCol = hlCol !== undefined && c === hlCol;
-              var isHlCell = hlRow !== undefined && hlCol !== undefined && r === hlRow && c === hlCol;
-              ctx.fillStyle = isHlCell ? color + "cc" : (isHlRow || isHlCol) ? color + "44" : color + "18";
-              ctx.strokeStyle = (isHlRow || isHlCol) ? color : color + "44";
+              var isHlCell =
+                hlRow !== undefined &&
+                hlCol !== undefined &&
+                r === hlRow &&
+                c === hlCol;
+              ctx.fillStyle = isHlCell
+                ? color + "cc"
+                : isHlRow || isHlCol
+                  ? color + "44"
+                  : color + "18";
+              ctx.strokeStyle = isHlRow || isHlCol ? color : color + "44";
               ctx.lineWidth = isHlCell ? 2 : 0.8;
               drawRoundRect(ctx, x + c * step, y + r * step, tSz, tSz, 2);
               ctx.fill();
@@ -874,12 +1828,47 @@ export function TilingVis() {
         drawArrow(ctx, aX + matW + 4, arrowY, bX - 4, arrowY, "#67D8FF", 1.5);
 
         // Labels
-        drawCenteredText(ctx, "Row " + hr, aX + matW / 2, matY + mSize * step + 14, "#67D8FF", 9);
-        drawCenteredText(ctx, "Col " + hc, bX + matW / 2, matY + mSize * step + 14, "#86EFAC", 9);
-        drawCenteredText(ctx, "C[" + hr + "," + hc + "]", cX + matW / 2, matY + mSize * step + 14, "#FFB74D", 9);
+        drawCenteredText(
+          ctx,
+          "Row " + hr,
+          aX + matW / 2,
+          matY + mSize * step + 14,
+          "#67D8FF",
+          9,
+        );
+        drawCenteredText(
+          ctx,
+          "Col " + hc,
+          bX + matW / 2,
+          matY + mSize * step + 14,
+          "#86EFAC",
+          9,
+        );
+        drawCenteredText(
+          ctx,
+          "C[" + hr + "," + hc + "]",
+          cX + matW / 2,
+          matY + mSize * step + 14,
+          "#FFB74D",
+          9,
+        );
 
-        drawCenteredText(ctx, "Tile row × Tile col → output cell", cx, h - 26, "rgba(255,255,255,0.45)", 10);
-        drawCenteredText(ctx, "Load tiles to shared mem, reuse", cx, h - 12, "rgba(255,255,255,0.3)", 9);
+        drawCenteredText(
+          ctx,
+          "Tile row × Tile col → output cell",
+          cx,
+          h - 26,
+          "rgba(255,255,255,0.45)",
+          10,
+        );
+        drawCenteredText(
+          ctx,
+          "Load tiles to shared mem, reuse",
+          cx,
+          h - 12,
+          "rgba(255,255,255,0.3)",
+          9,
+        );
       }, [])}
     />
   );
@@ -904,23 +1893,49 @@ export function PipeliningVis() {
 
         for (var i = 0; i < stages.length; i++) {
           var pulse = 0.15 + 0.12 * Math.sin(t * 2 + i * 1.2);
-          ctx.fillStyle = stageColors[i] + Math.round(pulse * 255).toString(16).padStart(2, "00");
+          ctx.fillStyle =
+            stageColors[i] +
+            Math.round(pulse * 255)
+              .toString(16)
+              .padStart(2, "00");
           ctx.strokeStyle = stageColors[i];
           ctx.lineWidth = 1.5;
           var boxX = gx + i * (stageW + stageGap);
           drawRoundRect(ctx, boxX, sy, stageW, stageH, 8);
           ctx.fill();
           ctx.stroke();
-          drawCenteredText(ctx, stages[i], boxX + stageW / 2, sy + 22, stageColors[i], 10);
+          drawCenteredText(
+            ctx,
+            stages[i],
+            boxX + stageW / 2,
+            sy + 22,
+            stageColors[i],
+            10,
+          );
           if (i < stages.length - 1) {
-            drawArrow(ctx, boxX + stageW, sy + stageH / 2, boxX + stageW + stageGap, sy + stageH / 2, "rgba(255,255,255,0.3)");
+            drawArrow(
+              ctx,
+              boxX + stageW,
+              sy + stageH / 2,
+              boxX + stageW + stageGap,
+              sy + stageH / 2,
+              "rgba(255,255,255,0.3)",
+            );
           }
         }
 
         var bufY = sy + stageH + 30;
-        drawCenteredText(ctx, "Double Buffer", cx, bufY, "rgba(255,255,255,0.4)", 10);
+        drawCenteredText(
+          ctx,
+          "Double Buffer",
+          cx,
+          bufY,
+          "rgba(255,255,255,0.4)",
+          10,
+        );
         var bufFlip = Math.floor(t * 0.8) % 2;
-        var bufW = 66, bufH = 28;
+        var bufW = 66,
+          bufH = 28;
 
         ctx.fillStyle = bufFlip === 0 ? "#F59E0B33" : "#00A3E033";
         ctx.strokeStyle = bufFlip === 0 ? "#F59E0B" : "#00A3E0";
@@ -928,7 +1943,14 @@ export function PipeliningVis() {
         drawRoundRect(ctx, cx - bufW - 6, bufY + 14, bufW, bufH, 6);
         ctx.fill();
         ctx.stroke();
-        drawCenteredText(ctx, "Buf A", cx - bufW / 2 - 6, bufY + 32, "#FCD34D", 10);
+        drawCenteredText(
+          ctx,
+          "Buf A",
+          cx - bufW / 2 - 6,
+          bufY + 32,
+          "#FCD34D",
+          10,
+        );
 
         ctx.fillStyle = bufFlip === 1 ? "#F59E0B33" : "#00A3E033";
         ctx.strokeStyle = bufFlip === 1 ? "#F59E0B" : "#00A3E0";
@@ -936,12 +1958,40 @@ export function PipeliningVis() {
         drawRoundRect(ctx, cx + 6, bufY + 14, bufW, bufH, 6);
         ctx.fill();
         ctx.stroke();
-        drawCenteredText(ctx, "Buf B", cx + bufW / 2 + 6, bufY + 32, "#67D8FF", 10);
+        drawCenteredText(
+          ctx,
+          "Buf B",
+          cx + bufW / 2 + 6,
+          bufY + 32,
+          "#67D8FF",
+          10,
+        );
 
-        drawCenteredText(ctx, "↑ Writing", cx - bufW / 2 - 6, bufY + 54, "rgba(255,255,255,0.35)", 9);
-        drawCenteredText(ctx, "↑ Reading", cx + bufW / 2 + 6, bufY + 54, "rgba(255,255,255,0.35)", 9);
+        drawCenteredText(
+          ctx,
+          "↑ Writing",
+          cx - bufW / 2 - 6,
+          bufY + 54,
+          "rgba(255,255,255,0.35)",
+          9,
+        );
+        drawCenteredText(
+          ctx,
+          "↑ Reading",
+          cx + bufW / 2 + 6,
+          bufY + 54,
+          "rgba(255,255,255,0.35)",
+          9,
+        );
 
-        drawText(ctx, "Async prefetch hides global mem latency", 4, h - 12, "rgba(255,255,255,0.35)", 10);
+        drawText(
+          ctx,
+          "Async prefetch hides global mem latency",
+          4,
+          h - 12,
+          "rgba(255,255,255,0.35)",
+          10,
+        );
       }, [])}
     />
   );
@@ -956,10 +2006,14 @@ export function FlashAttentionVis() {
         var cx = w / 2;
 
         // Responsive layout: Q/K/V on left, SRAM on right
-        var tileW = 40, tileH = 38;
+        var tileW = 40,
+          tileH = 38;
         var tileGap = 8;
-        var qx = cx - 120, kx = cx - 120 + tileW + tileGap, vx = cx - 120 + 2 * (tileW + tileGap);
-        var sramX = cx + 28, sramW = Math.min(90, w - sramX - 8);
+        var qx = cx - 120,
+          kx = cx - 120 + tileW + tileGap,
+          vx = cx - 120 + 2 * (tileW + tileGap);
+        var sramX = cx + 28,
+          sramW = Math.min(90, w - sramX - 8);
         var oy2 = 40;
 
         function drawTile2(x, y, label, color, glow) {
@@ -969,7 +2023,14 @@ export function FlashAttentionVis() {
           drawRoundRect(ctx, x, y, tileW, tileH, 6);
           ctx.fill();
           ctx.stroke();
-          drawCenteredText(ctx, label, x + tileW / 2, y + tileH / 2 + 5, color, 14);
+          drawCenteredText(
+            ctx,
+            label,
+            x + tileW / 2,
+            y + tileH / 2 + 5,
+            color,
+            14,
+          );
         }
 
         var activeIdx = Math.floor(t * 0.8) % 3;
@@ -983,8 +2044,23 @@ export function FlashAttentionVis() {
         drawCenteredText(ctx, "FP16", vx + tileW / 2, oy2 - 8, "#FCD34D", 9);
 
         // Arrow from V to SRAM
-        drawArrow(ctx, vx + tileW + 4, oy2 + tileH / 2, sramX - 4, oy2 + tileH / 2, "#fff", 1.5);
-        drawCenteredText(ctx, "tile", vx + tileW + (sramX - vx - tileW) / 2, oy2 + tileH / 2 - 8, "rgba(255,255,255,0.35)", 9);
+        drawArrow(
+          ctx,
+          vx + tileW + 4,
+          oy2 + tileH / 2,
+          sramX - 4,
+          oy2 + tileH / 2,
+          "#fff",
+          1.5,
+        );
+        drawCenteredText(
+          ctx,
+          "tile",
+          vx + tileW + (sramX - vx - tileW) / 2,
+          oy2 + tileH / 2 - 8,
+          "rgba(255,255,255,0.35)",
+          9,
+        );
 
         // SRAM block
         ctx.fillStyle = "rgba(0,163,224,0.12)";
@@ -993,8 +2069,22 @@ export function FlashAttentionVis() {
         drawRoundRect(ctx, sramX, oy2 - 8, sramW, 62, 10);
         ctx.fill();
         ctx.stroke();
-        drawCenteredText(ctx, "SRAM", sramX + sramW / 2, oy2 + 10, "#67D8FF", 11);
-        drawCenteredText(ctx, "shmem", sramX + sramW / 2, oy2 + 24, "rgba(255,255,255,0.4)", 9);
+        drawCenteredText(
+          ctx,
+          "SRAM",
+          sramX + sramW / 2,
+          oy2 + 10,
+          "#67D8FF",
+          11,
+        );
+        drawCenteredText(
+          ctx,
+          "shmem",
+          sramX + sramW / 2,
+          oy2 + 24,
+          "rgba(255,255,255,0.4)",
+          9,
+        );
 
         // Softmax box inside SRAM
         ctx.strokeStyle = "#A8E063";
@@ -1003,10 +2093,24 @@ export function FlashAttentionVis() {
         drawRoundRect(ctx, sramX + 4, oy2 + 30, sramW - 8, 18, 4);
         ctx.stroke();
         ctx.setLineDash([]);
-        drawCenteredText(ctx, "softmax+Attn", sramX + sramW / 2, oy2 + 43, "#A8E063", 8);
+        drawCenteredText(
+          ctx,
+          "softmax+Attn",
+          sramX + sramW / 2,
+          oy2 + 43,
+          "#A8E063",
+          8,
+        );
 
         // Output arrow + box
-        drawArrow(ctx, sramX + sramW / 2, oy2 + 54, sramX + sramW / 2, oy2 + 90, "#FFB74D");
+        drawArrow(
+          ctx,
+          sramX + sramW / 2,
+          oy2 + 54,
+          sramX + sramW / 2,
+          oy2 + 90,
+          "#FFB74D",
+        );
         ctx.fillStyle = "rgba(245,158,11,0.15)";
         ctx.strokeStyle = "#F59E0B";
         ctx.lineWidth = 1.5;
@@ -1014,11 +2118,39 @@ export function FlashAttentionVis() {
         drawRoundRect(ctx, sramX + sramW / 2 - outW / 2, oy2 + 92, outW, 28, 8);
         ctx.fill();
         ctx.stroke();
-        drawCenteredText(ctx, "Output O", sramX + sramW / 2, oy2 + 110, "#FCD34D", 10);
-        drawCenteredText(ctx, "(HBM)", sramX + sramW / 2, oy2 + 122, "rgba(255,255,255,0.4)", 8);
+        drawCenteredText(
+          ctx,
+          "Output O",
+          sramX + sramW / 2,
+          oy2 + 110,
+          "#FCD34D",
+          10,
+        );
+        drawCenteredText(
+          ctx,
+          "(HBM)",
+          sramX + sramW / 2,
+          oy2 + 122,
+          "rgba(255,255,255,0.4)",
+          8,
+        );
 
-        drawText(ctx, "Standard Attn: O(N²) HBM reads", 8, h - 28, "rgba(255,255,255,0.4)", 10);
-        drawText(ctx, "Flash Attn:    O(N)  HBM reads", 8, h - 14, "#A8E063", 10);
+        drawText(
+          ctx,
+          "Standard Attn: O(N²) HBM reads",
+          8,
+          h - 28,
+          "rgba(255,255,255,0.4)",
+          10,
+        );
+        drawText(
+          ctx,
+          "Flash Attn:    O(N)  HBM reads",
+          8,
+          h - 14,
+          "#A8E063",
+          10,
+        );
       }, [])}
     />
   );
@@ -1032,12 +2164,25 @@ export function KernelLaunchVis() {
         drawGrid(ctx, w, h);
         var cx = w / 2;
 
-        var gridCols = 3, gridRows = 3;
-        var blockW = 58, blockH = 46, gapB = 8;
+        var gridCols = 3,
+          gridRows = 3;
+        var blockW = 58,
+          blockH = 46,
+          gapB = 8;
         var gbx = cx - (gridCols * (blockW + gapB)) / 2 + gapB / 2;
         var gby = 26;
 
-        var blockColors = ["#3B82F6", "#7C3AED", "#EF4444", "#10B981", "#F59E0B", "#EC4899", "#00A3E0", "#A8E063", "#FFB74D"];
+        var blockColors = [
+          "#3B82F6",
+          "#7C3AED",
+          "#EF4444",
+          "#10B981",
+          "#F59E0B",
+          "#EC4899",
+          "#00A3E0",
+          "#A8E063",
+          "#FFB74D",
+        ];
 
         for (var br = 0; br < gridRows; br++) {
           for (var bc = 0; bc < gridCols; bc++) {
@@ -1050,12 +2195,21 @@ export function KernelLaunchVis() {
             drawRoundRect(ctx, bx, by, blockW, blockH, 6);
             ctx.fill();
             ctx.stroke();
-            drawCenteredText(ctx, "(" + bc + "," + br + ")", bx + blockW / 2, by + 16, blockColors[bi], 9);
+            drawCenteredText(
+              ctx,
+              "(" + bc + "," + br + ")",
+              bx + blockW / 2,
+              by + 16,
+              blockColors[bi],
+              9,
+            );
             for (var tt = 0; tt < 6; tt++) {
               var tx2 = bx + 5 + (tt % 3) * 16;
               var ty2 = by + 20 + Math.floor(tt / 3) * 14;
               var pulse = Math.sin(t * 2 + bi * 0.7 + tt * 0.3) > 0;
-              ctx.fillStyle = pulse ? blockColors[bi] + "cc" : "rgba(255,255,255,0.08)";
+              ctx.fillStyle = pulse
+                ? blockColors[bi] + "cc"
+                : "rgba(255,255,255,0.08)";
               ctx.beginPath();
               ctx.arc(tx2 + 6, ty2 + 6, 4.5, 0, Math.PI * 2);
               ctx.fill();
@@ -1063,7 +2217,14 @@ export function KernelLaunchVis() {
           }
         }
 
-        drawText(ctx, "Grid(3,3) blocks", gbx, gby + gridRows * (blockH + gapB) + 14, "rgba(255,255,255,0.4)", 10);
+        drawText(
+          ctx,
+          "Grid(3,3) blocks",
+          gbx,
+          gby + gridRows * (blockH + gapB) + 14,
+          "rgba(255,255,255,0.4)",
+          10,
+        );
 
         var fY = gby + gridRows * (blockH + gapB) + 30;
         var fW = Math.min(230, w - 20);
@@ -1073,9 +2234,23 @@ export function KernelLaunchVis() {
         drawRoundRect(ctx, cx - fW / 2, fY, fW, 34, 8);
         ctx.fill();
         ctx.stroke();
-        drawCenteredText(ctx, "idx = blockIdx.x*blockDim.x+threadIdx.x", cx, fY + 21, "#93C5FD", 9);
+        drawCenteredText(
+          ctx,
+          "idx = blockIdx.x*blockDim.x+threadIdx.x",
+          cx,
+          fY + 21,
+          "#93C5FD",
+          9,
+        );
 
-        drawText(ctx, "Each block → one SM, threads fill warps", 4, h - 12, "rgba(255,255,255,0.35)", 10);
+        drawText(
+          ctx,
+          "Each block → one SM, threads fill warps",
+          4,
+          h - 12,
+          "rgba(255,255,255,0.35)",
+          10,
+        );
       }, [])}
     />
   );
@@ -1091,9 +2266,21 @@ export function CUDAStreamsVis() {
         var offset = (t * speed) % 1;
 
         var streams = [
-          { label: "Stream 0", color: "#00A3E0", tasks: ["H2D", "Kernel A", "D2H"] },
-          { label: "Stream 1", color: "#A8E063", tasks: ["H2D", "Kernel B", "D2H"] },
-          { label: "Stream 2", color: "#FFB74D", tasks: ["Kernel C", "Kernel D"] },
+          {
+            label: "Stream 0",
+            color: "#00A3E0",
+            tasks: ["H2D", "Kernel A", "D2H"],
+          },
+          {
+            label: "Stream 1",
+            color: "#A8E063",
+            tasks: ["H2D", "Kernel B", "D2H"],
+          },
+          {
+            label: "Stream 2",
+            color: "#FFB74D",
+            tasks: ["Kernel C", "Kernel D"],
+          },
         ];
 
         var labelW = 52;
@@ -1109,18 +2296,32 @@ export function CUDAStreamsVis() {
         ctx.moveTo(timelineX, startY + streams.length * rowH + 8);
         ctx.lineTo(timelineX + timelineW, startY + streams.length * rowH + 8);
         ctx.stroke();
-        drawText(ctx, "Time →", timelineX + timelineW - 38, startY + streams.length * rowH + 22, "rgba(255,255,255,0.3)", 9);
+        drawText(
+          ctx,
+          "Time →",
+          timelineX + timelineW - 38,
+          startY + streams.length * rowH + 22,
+          "rgba(255,255,255,0.3)",
+          9,
+        );
 
         streams.forEach(function (s, si) {
           var ry = startY + si * rowH;
           drawText(ctx, s.label, 0, ry + 20, s.color, 10);
 
           var staggerOffset = (offset + si * 0.15) % 1;
-          var totalW2 = taskW.reduce(function (a, b) { return a + b; }, 0) + 16;
+          var totalW2 =
+            taskW.reduce(function (a, b) {
+              return a + b;
+            }, 0) + 16;
           var startPx = timelineX + staggerOffset * (timelineW - totalW2);
 
           s.tasks.forEach(function (task, ti) {
-            var tx = startPx + taskW.slice(0, ti).reduce(function (a, b) { return a + b + 5; }, 0);
+            var tx =
+              startPx +
+              taskW.slice(0, ti).reduce(function (a, b) {
+                return a + b + 5;
+              }, 0);
             var tw = taskW[ti] || 60;
             if (tx > timelineX + timelineW) return;
             var drawW = Math.min(tw, timelineX + timelineW - tx);
@@ -1130,11 +2331,19 @@ export function CUDAStreamsVis() {
             drawRoundRect(ctx, tx, ry + 6, drawW, 28, 5);
             ctx.fill();
             ctx.stroke();
-            if (drawW > 20) drawCenteredText(ctx, task, tx + drawW / 2, ry + 25, s.color, 9);
+            if (drawW > 20)
+              drawCenteredText(ctx, task, tx + drawW / 2, ry + 25, s.color, 9);
           });
         });
 
-        drawText(ctx, "Streams overlap H2D, kernel, D2H async", 4, h - 12, "rgba(255,255,255,0.35)", 10);
+        drawText(
+          ctx,
+          "Streams overlap H2D, kernel, D2H async",
+          4,
+          h - 12,
+          "rgba(255,255,255,0.35)",
+          10,
+        );
       }, [])}
     />
   );
@@ -1148,9 +2357,11 @@ export function TritonTilesVis() {
         drawGrid(ctx, w, h);
         var cx = w / 2;
 
-        var rows = 4, cols = 6;
+        var rows = 4,
+          cols = 6;
         var cellW = Math.min(36, Math.floor((w - 20) / cols) - 3);
-        var cellH = 28, cellGap = 3;
+        var cellH = 28,
+          cellGap = 3;
         var gx = cx - (cols * (cellW + cellGap)) / 2;
         var gy = 30;
 
@@ -1160,19 +2371,49 @@ export function TritonTilesVis() {
 
         for (var r = 0; r < rows; r++) {
           for (var c = 0; c < cols; c++) {
-            var done = (r * cols + c) < activeTile;
+            var done = r * cols + c < activeTile;
             var active = r === ar && c === ac;
-            ctx.fillStyle = active ? "#00A3E0cc" : done ? "#00A3E033" : "rgba(255,255,255,0.05)";
-            ctx.strokeStyle = active ? "#67D8FF" : done ? "#00A3E066" : "rgba(255,255,255,0.12)";
+            ctx.fillStyle = active
+              ? "#00A3E0cc"
+              : done
+                ? "#00A3E033"
+                : "rgba(255,255,255,0.05)";
+            ctx.strokeStyle = active
+              ? "#67D8FF"
+              : done
+                ? "#00A3E066"
+                : "rgba(255,255,255,0.12)";
             ctx.lineWidth = active ? 2 : 1;
-            drawRoundRect(ctx, gx + c * (cellW + cellGap), gy + r * (cellH + cellGap), cellW, cellH, 4);
+            drawRoundRect(
+              ctx,
+              gx + c * (cellW + cellGap),
+              gy + r * (cellH + cellGap),
+              cellW,
+              cellH,
+              4,
+            );
             ctx.fill();
             ctx.stroke();
-            if (active) drawCenteredText(ctx, "→", gx + c * (cellW + cellGap) + cellW / 2, gy + r * (cellH + cellGap) + 19, "#fff", 11);
+            if (active)
+              drawCenteredText(
+                ctx,
+                "→",
+                gx + c * (cellW + cellGap) + cellW / 2,
+                gy + r * (cellH + cellGap) + 19,
+                "#fff",
+                11,
+              );
           }
         }
 
-        drawCenteredText(ctx, "One Triton program = one tile", cx, gy + rows * (cellH + cellGap) + 16, "rgba(255,255,255,0.4)", 10);
+        drawCenteredText(
+          ctx,
+          "One Triton program = one tile",
+          cx,
+          gy + rows * (cellH + cellGap) + 16,
+          "rgba(255,255,255,0.4)",
+          10,
+        );
 
         var bpW = Math.min(230, w - 20);
         var bpy = gy + rows * (cellH + cellGap) + 32;
@@ -1182,10 +2423,31 @@ export function TritonTilesVis() {
         drawRoundRect(ctx, cx - bpW / 2, bpy, bpW, 38, 8);
         ctx.fill();
         ctx.stroke();
-        drawCenteredText(ctx, "tl.arange(0, BLOCK_M)[:, None]", cx, bpy + 14, "#67D8FF", 9);
-        drawCenteredText(ctx, "base + pid * BLOCK  →  block ptr", cx, bpy + 28, "rgba(255,255,255,0.35)", 9);
+        drawCenteredText(
+          ctx,
+          "tl.arange(0, BLOCK_M)[:, None]",
+          cx,
+          bpy + 14,
+          "#67D8FF",
+          9,
+        );
+        drawCenteredText(
+          ctx,
+          "base + pid * BLOCK  →  block ptr",
+          cx,
+          bpy + 28,
+          "rgba(255,255,255,0.35)",
+          9,
+        );
 
-        drawText(ctx, "pid = program_id(0) — one tile per pid", 4, h - 12, "rgba(255,255,255,0.3)", 10);
+        drawText(
+          ctx,
+          "pid = program_id(0) — one tile per pid",
+          4,
+          h - 12,
+          "rgba(255,255,255,0.3)",
+          10,
+        );
       }, [])}
     />
   );
@@ -1200,7 +2462,12 @@ export function ArithmeticIntensityVis() {
         var cx = w / 2;
 
         var kernels = [
-          { name: ["Elementwise", "(copy)"], flops: 1, bytes: 4, color: "#F87171" },
+          {
+            name: ["Elementwise", "(copy)"],
+            flops: 1,
+            bytes: 4,
+            color: "#F87171",
+          },
           { name: ["GEMV"], flops: 2, bytes: 1, color: "#FFB74D" },
           { name: ["GEMM", "(large)"], flops: 512, bytes: 1, color: "#A8E063" },
         ];
@@ -1216,24 +2483,66 @@ export function ArithmeticIntensityVis() {
           var normH = Math.min(barMaxH, intensity * 0.5 + 12);
           var bx = gx2 + i * (barW + barGap);
           var pulse = 0.7 + Math.sin(t * 1.5 + i) * 0.15;
-          ctx.fillStyle = k.color + Math.round(pulse * 160).toString(16).padStart(2, "0");
+          ctx.fillStyle =
+            k.color +
+            Math.round(pulse * 160)
+              .toString(16)
+              .padStart(2, "0");
           ctx.strokeStyle = k.color;
           ctx.lineWidth = 1.5;
           drawRoundRect(ctx, bx, barBaseY - normH, barW, normH, 6);
           ctx.fill();
           ctx.stroke();
 
-          var aiLabel = intensity >= 100 ? Math.round(intensity) + "" : intensity.toFixed(1);
-          drawCenteredText(ctx, aiLabel + " F/B", bx + barW / 2, barBaseY - normH - 8, k.color, 10);
+          var aiLabel =
+            intensity >= 100
+              ? Math.round(intensity) + ""
+              : intensity.toFixed(1);
+          drawCenteredText(
+            ctx,
+            aiLabel + " F/B",
+            bx + barW / 2,
+            barBaseY - normH - 8,
+            k.color,
+            10,
+          );
 
           k.name.forEach(function (line, li) {
-            drawCenteredText(ctx, line, bx + barW / 2, barBaseY + 14 + li * 13, "rgba(255,255,255,0.55)", 9);
+            drawCenteredText(
+              ctx,
+              line,
+              bx + barW / 2,
+              barBaseY + 14 + li * 13,
+              "rgba(255,255,255,0.55)",
+              9,
+            );
           });
         });
 
-        drawCenteredText(ctx, "AI = FLOPs ÷ bytes accessed", cx, 22, "rgba(255,255,255,0.45)", 11);
-        drawCenteredText(ctx, "Higher AI = more compute-bound", cx, 37, "rgba(255,255,255,0.3)", 9);
-        drawText(ctx, "GEMM: ~512 FLOP/byte → compute-bound", 6, h - 12, "rgba(255,255,255,0.35)", 10);
+        drawCenteredText(
+          ctx,
+          "AI = FLOPs ÷ bytes accessed",
+          cx,
+          22,
+          "rgba(255,255,255,0.45)",
+          11,
+        );
+        drawCenteredText(
+          ctx,
+          "Higher AI = more compute-bound",
+          cx,
+          37,
+          "rgba(255,255,255,0.3)",
+          9,
+        );
+        drawText(
+          ctx,
+          "GEMM: ~512 FLOP/byte → compute-bound",
+          6,
+          h - 12,
+          "rgba(255,255,255,0.35)",
+          10,
+        );
       }, [])}
     />
   );

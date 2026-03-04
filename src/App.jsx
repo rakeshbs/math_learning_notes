@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { MathConceptExplorer } from "./math-explorer";
 import { ALL_DOMAINS } from "./domains";
+import LearningStepByStepArticle from "./gpu-step-by-step/LearningStepByStepArticle";
+
+var LEARNING_TAB = {
+  id: "learning",
+  label: "Learning",
+};
 
 function getDomainById(id) {
   return ALL_DOMAINS.find(function (domain) {
@@ -10,10 +16,17 @@ function getDomainById(id) {
 
 export default function App() {
   var st = useState(ALL_DOMAINS[0].id);
-  var activeDomainId = st[0];
-  var setActiveDomainId = st[1];
+  var activeTabId = st[0];
+  var setActiveTabId = st[1];
+  var isLearningTab = activeTabId === LEARNING_TAB.id;
 
-  var activeDomain = getDomainById(activeDomainId) || ALL_DOMAINS[0];
+  var activeDomain = getDomainById(activeTabId) || ALL_DOMAINS[0];
+  var tabItems = ALL_DOMAINS.map(function (domain) {
+    return {
+      id: domain.id,
+      label: domain.title.replace("Visual Intuition for ", ""),
+    };
+  }).concat([LEARNING_TAB]);
 
   var tabs = (
     <div
@@ -24,13 +37,13 @@ export default function App() {
         flexWrap: "wrap",
       }}
     >
-      {ALL_DOMAINS.map(function (domain) {
-        var isActive = domain.id === activeDomain.id;
+      {tabItems.map(function (tab) {
+        var isActive = tab.id === activeTabId;
         return (
           <button
-            key={domain.id}
+            key={tab.id}
             onClick={function () {
-              setActiveDomainId(domain.id);
+              setActiveTabId(tab.id);
             }}
             style={{
               padding: "7px 14px",
@@ -47,12 +60,16 @@ export default function App() {
               transition: "all 0.2s",
             }}
           >
-            {domain.title.replace("Visual Intuition for ", "")}
+            {tab.label}
           </button>
         );
       })}
     </div>
   );
+
+  if (isLearningTab) {
+    return <LearningStepByStepArticle headerSlot={tabs} />;
+  }
 
   return (
     <MathConceptExplorer

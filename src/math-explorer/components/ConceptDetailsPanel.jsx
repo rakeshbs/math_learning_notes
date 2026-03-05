@@ -341,6 +341,44 @@ export function ConceptDetailsPanel(props) {
         </div>
       )}
 
+      {/* ── Deep Dive ── */}
+      {explanation.deepDive && explanation.deepDive.length > 0 && (
+        <div style={CARD}>
+          <SectionLabel>Deep Dive</SectionLabel>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {explanation.deepDive.map(function (entry, i) {
+              if (
+                typeof entry === "string" &&
+                entry.startsWith("$$") &&
+                entry.endsWith("$$")
+              ) {
+                return (
+                  <div key={i} style={{ overflowX: "auto" }}>
+                    <BlockMath
+                      math={entry.slice(2, -2).trim()}
+                      renderError={function () {
+                        return (
+                          <code
+                            style={{
+                              fontFamily: "monospace",
+                              fontSize: 13,
+                              color: concept.accent,
+                            }}
+                          >
+                            {entry}
+                          </code>
+                        );
+                      }}
+                    />
+                  </div>
+                );
+              }
+              return <BodyText key={i}>{entry}</BodyText>;
+            })}
+          </div>
+        </div>
+      )}
+
       {/* ── Self-Test Prompts ── */}
       <div
         style={{

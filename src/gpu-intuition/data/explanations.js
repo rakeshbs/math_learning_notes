@@ -12,6 +12,12 @@ export const EXPLANATIONS = {
       "Connection: SM resource budgets (registers, shared memory) directly determine occupancy, which in turn determines your ability to hide memory latency",
     ],
     formula: "max_resident_warps/SM = min(64, ⌊65536 / (regs_per_thread × 32)⌋, ⌊smem_per_SM / smem_per_block⌋ × threads_per_block/32)",
+    deepDive: [
+      "Each SM is a complete execution engine: it contains integer and floating-point ALUs, special function units (SFUs) for transcendentals like sin/exp, load/store units, and warp schedulers — all fed by a 256 KB register file. The four warp schedulers on an A100 SM are each dual-issue, meaning they can dispatch two independent instructions from the same warp in a single cycle when instruction-level parallelism exists.",
+      "The SM's three resource budgets — registers, shared memory, and warp slots — are independent ceilings that each independently cap the number of resident warps. The effective limit is the minimum of all three. For example, if registers allow 64 warps but shared memory only allows 4 warps (because each block uses 48 KB on an SM with 192 KB total), the actual resident count is 4 warps — a 16× reduction in latency-hiding capacity.",
+      "$$\\text{resident\\_warps} = \\min\\!\\left(64,\\ \\left\\lfloor \\frac{65536}{r \\times 32} \\right\\rfloor,\\ \\left\\lfloor \\frac{S_{\\text{SM}}}{S_{\\text{block}}} \\right\\rfloor \\times \\frac{T_{\\text{block}}}{32}\\right)$$",
+      "Across GPU generations, SM counts have grown from 30 (Kepler GK110) to 108 (A100) to 132 (H100 SXM5), while per-SM peak throughput has also increased. Total GPU throughput scales with both dimensions. Identifying which SM resource is your limiting constraint is the first step of occupancy analysis — use the CUDA Occupancy Calculator or Nsight Compute's 'Theoretical Occupancy' section to pinpoint the binding limiter.",
+    ],
   },
   warp: {
     what: "A warp is a group of exactly 32 threads that execute in lockstep under the SIMT model. The warp scheduler issues one instruction per clock to all 32 threads simultaneously; each thread operates on its own private register data and may produce a different result. The warp — not the thread, and not the block — is the fundamental unit of GPU scheduling.",
@@ -26,6 +32,11 @@ export const EXPLANATIONS = {
       "Connection: divergence, occupancy, and latency hiding all operate at warp granularity — understanding the warp unlocks all of GPU performance analysis",
     ],
     formula: "warpID = threadIdx.x / 32  ;  laneID = threadIdx.x % 32",
+    deepDive: [
+      "The warp size of 32 is a direct consequence of SIMT hardware design: sharing one instruction fetch/decode unit across 32 lanes saves approximately 32× the area that 32 independent scalar processors would require. This area savings is what enables thousands of CUDA cores on a single chip. The warp size has remained 32 across every NVIDIA GPU architecture — Tesla, Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper — making it a stable abstraction for kernel authors.",
+      "Warp instruction latency on Ampere is 4 cycles for most arithmetic operations (FP32 FMA, INT32 ADD), but 16–32 cycles for transcendentals (SFU instructions like RCP, SQRT, SIN). The scheduler hides these latencies by issuing to other eligible warps during the wait. The number of warps needed to fully hide a given instruction latency is: warps_needed = instruction_latency / issue_interval.",
+      "$$\\text{warps to hide latency} = \\left\\lceil \\frac{\\text{latency}_{\\text{cycles}}}{\\text{issue interval}} \\right\\rceil \\quad \\Rightarrow \\quad \\text{FP32 FMA: } \\left\\lceil \\frac{4}{1} \\right\\rceil = 4 \\ \\text{warps minimum}$$",
+    ],
   },
   thread_hierarchy: {
     what: "CUDA organizes threads in a three-level hierarchy: Threads are grouped into Blocks (up to 1024 threads each); Blocks form a Grid (up to billions of blocks). Threads within a block share L1/shared memory and can synchronize with __syncthreads(). Threads in different blocks cannot communicate directly during kernel execution — this constraint is what allows blocks to scale across any number of SMs.",
@@ -40,6 +51,11 @@ export const EXPLANATIONS = {
       "Scaling: by keeping blocks independent, the same kernel binary runs efficiently on a 28-SM laptop GPU and a 132-SM H100 — the scheduler simply assigns more blocks per SM on the smaller GPU",
     ],
     formula: "globalIdx = blockIdx.x * blockDim.x + threadIdx.x",
+    deepDive: [
+      "Block independence is CUDA's core scalability contract: because no block may synchronize with or read the private shared memory of any other block, the runtime is free to schedule blocks on any SM in any order. This means a kernel that launches 10,000 blocks runs correctly whether the GPU has 28 SMs (laptop) or 132 SMs (H100 SXM5) — the blocks simply take fewer passes on the larger GPU. Violating this independence assumption (e.g., by writing a flag to global memory and busy-polling from another block) creates deadlock on GPUs with fewer SMs than blocks.",
+      "The 1024-thread-per-block limit is a hardware constraint rooted in the SM's barrier implementation and the warp scheduler's tracking tables. Choosing block size involves a trade-off: smaller blocks (e.g., 128 threads = 4 warps) leave more room for multiple blocks per SM and thus finer-grained occupancy tuning; larger blocks (e.g., 1024 threads = 32 warps) amortize block-launch overhead and sometimes improve shared memory utilization. Blocks of 256 threads (8 warps) are a practical default for most 1D kernels.",
+      "$$\\text{global\\_idx} = \\underbrace{\\text{blockIdx.x} \\times \\text{blockDim.x}}_{\\text{block offset}} + \\underbrace{\\text{threadIdx.x}}_{\\text{local offset}} \\quad \\in [0,\\ N)$$",
+    ],
   },
   tensor_cores: {
     what: "Tensor Cores are specialized matrix multiply-accumulate (MMA) hardware units within each SM that compute D = A × B + C in a single instruction, where A, B, C, D are small matrix fragments (e.g., 16×16 FP16 × 16×16 FP16 + 16×16 FP32). They deliver approximately 8–16× the FLOP/s of regular CUDA cores on the same SM. Every production deep learning kernel — GEMM, attention, convolution — is designed to use Tensor Cores.",
@@ -54,6 +70,11 @@ export const EXPLANATIONS = {
       "Compute ceiling: Tensor Core TFLOPS is the performance ceiling for all compute-bound kernels — reaching it means writing code that the compiler can map to MMA instructions",
     ],
     formula: "D[M×N] = A[M×K] × B[K×N] + C[M×N]  (executed in one MMA warp instruction on Tensor Core hardware)",
+    deepDive: [
+      "Tensor Core generations have progressively widened the precision support and instruction granularity. Volta (V100) introduced 4×4×4 FP16 MMA. Ampere (A100) added BF16, TF32, INT8, and INT4 modes, and introduced the 16×16×16 async variant. Hopper (H100) introduced WGMMA (Warpgroup MMA), where a warpgroup of 4 warps (128 threads) collectively issues a larger MMA, enabling higher arithmetic intensity per warp scheduler cycle and better register file utilization.",
+      "The alignment requirement for Tensor Cores is non-negotiable at the hardware level: MMA instructions require that the matrix fragment start addresses are aligned to 128-bit (16-byte) boundaries and that M, N, K dimensions are exact multiples of the tile size. A silent fallback to scalar CUDA cores occurs when these conditions are violated — a particularly insidious performance bug because the result is numerically correct but 16× slower. Always verify Tensor Core utilization via Nsight Compute's 'Tensor Active' cycles metric.",
+      "$$\\text{TC peak TFLOPS} = \\underbrace{N_{\\text{SM}}}_{\\text{108 on A100}} \\times \\underbrace{4}_{\\text{TC/SM}} \\times \\underbrace{256}_{\\text{FP16 ops/TC/clock}} \\times \\underbrace{f_{\\text{clock}}}_{1.41 \\text{ GHz}} \\approx 312 \\text{ TFLOPS}$$",
+    ],
   },
   memory_hierarchy: {
     what: "GPU memory is a strict hierarchy trading speed for capacity: Registers (~0 cycle latency, thread-private, ~256 KB per SM), Shared Memory (~20 cycles, block-shared on-chip SRAM, up to 228 KB per SM on H100), L2 Cache (~100–200 cycles, chip-wide, 40 MB on A100), and Global Memory / HBM (~300–700 cycles, all SMs, 80 GB on A100, 2 TB/s). Efficient GPU kernels are engineered to keep working data in the fastest available level.",
@@ -68,6 +89,11 @@ export const EXPLANATIONS = {
       "Measurement: effective_bandwidth = bytes_transferred / kernel_time; target ≥ 70% of peak HBM bandwidth for memory-bound kernels",
     ],
     formula: "effective_bandwidth = bytes_transferred / kernel_time  ;  target: > 70% of peak HBM BW",
+    deepDive: [
+      "The memory hierarchy exists because on-chip SRAM is orders of magnitude faster than off-chip DRAM but also orders of magnitude more expensive per bit. HBM (High Bandwidth Memory) achieves multi-terabyte-per-second bandwidth by stacking multiple DRAM dies with thousands of parallel data lines (a 5120-bit bus on A100), but its access latency is still governed by DRAM refresh and row activation cycles — hence the ~300–700 ns latency. Shared memory, by contrast, is a true SRAM array on the same silicon die as the compute logic, enabling sub-nanosecond cycle times.",
+      "L2 cache behavior is particularly important for kernels with data reuse patterns that don't fit in shared memory. The A100's 40 MB L2 is large enough to cache entire weight matrices for small transformer layers or entire lookup tables for embedding operations. An L2 hit costs ~100–200 cycles versus ~700 for HBM — still slower than shared memory but often sufficient to avoid the full HBM penalty for moderately reused data.",
+      "$$\\text{effective BW} = \\frac{\\text{bytes\\_transferred}}{t_{\\text{kernel}}} \\quad \\leq \\quad \\text{peak BW} \\times \\underbrace{\\eta}_{\\text{efficiency}} \\quad \\text{where } \\eta_{\\text{target}} \\geq 0.70$$",
+    ],
   },
   simt: {
     what: "SIMT (Single Instruction, Multiple Threads) is NVIDIA's execution model: all 32 threads in a warp execute the same instruction every clock cycle, but each thread holds its own register state and can read/write different memory addresses. This gives the throughput of vector execution (like AVX-512) with the flexibility of per-thread control flow — at the cost of serialization when threads take different branches.",
@@ -82,6 +108,11 @@ export const EXPLANATIONS = {
       "Volta+ ITS: Independent Thread Scheduling adds a per-thread PC alongside the warp PC, enabling finer-grained divergence handling and inter-thread synchronization patterns impossible on pre-Volta GPUs",
     ],
     formula: "A[i] = B[i] * C[i]  -- thread i reads B[i], C[i], writes A[i]; all 32 lanes execute simultaneously",
+    deepDive: [
+      "SIMT differs from CPU SIMD in a crucial way: each SIMT thread has its own program counter and register file, while CPU SIMD lanes share a single register vector. This means a SIMT warp can handle data-dependent address calculations per thread (e.g., gather/scatter), whereas CPU SIMD requires explicit gather/scatter instructions. The downside is that the GPU must dedicate hardware to tracking per-thread state across 32 lanes — this is why register files consume a large fraction of SM die area.",
+      "Independent Thread Scheduling (ITS), introduced in Volta (V100), adds a per-thread PC alongside the warp-level PC. Before Volta, all threads in a warp shared a single PC, which meant deadlocks were possible when threads in the same warp attempted to synchronize with each other (e.g., via spin-locks). ITS enables intra-warp synchronization patterns like warp-level producer-consumer pipelines. The cost is additional hardware for tracking 32 PCs per warp slot.",
+      "$$\\text{SIMT efficiency} = \\frac{\\text{active lanes}}{32} = 1 - \\frac{\\text{masked lanes}}{32} \\quad \\Rightarrow \\quad \\text{50/50 branch: } \\frac{1}{2} \\times \\frac{1}{2} = 25\\%\\ \\text{peak efficiency}$$",
+    ],
   },
   warp_divergence: {
     what: "Warp divergence occurs when threads within the same warp take different paths through a branch (if/else, switch, or data-dependent loop bounds). Because all threads in a warp share one program counter, the GPU must execute each distinct path serially while masking out inactive threads. The worst-case slowdown equals the number of distinct paths taken by threads in the warp.",
@@ -96,6 +127,11 @@ export const EXPLANATIONS = {
       "Volta+ reconvergence: threads reconverge immediately at the earliest legal point (the join dominator), rather than waiting until the end of the if/else block — often reduces serialization cost",
     ],
     formula: "slowdown ≤ (# distinct paths taken by lanes in this warp)  ; worst case = 32 distinct paths",
+    deepDive: [
+      "Divergence is exclusively a within-warp phenomenon: if all threads in warp A take branch 'true' and all threads in warp B take branch 'false', there is zero performance penalty — both warps execute their respective paths simultaneously on different warp slots. The performance problem only arises when the condition variable differs across the 32 lanes of a single warp. This is why data layout decisions (e.g., sorting inputs by type or category before launching the kernel) can eliminate divergence without changing the algorithm.",
+      "The compiler transforms short divergent branches into predicated instructions where possible. For example, a two-instruction if-body may be compiled to two conditional moves (SETP + SEL), which execute speculatively on all 32 lanes with results written only where the predicate is true. This avoids the full serialization cost of SIMT divergence at the expense of executing both branch bodies unconditionally — beneficial when branch bodies are short (< 4 instructions) and divergence is frequent.",
+      "$$\\text{diverged warp time} = \\sum_{p=1}^{P} T_p \\quad \\text{vs} \\quad \\text{uniform warp time} = \\max_{p} T_p \\quad \\Rightarrow \\quad \\text{worst case: } P = 32,\\ T_p = 1 \\Rightarrow 32\\times$$",
+    ],
   },
   occupancy: {
     what: "Occupancy is the ratio of active warps on an SM to the SM's maximum theoretical warp capacity (64 on A100/H100). Higher occupancy gives the warp scheduler more warps to switch between when one stalls on a memory access, enabling better latency hiding. Occupancy is limited by three independent resources: registers per thread, shared memory per block, and threads per block.",
@@ -110,6 +146,11 @@ export const EXPLANATIONS = {
       "ILP trade-off: using more registers per thread to hold multiple independent accumulation values (register blocking) often wins over maximizing occupancy, even at 25–33% occupancy",
     ],
     formula: "occupancy = active_warps_per_SM / max_warps_per_SM  ;  max_warps bounded by regs, smem, and block_size",
+    deepDive: [
+      "Occupancy is best thought of as a proxy for latency-hiding capacity, not as a target in itself. A kernel at 25% occupancy (16 active warps) but with high instruction-level parallelism (ILP) — where each warp has multiple independent outstanding operations — can achieve similar throughput to a 100% occupancy kernel with low ILP. The key metric is whether the warp scheduler always has at least one eligible warp to issue; occupancy is one path to that goal, ILP is another.",
+      "The shared memory occupancy limiter is particularly sharp on Ampere and Hopper GPUs, where large SMEM allocations are common for Flash Attention and GEMM pipelining. On H100, an SM has 228 KB of configurable L1/SMEM. A Flash Attention kernel may request 192 KB of SMEM per block, limiting the SM to exactly one concurrent block — and therefore only as many warps as that one block contains. This low occupancy is acceptable because each block's warps have ample work (large tile computations) to fill all issue slots.",
+      "$$\\text{occupancy} = \\frac{W_{\\text{active}}}{W_{\\text{max}}} = \\frac{\\min\\!\\left(W_{\\text{reg}},\\ W_{\\text{smem}},\\ W_{\\text{block}}\\right)}{64} \\quad \\text{where } W_{\\text{reg}} = \\left\\lfloor \\frac{65536}{r \\times 32} \\right\\rfloor$$",
+    ],
   },
   latency_hiding: {
     what: "Latency hiding is the mechanism by which GPUs tolerate high-latency memory operations without stalling. When a warp issues a global memory load (~300–700 cycles), the warp scheduler immediately switches to executing another ready warp. By the time the data returns, hundreds of useful instructions have executed in other warps, keeping the ALUs busy with zero idle time — provided enough resident warps exist.",
@@ -124,6 +165,11 @@ export const EXPLANATIONS = {
       "Compute-bound kernels: latency hiding matters less; instruction-level parallelism (ILP) within a single warp matters more — interleave independent instructions",
     ],
     formula: "warps_needed_to_hide_latency ≈ memory_latency_cycles / issue_rate_cycles_per_warp",
+    deepDive: [
+      "Latency hiding is the GPU's answer to the memory latency wall: rather than reducing memory access latency (which would require expensive SRAM for the entire memory), the GPU hides latency by keeping the execution units busy with other warps' work during the wait. This is fundamentally different from a CPU's out-of-order execution engine, which hides latency by finding independent instructions within the same thread of execution. The GPU hides latency across threads, trading hardware complexity for massive thread counts.",
+      "The Little's Law formulation is the cleanest way to reason about latency hiding: throughput = concurrency / latency, or equivalently, concurrency_needed = throughput_target × latency. For an A100 SM targeting peak memory throughput of ~18.5 GB/s per SM (2 TB/s ÷ 108 SMs), with HBM latency of ~500 ns at 1.41 GHz ≈ 705 cycles, and each warp issuing one memory request per tile: approximately 6–8 warps with outstanding memory requests suffice to saturate the memory interface — well within the 64-warp capacity.",
+      "$$W_{\\text{needed}} = \\frac{L_{\\text{mem}}}{t_{\\text{issue}}} \\approx \\frac{700\\ \\text{cycles}}{1\\ \\text{cycle/warp}} = 700\\ \\text{warp-instruction slots} \\quad \\Rightarrow \\quad \\approx 22\\ \\text{warps at 32 independent loads each}$$",
+    ],
   },
   global_memory: {
     what: "Global memory is the GPU's main DRAM — High Bandwidth Memory (HBM) stacked directly on the GPU die. It is accessible by all threads on all SMs, persists across kernel launches, and provides the largest capacity (80 GB on A100/H100) with the highest raw bandwidth (2–3.35 TB/s). Its ~300–700 cycle access latency makes access-pattern optimization the #1 performance lever for memory-bound kernels.",
@@ -138,6 +184,11 @@ export const EXPLANATIONS = {
       "Benchmark: use nsight compute 'L1 → Global Memory Transactions per Request' metric; ideal = 1.0, indicating perfectly coalesced access",
     ],
     formula: "coalesced warp: 32 threads × 4 bytes = 128 bytes = 1 cache line transaction  ;  uncoalesced: up to 32 transactions",
+    deepDive: [
+      "HBM achieves its multi-terabyte-per-second bandwidth through physical stacking: multiple DRAM dies are bonded directly on top of the GPU die via thousands of micro-bumps, creating a wide parallel bus (5120 bits on A100 HBM2e). This is in stark contrast to DDR5 DIMM-based CPU memory, which uses a narrow 64-bit bus per channel. The HBM bandwidth of 2 TB/s dwarfs the ~204 GB/s of a dual-channel DDR5 system — the GPU has roughly 10× more raw memory bandwidth.",
+      "The 128-byte cache line granularity means that even a single-thread access to a global memory address fetches 128 bytes into the L1 cache, regardless of how many bytes the thread actually uses. For a warp issuing 32 × 4-byte loads to consecutive addresses, this is perfectly efficient — 128 bytes requested, 128 bytes fetched, utilization = 100%. For a warp issuing 32 × 4-byte loads to random addresses, up to 32 separate 128-byte cache line fetches are triggered — 4096 bytes fetched, 128 bytes used, utilization = 3.1%.",
+      "$$\\text{BW utilization} = \\frac{32 \\times \\text{sizeof(element)}}{\\text{transactions} \\times 128\\ \\text{B}} \\quad \\Rightarrow \\quad \\text{stride-1 (ideal): } \\frac{128}{128} = 100\\%,\\ \\text{stride-32: } \\frac{128}{32 \\times 128} \\approx 3\\%$$",
+    ],
   },
   shared_memory: {
     what: "Shared memory (SMEM) is an explicitly programmer-managed on-chip SRAM, local to each SM, and shared among all threads within a block. It delivers ~1.5 TB/s of bandwidth at ~20-cycle latency — roughly 100× faster than HBM. SMEM is the primary tool for GPU optimization: load data from global memory once into SMEM, reuse it many times for computation, then write results back to global memory.",
@@ -152,6 +203,11 @@ export const EXPLANATIONS = {
       "Bank structure: SMEM is divided into 32 banks of 4 bytes each; accessing multiple elements in the same bank in the same cycle causes bank conflicts and serialization",
     ],
     formula: "__shared__ float tile[TILE_M][TILE_K];  // allocated per block, freed automatically at block exit",
+    deepDive: [
+      "Shared memory bandwidth of ~1.5 TB/s per SM translates to an aggregate of ~162 TB/s across all 108 SMs of an A100 — more than 80× the HBM bandwidth. This asymmetry is the fundamental reason that tiling works: by loading from HBM once into SMEM and computing from SMEM many times, kernels can perform far more FLOPs per HBM byte than a naive implementation. The crossover point where SMEM reuse pays off is when each loaded value is used more than once — which happens as soon as any matrix multiplication tile shares input elements across multiple output elements.",
+      "The configurable L1/SMEM split on Ampere GPUs (using cudaFuncSetAttribute with cudaFuncAttributeMaxDynamicSharedMemorySize) allows kernels to claim up to 192 KB of SMEM at the cost of reducing L1 cache size. Flash Attention kernels and large GEMM kernels typically claim the maximum SMEM because their access patterns are perfectly predictable and cache-friendly in SMEM; they sacrifice L1 capacity because their remaining global memory accesses (to read the next tile) are sequential and prefetchable.",
+      "$$\\text{reuse factor} = \\frac{\\text{SMEM reads from compute}}{\\text{HBM loads}} = \\text{TILE\\_SIZE} \\quad \\Rightarrow \\quad \\text{effective AI} \\approx \\frac{\\text{TILE\\_SIZE}}{2}\\ \\frac{\\text{FLOP}}{\\text{byte}}$$",
+    ],
   },
   registers: {
     what: "Registers are the fastest storage on a GPU — zero additional latency, directly used by ALUs, and completely private per thread. Each SM has a large register file (65536 × 32-bit registers on A100 and H100) shared across all resident threads. Register usage per thread directly limits warp occupancy: fewer registers per thread means more threads can be resident, but too few registers forces the compiler to spill data to slow local memory.",
@@ -166,6 +222,11 @@ export const EXPLANATIONS = {
       "Control: use __launch_bounds__(maxThreadsPerBlock) to tell the compiler the max block size, enabling more aggressive register allocation that avoids spills",
     ],
     formula: "max_active_warps = min(64, ⌊65536 / (regs_per_thread × 32)⌋)",
+    deepDive: [
+      "The GPU register file is physically the largest structure on the SM die. On A100, the 256 KB register file per SM (65536 × 32-bit registers) represents roughly 20–25% of the SM's total area. This investment reflects the GPU's design philosophy: registers enable zero-latency data reuse within a thread, which is essential for compute-bound kernels like GEMM that accumulate partial products across many iterations without touching slower memory levels. The large register file also enables the occupancy-ILP trade-off: using more registers per thread to hold multiple accumulator tiles reduces occupancy but provides higher instruction-level parallelism.",
+      "Register spilling to local memory is catastrophic for performance because local memory is physically global memory (HBM) with per-thread addressing — each spill/fill operation carries the full ~300–700 cycle HBM latency. The compiler tries to avoid spills by recomputing values rather than storing them when feasible, but complex kernels (especially those with large tiled accumulation arrays) often spill. The __launch_bounds__ annotation gives the compiler a contract on the maximum block size, allowing it to allocate registers more aggressively knowing it never needs to support larger configurations.",
+      "$$\\text{reg file utilization} = \\frac{W_{\\text{active}} \\times 32 \\times r}{65536} \\leq 1 \\quad \\Rightarrow \\quad r_{\\text{max}} = \\frac{65536}{W_{\\text{active}} \\times 32} \\quad \\text{e.g., 32 warps: } r_{\\text{max}} = 64$$",
+    ],
   },
   coalescing: {
     what: "Memory coalescing is the GPU's ability to merge the memory requests of all 32 threads in a warp into a single cache-line transaction. When thread i accesses a float at address base + i (stride-1, contiguous), the 32 accesses span exactly 128 bytes — one cache line — and are served by one memory transaction. Strided or scattered access patterns defeat coalescing and multiply memory traffic proportionally.",
@@ -180,6 +241,11 @@ export const EXPLANATIONS = {
       "Diagnosis: Nsight Compute 'L1 TEX → Global Load Transactions per Request'; ideal = 1.0 (128 bytes per 32 threads)",
     ],
     formula: "ideal: 32 threads × 4B = 128B = 1 transaction;  stride-N: N transactions per warp",
+    deepDive: [
+      "Coalescing is handled by the L1 cache / texture unit hardware. When a warp issues 32 memory requests, the hardware checks whether the addresses fall within the same 128-byte aligned cache line. If they do, a single cache-line fetch serves all 32 threads. If they span multiple cache lines, multiple fetches are issued — potentially one per thread in the worst (random access) case. The hardware coalescing check is per-warp and per-instruction, so each memory instruction in the warp generates between 1 and 32 cache line transactions.",
+      "The AoS-to-SoA transformation is the most commonly beneficial data layout change for GPU kernels. Consider a particle system with 1M particles, each storing (x, y, z, mass). AoS layout: [x0, y0, z0, m0, x1, y1, z1, m1, ...]. When warp i accesses the x-coordinates of particles 32i through 32i+31, the addresses are stride-4 — one cache line fetch per thread, 32× excess traffic. SoA layout: [x0, x1, ..., x1M, y0, y1, ...]. Now the x-coordinate accesses are stride-1 — 1 cache line for all 32 threads.",
+      "$$\\text{transactions per warp} = \\left\\lceil \\frac{\\text{address range covered}}{128\\ \\text{bytes}} \\right\\rceil \\quad \\Rightarrow \\quad \\text{stride-}s: \\min\\!\\left(32,\\ s\\right)\\ \\text{transactions}$$",
+    ],
   },
   bank_conflicts: {
     what: "Shared memory is divided into 32 banks, each 4 bytes wide, delivering one 32-bit word per cycle. When multiple threads in a warp access addresses that map to the same bank simultaneously, the accesses are serialized — an N-way bank conflict takes N cycles instead of 1. The one exception: if all threads read the exact same address, the hardware broadcasts to all in 1 cycle regardless of bank.",
@@ -194,6 +260,11 @@ export const EXPLANATIONS = {
       "Padding fix: declare float tile[32][33] instead of [32][32]; the extra column shifts bank assignments so column accesses are conflict-free",
     ],
     formula: "bank_id = (byte_address / 4) % 32  ;  N-way conflict ↔ N threads sharing same bank_id in same cycle",
+    deepDive: [
+      "Bank conflicts in shared memory are the SMEM analog of cache line conflicts in global memory: both arise because the memory system has limited parallelism and serializes conflicting requests. The 32-bank structure of SMEM is specifically designed to match the 32-thread warp width: a stride-1 access pattern maps threads 0–31 to banks 0–31 with no overlap, achieving full single-cycle throughput. The system breaks down only when the access stride is a multiple of 32, causing all threads to pile into the same bank.",
+      "The padding trick works by adding one extra element (4 bytes) to each row of a 2D shared memory array. For a float array declared as tile[32][33] instead of tile[32][32], element tile[r][c] has byte offset (r × 33 + c) × 4. Bank assignment: bank = ((r × 33 + c) × 4 / 4) % 32 = (r × 33 + c) % 32. For a fixed column c and varying row r: bank = (r × 33 + c) % 32. Since gcd(33, 32) = 1, the mapping r → (r × 33) % 32 is a bijection over {0,...,31} — each row maps to a different bank, eliminating the 32-way conflict.",
+      "$$\\text{bank}_i = \\left(\\frac{\\text{byte\\_addr}_i}{4}\\right) \\bmod 32 \\quad \\Rightarrow \\quad \\text{conflict-free iff all } \\text{bank}_i \\text{ distinct for } i \\in [0, 31]$$",
+    ],
   },
   kernel_launch: {
     what: "Launching a CUDA kernel configures the three-level thread hierarchy and dispatches work to the GPU. The syntax is kernel<<<gridDim, blockDim, smemBytes, stream>>>(args). The runtime distributes blocks across available SMs; block execution order is not guaranteed. Understanding launch configuration is essential: wrong gridDim or blockDim can leave SMs idle or cause incorrect bounds behavior.",
@@ -208,6 +279,11 @@ export const EXPLANATIONS = {
       "Multiple kernels: operations on the same stream execute sequentially; use separate named streams for concurrent kernel execution or overlap with memory copies",
     ],
     formula: "kernel<<<dim3(Gx,Gy,Gz), dim3(Bx,By,Bz), smem_bytes, stream>>>(args);",
+    deepDive: [
+      "The kernel launch mechanism involves several software and hardware layers. On the CPU side, the CUDA runtime packages the kernel function pointer, arguments, and configuration into a command buffer. The driver submits this to the GPU command queue. The hardware GPC (Graphics Processing Cluster) controller then distributes blocks to SMs as SM resources become available — this distribution is work-stealing to ensure load balance even when blocks have variable execution times. The entire CPU-side path takes ~2–10 µs of wall time before any GPU work begins.",
+      "CUDA Graphs, introduced in CUDA 10, address the launch overhead problem for inference workloads. A graph captures a sequence of kernel launches and memory operations at graph-recording time, then replays the entire sequence with a single API call (cudaGraphLaunch). The replay cost is approximately 3–5 µs regardless of graph size — compared to 2–10 µs per individual kernel launch. For a 96-layer transformer where each layer involves ~20 kernels, CUDA Graphs reduce launch overhead from ~20 ms to ~0.3 ms per forward pass.",
+      "$$\\text{grid\\_dim.x} = \\left\\lceil \\frac{N}{\\text{block\\_dim.x}} \\right\\rceil = \\frac{N + \\text{block\\_dim.x} - 1}{\\text{block\\_dim.x}} \\quad \\Rightarrow \\quad \\text{covers all } N \\text{ elements without truncation}$$",
+    ],
   },
   thread_indexing: {
     what: "Thread indexing maps the three-level thread hierarchy to problem-domain indices. Each thread has four built-in variables: threadIdx (position within block), blockIdx (block position within grid), blockDim (block dimensions), and gridDim (grid dimensions). Computing the correct global index is the first operation in every CUDA kernel, and indexing errors are among the most common and hardest-to-debug GPU bugs.",
@@ -222,6 +298,11 @@ export const EXPLANATIONS = {
       "3D tensors: flat_index = n × H × W + h × W + w; decompose back with n = flat / (H×W), h = (flat % (H×W)) / W, w = flat % W",
     ],
     formula: "tid_1d = blockIdx.x * blockDim.x + threadIdx.x;  grid_stride = gridDim.x * blockDim.x",
+    deepDive: [
+      "The CUDA indexing convention that x is the fastest-varying dimension directly mirrors C's row-major array layout, where consecutive elements in memory differ by 1 in the column index. When thread i accesses A[row][col] with col = threadIdx.x + blockIdx.x × blockDim.x, adjacent threads (i and i+1) access adjacent columns, which are adjacent in memory — perfect for coalescing. Deviating from this convention (e.g., making threadIdx.y the column index) creates stride-blockDim.y access and defeats coalescing.",
+      "The grid-stride loop pattern decouples the number of threads from the problem size, making kernels more reusable and enabling persistent kernels. Instead of launching exactly N/blockDim.x blocks (which requires knowing N at launch time and may not divide evenly), a persistent kernel launches a fixed number of blocks equal to the SM count and processes multiple elements per thread using the grid stride. This pattern also amortizes block launch overhead by doing more work per block.",
+      "$$\\text{global\\_idx}_{2D} = \\underbrace{(\\text{blockIdx.y} \\cdot \\text{blockDim.y} + \\text{threadIdx.y})}_{\\text{row}} \\cdot W + \\underbrace{(\\text{blockIdx.x} \\cdot \\text{blockDim.x} + \\text{threadIdx.x})}_{\\text{col}}$$",
+    ],
   },
   synchronization: {
     what: "__syncthreads() is a block-level barrier: execution stalls at this line until every thread in the block has reached it. This is necessary whenever some threads write shared memory and other threads need to read those writes — without the barrier, reads may observe stale or partially written data. There is no barrier primitive for cross-block synchronization within a kernel.",
@@ -236,6 +317,11 @@ export const EXPLANATIONS = {
       "Host-side: cudaDeviceSynchronize() blocks the CPU thread until all GPU kernels complete; cudaStreamSynchronize(s) waits for one stream",
     ],
     formula: "__syncthreads();  // ALL threads in block must reach this; any skipped thread = undefined behavior",
+    deepDive: [
+      "__syncthreads() compiles to the PTX bar.sync instruction, which interacts with the SM's barrier unit — a dedicated hardware component that tracks which threads have arrived at the barrier and releases all of them once the count reaches the block size. This hardware barrier has near-zero overhead when all warps in the block arrive at similar times; it becomes expensive when some warps arrive much earlier than others (warp divergence in the time domain), because the early warps must idle in a 'waiting at barrier' state consuming warp slots.",
+      "The prohibition on placing __syncthreads() inside divergent branches is fundamental: if thread A takes the 'true' branch (which contains __syncthreads()) and thread B takes the 'false' branch (which does not), thread B never signals the barrier — the barrier count never reaches the block size — and all threads deadlock forever. This is not a race condition; it is guaranteed deadlock. The workaround is to move __syncthreads() outside the divergent branch, or restructure the algorithm to avoid branching on a per-thread condition when synchronization is needed.",
+      "$$\\text{barrier cost} \\approx \\max_{w \\in \\text{block}} t_w - \\min_{w \\in \\text{block}} t_w \\quad \\text{(time the fastest warp waits for the slowest)}$$",
+    ],
   },
   cuda_streams: {
     what: "CUDA streams are ordered queues of GPU operations. Operations within the same stream execute sequentially; operations in different streams may overlap on the hardware. The primary use case is overlapping kernel execution with host-to-device (H2D) and device-to-host (D2H) memory copies — enabling the GPU to compute batch i while transferring batch i+1, approaching continuous GPU utilization.",
@@ -250,6 +336,11 @@ export const EXPLANATIONS = {
       "CUDA Graphs: capture a multi-stream operation sequence into a graph, then replay it with ~3–5 µs total CPU overhead regardless of graph size — critical for transformer inference where per-layer kernel launch overhead dominates",
     ],
     formula: "cudaMemcpyAsync(dst, src, N, cudaMemcpyH2D, stream);  kernel<<<G,B,0,stream>>>(args);",
+    deepDive: [
+      "The hardware that enables stream concurrency is the Copy Engine (CE) and the Compute Engine (CE), which are separate physical units on the GPU. An A100 has two copy engines (one for H2D, one for D2H) that operate independently of the SMs. This means a D2H copy, an H2D copy, and a kernel can all execute simultaneously — the copy engines DMA data over PCIe or NVLink while the SMs compute. Achieving this triple overlap requires three different streams and pinned host memory (non-pageable, so the DMA engine can access it without TLB lookups).",
+      "The default stream (stream 0) has special semantics: it synchronizes with all other streams at every operation. A kernel launch in stream 0 waits for all previously issued operations in all streams to complete before starting, and all subsequent operations in all streams wait for stream 0's operation to complete. This 'blocking default stream' semantics is useful for debugging but prevents all overlap. Use cudaStreamCreateWithFlags(&s, cudaStreamNonBlocking) to create a stream that does not synchronize with the default stream.",
+      "$$\\text{ideal overlap time} = \\max(T_{\\text{compute}},\\ T_{\\text{H2D}},\\ T_{\\text{D2H}}) \\quad \\text{vs} \\quad \\text{serial time} = T_{\\text{compute}} + T_{\\text{H2D}} + T_{\\text{D2H}}$$",
+    ],
   },
   atomic_ops: {
     what: "Atomic operations perform thread-safe read-modify-write sequences on a single memory location without explicit locks. The GPU memory controller serializes concurrent atomic requests to the same address, guaranteeing that the result is correct regardless of how many threads execute simultaneously. Common operations: atomicAdd, atomicMax, atomicMin, atomicCAS, atomicExch.",
@@ -264,6 +355,11 @@ export const EXPLANATIONS = {
       "Float precision: float atomicAdd is not bit-identical to sequential summation due to floating-point non-associativity — acceptable for ML training gradients, not for deterministic results",
     ],
     formula: "int old = atomicAdd(&counter, 1);  // old = value before increment; counter is now old+1",
+    deepDive: [
+      "Global memory atomics in CUDA are implemented at the L2 memory controller level. When multiple threads issue atomicAdd to the same address, the L2 controller serializes the requests into a queue and processes them one at a time, each doing a read-modify-write cycle. For a single hotspot address with N simultaneous requests, throughput drops to 1/N of the nominal memory bandwidth — completely eliminating parallelism. This is why atomics must be reserved for low-contention use cases (one atomic per block rather than per thread, for example).",
+      "The warp-reduction-then-atomic pattern replaces N atomics (one per thread) with N/32 atomics (one per warp), using __shfl_down_sync to perform an intra-warp tree reduction in 5 steps. Further, a block-level reduction using shared memory can reduce to N/blockSize atomics. For a 1024-thread block, this reduces 1024 global atomics to 1 — a 1024× reduction in contention. The __shfl_down_sync intrinsic passes values between lanes within a warp without touching memory, completing the 32→1 reduction in 5 × 4 = 20 clock cycles.",
+      "$$\\text{warp reduction: } 5 \\text{ steps} \\quad \\text{because} \\quad \\lceil \\log_2 32 \\rceil = 5 \\quad \\Rightarrow \\quad \\sum_{k=0}^{4} \\texttt{\\_\\_shfl\\_down\\_sync}(\\text{mask}, v, 2^k)$$",
+    ],
   },
   triton_model: {
     what: "Triton is a Python-embedded GPU programming language where kernels are written at the tile (block) level rather than the thread level. Instead of managing individual threads, the programmer describes operations over tiles of data; the Triton compiler handles thread assignment, vectorization, shared memory insertion, and (on Ampere+) software pipelining automatically. One Triton kernel program instance processes one tile of output.",
@@ -278,6 +374,11 @@ export const EXPLANATIONS = {
       "Production adoption: PyTorch ≥ 2.0 uses Triton for FlashAttention (SDPA), vLLM uses Triton for paged attention kernels, Liger-kernel provides Triton fused ops for LLM training",
     ],
     formula: "@triton.jit  def kernel(ptr, BLOCK_SIZE: tl.constexpr):  pid = tl.program_id(axis=0)",
+    deepDive: [
+      "Triton's programming model is block-structured: each kernel program instance operates on a contiguous tile of data, and all operations are expressed as element-wise or reduction operations over that tile. This block-centric view maps directly to GPU execution because each Triton program instance becomes one CUDA thread block under the hood. The Triton compiler's job is to determine how to partition the tile among the block's threads, vectorize the operations across threads, insert shared memory for inter-thread communication, and insert synchronization barriers at the right points.",
+      "The Triton compiler performs several key optimizations automatically that a CUDA programmer would need to implement manually: (1) it analyzes tl.load access patterns and inserts __shared__ memory staging when the same tile is accessed multiple times; (2) it inserts cp.async instructions for pipelined global-to-shared copies when num_stages > 1; (3) it maps tl.dot to MMA instructions when tile dimensions are multiples of 16; (4) it uses LLVM's vectorizer to pack scalar loads into 128-bit vector loads where possible.",
+      "$$\\text{program grid} = \\left\\lceil \\frac{M}{\\text{BLOCK\\_M}} \\right\\rceil \\times \\left\\lceil \\frac{N}{\\text{BLOCK\\_N}} \\right\\rceil \\quad \\text{(for a 2D output tile decomposition)}$$",
+    ],
   },
   triton_tiles: {
     what: "In Triton, a kernel program works with a tile of contiguous data elements. tl.arange(0, BLOCK_SIZE) generates the per-element offsets within the tile. tl.load(ptr + offsets, mask) loads a tile from global memory into registers. The mask parameter handles boundary cases where the last tile may extend beyond the end of the array. tl.store writes results back with the same mask.",
@@ -292,6 +393,11 @@ export const EXPLANATIONS = {
       "2D tiles: rows = tl.arange(0, BLOCK_M)[:, None]; cols = tl.arange(0, BLOCK_N)[None, :]; offsets = rows * stride_row + cols — broadcasting creates the 2D tile index matrix",
     ],
     formula: "offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)  ;  x = tl.load(ptr + offsets, mask=offsets < N)",
+    deepDive: [
+      "tl.arange(0, BLOCK_SIZE) is a first-class tensor in Triton's IR — it represents a compile-time-known, contiguous sequence of integers from 0 to BLOCK_SIZE-1. Because BLOCK_SIZE is a tl.constexpr, the compiler knows its value at compile time and can use it to generate unrolled loops and fixed-width vector instructions (e.g., a 128-element arange at float32 becomes four 128-bit ldg.128 instructions per thread when BLOCK_SIZE/threads_per_warp = 4 elements per thread). The constexpr requirement is what enables this compile-time optimization.",
+      "Masked loads and stores compile to predicated instructions at the PTX level: a predicate register is set from the mask condition, and the load/store instruction is guarded by that predicate. Masked-off lanes execute a no-op, consuming the issue slot but not generating a memory transaction. This is important for correctness (no out-of-bounds access) and for performance (the compiler can often prove that on non-tail tiles, the mask is always true, and eliminate the predication overhead entirely).",
+      "$$\\text{tile\\_start} = \\text{pid} \\times \\text{BLOCK\\_SIZE}, \\quad \\text{offsets} = \\text{tile\\_start} + \\begin{bmatrix}0 \\\\ 1 \\\\ \\vdots \\\\ \\text{BLOCK\\_SIZE}-1\\end{bmatrix}, \\quad \\text{mask}_i = (\\text{offsets}_i < N)$$",
+    ],
   },
   triton_ops: {
     what: "Triton provides tile-level operations that compile to optimal GPU instructions. The most important: tl.dot(a, b) performs a matrix multiply of two tiles and maps to Tensor Core MMA instructions. tl.sum(x, axis) reduces a tile along one dimension. tl.load and tl.store with cache hints control memory behavior. tl.exp, tl.log, and other math functions map to libdevice (CUDA device math library).",
@@ -306,6 +412,11 @@ export const EXPLANATIONS = {
       "tl.constexpr vs runtime: BLOCK_SIZE and other tile dimensions must be constexpr — the compiler uses them to determine vector widths, unroll depths, and register allocation",
     ],
     formula: "acc = tl.dot(a_tile, b_tile)  # shape [BLOCK_M, BLOCK_N], uses Tensor Cores if dims are multiples of 16",
+    deepDive: [
+      "tl.dot compiles to the wgmma (Hopper) or wmma (Ampere) PTX instructions, which are warp-level matrix multiply-accumulate operations. The Triton compiler emits the correct instruction variant based on the target GPU architecture detected at JIT compile time. On Hopper GPUs, Triton 2.2+ emits wgmma.mma_async instructions that pipeline the MMA with the memory pipeline — providing a significant additional speedup over the synchronous wmma path used on Ampere. The programmer writes the same tl.dot() call regardless of the target architecture.",
+      "The numerically stable softmax in Triton uses three tile operations in sequence: (1) tl.max to find the row-wise maximum for numerical stability, (2) tl.exp applied element-wise after subtracting the maximum, and (3) tl.sum to compute the normalization denominator. Each of these operations is a single Triton instruction that the compiler maps to an efficient tree-reduction using warp shuffle instructions (__shfl_down_sync) for the reduction dimensions. This entire stable softmax over a BLOCK_N-wide row executes in O(log BLOCK_N) warp shuffle rounds.",
+      "$$\\text{softmax}(x_i) = \\frac{e^{x_i - \\max_j x_j}}{\\sum_j e^{x_j - \\max_j x_j}} \\quad \\Leftarrow \\quad \\texttt{tl.max} \\to \\texttt{tl.exp} \\to \\texttt{tl.sum} \\to \\texttt{tl.div}$$",
+    ],
   },
   triton_autotuning: {
     what: "Triton's @triton.autotune decorator automatically selects the best kernel configuration by benchmarking a set of candidate configs at the first invocation for each unique problem shape. The key parameter identifies which kernel arguments define a unique problem (e.g., ['M', 'N', 'K'] for GEMM). The winning config is cached; subsequent calls with the same key reuse it without benchmarking.",
@@ -320,6 +431,11 @@ export const EXPLANATIONS = {
       "Production note: the first call is slow (benchmarking all configs); add one warmup call before timing benchmarks to ensure cached config is active",
     ],
     formula: "@triton.autotune(configs=[Config(kwargs, num_warps=W, num_stages=S)], key=[dim_names])",
+    deepDive: [
+      "Triton autotuning is an empirical search over a discrete configuration space. Each Config object in the configs list specifies a complete set of constexpr kernel parameters (tile sizes, etc.) plus the launch configuration (num_warps, num_stages). For each candidate, Triton compiles a separate kernel binary, runs it for a small number of warmup and timing iterations, records the median latency, and caches the fastest config keyed by the problem dimensions. The benchmarking uses CUDA events for GPU-side timing, avoiding CPU-GPU synchronization overhead in the timing loop.",
+      "The num_stages parameter controls how many double-buffered SMEM tiles are allocated and how deeply the software pipeline is unrolled. num_stages=1 means no pipelining (single buffer, load-barrier-compute loop). num_stages=2 means double buffering (two SMEM tiles per matrix, one being filled while the other is consumed). num_stages=3 means triple buffering — three tiles in flight, requiring 3× the SMEM but hiding more latency. The optimal depth depends on the ratio of memory latency to compute time for the tile, which varies with problem shape and GPU generation.",
+      "$$\\text{config space size} = |\\text{BLOCK\\_M}| \\times |\\text{BLOCK\\_N}| \\times |\\text{BLOCK\\_K}| \\times |\\text{num\\_warps}| \\times |\\text{num\\_stages}| \\quad \\text{e.g.,} \\quad 3 \\times 2 \\times 2 \\times 2 \\times 3 = 72$$",
+    ],
   },
   roofline: {
     what: "The Roofline Model predicts kernel throughput by identifying whether it is compute-bound or memory-bound. Achievable performance = min(peak_FLOPS, peak_bandwidth × arithmetic_intensity). Kernels to the left of the ridge point (low arithmetic intensity) are memory-bound — improving compute won't help. Kernels to the right are compute-bound — improving memory access won't help. It is the first diagnostic framework for kernel optimization.",
@@ -334,6 +450,11 @@ export const EXPLANATIONS = {
       "GPU comparison: H100 ridge point = 989 TFLOPS ÷ 3.35 TB/s ≈ 295 FLOP/byte — H100 is much harder to reach compute-bound than A100",
     ],
     formula: "achievable_FLOPS = min(peak_FLOPS, peak_BW × AI)  where  AI = total_FLOPs / total_bytes_from_HBM",
+    deepDive: [
+      "The Roofline Model is a simplified single-bound model: it assumes performance is limited by exactly one bottleneck (either compute or memory bandwidth) and that the other resource is never a constraint. In practice, kernels can be simultaneously limited by both (when they are near the ridge point) or by neither (when limited by latency, divergence, or synchronization overhead). The model is most useful as a quick upper-bound calculator: if your kernel's measured FLOP/s is far below both the compute ceiling and the bandwidth-limited line, something other than compute or bandwidth is the bottleneck.",
+      "Kernel fusion is the primary tool for raising arithmetic intensity for element-wise operations. Separately, a GELU activation reads its input tensor from HBM and writes its output back — AI ≈ 0.5 FLOP/byte. Fused into a GEMM kernel, the GELU executes on the output tile while it is still in registers, before writing to HBM — the GELU FLOPs cost nothing in additional memory traffic, raising the fused kernel's AI by the ratio FLOPs(GELU)/FLOPs(GEMM). For large GEMMs, this ratio is small but nonzero; for small GEMMs, fusion can meaningfully shift the operating point toward compute-bound.",
+      "$$P_{\\text{achievable}} = \\min\\!\\left(P_{\\text{peak}},\\ B_{\\text{peak}} \\times I\\right) \\quad \\text{where} \\quad I = \\frac{F_{\\text{ops}}}{Q_{\\text{HBM}}} \\quad [\\text{FLOP/byte}]$$",
+    ],
   },
   arithmetic_intensity: {
     what: "Arithmetic Intensity (AI) is the ratio of floating-point operations performed to bytes of data moved to/from DRAM: AI = FLOPs / bytes. It is the horizontal axis of the Roofline Model and determines whether a kernel is memory-bound (low AI) or compute-bound (high AI). Tiling dramatically increases AI by enabling data reuse from fast on-chip memory; operator fusion increases AI by adding computation to existing data transfers.",
@@ -348,6 +469,11 @@ export const EXPLANATIONS = {
       "Measurement: Nsight Compute 'SOL' (Speed of Light) section shows actual FLOPs/byte and percent of peak bandwidth — compare to ridge point to determine which ceiling to target",
     ],
     formula: "AI = total_FLOPs / total_bytes_from_HBM  ;  memory-bound if AI < ridge_point (156 on A100 BF16)",
+    deepDive: [
+      "Arithmetic intensity is an intrinsic property of the algorithm and data layout, not of the implementation. For a given algorithm, no implementation can exceed the theoretical AI ceiling determined by the algorithm's FLOP count and minimum required data movement. This theoretical minimum — the I/O complexity lower bound — can be derived for matrix multiply as Ω(N³ / √M) bytes, where M is the fast memory size. Tiling achieves AI close to this bound by keeping operands in fast memory (SMEM) for as long as possible.",
+      "The distinction between HBM bytes and total bytes transferred is critical for correct AI calculation. L1 and L2 cache hits do not consume HBM bandwidth — they are served from on-chip SRAM at much higher bandwidth and lower latency. When computing AI for the Roofline Model's horizontal axis, only count bytes that actually flow across the HBM interface (measurable via Nsight Compute's 'DRAM Read/Write Throughput' metrics). Bytes served from L2 cache are effectively free from a bandwidth-ceiling perspective, though they still incur latency.",
+      "$$I_{\\text{GEMM}} = \\frac{2MNK}{(MK + KN + MN) \\cdot \\text{sizeof}(\\text{float})} \\xrightarrow{M=N=K} \\frac{2N^3}{3N^2 \\cdot 4} = \\frac{N}{6}\\ \\frac{\\text{FLOP}}{\\text{byte}}$$",
+    ],
   },
   tiling: {
     what: "Tiling (blocking) is the most impactful GPU optimization: divide large matrix operands into smaller tiles that fit in shared memory, load each tile once from global memory, reuse it for many multiplications within the tile, then advance to the next tile. For a TILE×TILE block in GEMM, each element of A and B is loaded from global memory exactly once per tile pass but used TILE times — reducing HBM traffic by a factor of TILE.",
@@ -362,6 +488,11 @@ export const EXPLANATIONS = {
       "Triton: declare BLOCK_M, BLOCK_N, BLOCK_K as tl.constexpr; the compiler automatically manages SMEM allocation and __syncthreads() insertion",
     ],
     formula: "AI_with_tiling ≈ TILE_SIZE / 2 FLOP/byte  (vs ≈ 1 FLOP/byte without tiling for square GEMM)",
+    deepDive: [
+      "The reuse factor analysis for tiled GEMM: consider a BLOCK_M × BLOCK_K tile of A loaded into SMEM. Every thread in the block that computes output rows within [row_start, row_start + BLOCK_M) needs this tile. There are BLOCK_N output columns computed by this block, and each requires the full BLOCK_M × BLOCK_K tile of A — so the tile is reused BLOCK_N times. Symmetrically, each BLOCK_K × BLOCK_N tile of B is reused BLOCK_M times. The effective AI is therefore (2 × BLOCK_M × BLOCK_N × BLOCK_K FLOPs) / ((BLOCK_M × BLOCK_K + BLOCK_K × BLOCK_N) × 4 bytes) ≈ BLOCK_N/2 FLOP/byte for square tiles.",
+      "The SMEM capacity constraint determines the maximum tile size and therefore the maximum achievable AI for a given kernel. On A100 with 192 KB SMEM, a kernel using FP16 (2 bytes/element) with BLOCK_M=128, BLOCK_K=64, BLOCK_N=128 requires (128×64 + 64×128) × 2 = 32 KB per buffer pair — leaving room for double buffering (64 KB) and the register accumulator. Maximizing the tile size subject to SMEM capacity is the core GEMM tile-size selection problem.",
+      "$$\\text{reuse factor} = \\text{TILE\\_SIZE} \\quad \\Rightarrow \\quad \\text{HBM bytes} = \\frac{2 \\cdot M \\cdot N \\cdot K}{\\text{TILE}} \\cdot 4\\ \\text{bytes} \\quad \\text{vs naive: } 2 \\cdot M \\cdot N \\cdot K \\cdot 4\\ \\text{bytes}$$",
+    ],
   },
   pipelining: {
     what: "Software pipelining (double buffering) overlaps the loading of tile k+1 from global memory with the computation on tile k. On Ampere and later GPUs, the cp.async instruction enables hardware-assisted asynchronous copies from global to shared memory, allowing the DMA engine to fetch data concurrently while the SM's ALUs compute — hiding memory load latency behind useful work.",
@@ -376,6 +507,11 @@ export const EXPLANATIONS = {
       "Triton: num_stages in @triton.autotune configs directly controls pipeline depth; Triton inserts all cp.async, commit_group, and wait_group calls automatically",
     ],
     formula: "cp.async(dst_smem, src_global, 16);  cp.async.commit_group();  cp.async.wait_group(1);  // double buffer",
+    deepDive: [
+      "cp.async (introduced in Ampere/SM80) is a hardware asynchronous copy engine that moves data from global memory directly into shared memory without routing through the general-purpose register file. This is critical for pipelining: without cp.async, the warp issuing the global load must wait for the data to arrive in registers before it can write to SMEM via a store instruction. With cp.async, the issuing warp continues executing other instructions immediately, and the data arrives in SMEM independently. The warp only stalls at cp.async.wait_group, which waits for a specific number of outstanding copy groups to complete.",
+      "The pipeline depth trade-off: each additional pipeline stage adds one more SMEM tile buffer (one for A, one for B), consuming TILE_M × TILE_K + TILE_K × TILE_N additional SMEM elements. For a typical GEMM tile of BLOCK_M=128, BLOCK_K=64, BLOCK_N=128 in FP16, each stage costs (128×64 + 64×128) × 2 = 32 KB. On an A100 with 192 KB SMEM, four pipeline stages would consume 128 KB for buffers plus register file for the accumulator — close to the SMEM limit. Three stages is often the practical maximum for large tiles.",
+      "$$\\text{pipeline efficiency} = 1 - \\frac{T_{\\text{load stall}}}{T_{\\text{tile}}} \\approx 1 - \\frac{\\max(0,\\ T_{\\text{load}} - T_{\\text{compute}})}{T_{\\text{tile}}} \\quad \\xrightarrow{T_{\\text{compute}} > T_{\\text{load}}} 100\\%$$",
+    ],
   },
   naive_gemm: {
     what: "Naive GEMM assigns one output element C[i][j] per thread: each thread loads an entire row of A (K floats) and an entire column of B (K floats) from global memory, computes their dot product, and writes one result. For M=N=K=4096, every thread reads 2×4096×4 = 32 KB from HBM for one scalar output. The same HBM data is read by millions of threads with zero sharing — total HBM traffic is M×N×2K×4 bytes.",
@@ -390,6 +526,11 @@ export const EXPLANATIONS = {
       "Educational value: implement naive GEMM once to internalize why each optimization (tiling, pipelining, tensor cores) matters; never use it in production",
     ],
     formula: "C[i][j] = Σ_{k=0}^{K-1} A[i][k] × B[k][j]  // each A[i][k] and B[k][j] fetched from global memory",
+    deepDive: [
+      "Naive GEMM violates every principle of GPU memory optimization simultaneously: (1) it has near-zero arithmetic intensity (0.125 FLOP/byte vs ridge point of 156 FLOP/byte), (2) it has completely uncoalesced access to matrix B (column access on row-major storage, stride = K), (3) it reuses no data across threads (element A[i][k] is fetched independently by all N threads in row i), and (4) it uses no shared memory. It is the canonical anti-example that motivates every single GPU memory optimization technique.",
+      "The uncoalesced B access is particularly severe. When warp w computes output elements C[i][j], C[i][j+1], ..., C[i][j+31] (32 consecutive columns), each thread needs B[k][j], B[k][j+1], ..., B[k][j+31] — consecutive elements in a row of B, which are coalesced. But threads also need B[k+1][j], B[k+2][j], etc. — at stride K per row — across the K iterations. So B access alternates between coalesced (across warp lanes for a fixed k) and sequential-but-non-vectorized (across k iterations for a fixed lane). The total B traffic is still K separate cache-line fetches per element.",
+      "$$\\text{naive GEMM AI} = \\frac{2K}{(K + K) \\cdot 4} = \\frac{2K}{8K} = 0.25\\ \\frac{\\text{FLOP}}{\\text{byte}} \\quad \\ll \\quad 156\\ \\frac{\\text{FLOP}}{\\text{byte}} \\text{ (A100 ridge)}$$",
+    ],
   },
   tiled_gemm: {
     what: "Tiled GEMM divides A, B, and C into TILE×TILE sub-matrices. Each thread block computes one tile of C by iterating over tiles along the K dimension: loading TILE×TILE elements of A and B into shared memory, computing partial dot products using all threads, advancing by TILE in K, and accumulating into a register-resident result tile. Global memory traffic is reduced by a factor of TILE versus naive GEMM.",
@@ -404,6 +545,11 @@ export const EXPLANATIONS = {
       "Performance gap: correct tiled GEMM achieves ~20–40% of cuBLAS; with double buffering and tensor cores, 80–90% is achievable — CUTLASS and Triton automate the remaining optimizations",
     ],
     formula: "for t in 0..K/TILE: load smem_A, smem_B; sync; acc += smem_A × smem_B; sync; advance tile",
+    deepDive: [
+      "The tiled GEMM's performance gap versus cuBLAS (20–40% vs 80–90%) comes from three sources that basic tiling does not address: (1) memory access vectorization — cuBLAS uses 128-bit float4 loads to maximize memory bus utilization; (2) software pipelining — cuBLAS uses double/triple buffering with cp.async to overlap tile loading with computation; (3) Tensor Core utilization — cuBLAS maps the inner TILE loop onto warp-level MMA instructions, achieving 16× higher FLOP/s than scalar FMA. Implementing all three brings tiled GEMM to cuBLAS-level performance, which is what CUTLASS and Triton's GEMM tutorial demonstrate.",
+      "The coalescing of tile loads in tiled GEMM relies on careful thread-to-data mapping: thread (threadIdx.y, threadIdx.x) loads A[blockRow + threadIdx.y][tileCol + threadIdx.x] and B[tileRow + threadIdx.y][blockCol + threadIdx.x]. Because threads within a warp share the same threadIdx.y and consecutive threadIdx.x values, all 32 threads in a warp load consecutive elements in the same row — stride-1 access, perfectly coalesced. This single design decision (mapping threadIdx.x to the column dimension matching memory layout) is responsible for the coalesced-vs-uncoalesced performance difference.",
+      "$$\\text{tiled GEMM HBM traffic} = \\frac{(M \\cdot K + K \\cdot N + M \\cdot N) \\cdot 4}{\\text{TILE}} \\cdot \\text{TILE} = (MK + KN + MN) \\cdot 4 \\text{ bytes} \\quad \\left( \\frac{1}{\\text{TILE}} \\text{ of naive} \\right)$$",
+    ],
   },
   tensor_core_gemm: {
     what: "Tensor Core GEMM uses the WMMA (Warp Matrix Multiply Accumulate) API to perform 16×16×16 matrix multiplications in hardware, with an entire warp of 32 threads collaborating as a single matrix-multiply unit. Each thread holds a fragment (a portion) of the A, B, and C matrices; wmma::mma_sync fires the Tensor Core and all 32 threads collectively produce the output fragment. This delivers ~8–16× FLOP/s over scalar CUDA core GEMM.",
@@ -418,6 +564,11 @@ export const EXPLANATIONS = {
       "Practical advice: use CUTLASS (composable, highly optimized) or Triton tl.dot() rather than raw WMMA — raw WMMA requires significant boilerplate for a practical GEMM",
     ],
     formula: "wmma::mma_sync(C_frag, A_frag, B_frag, C_frag);  // entire warp cooperates; D = A × B + C",
+    deepDive: [
+      "At the hardware level, the WMMA 16×16×16 operation decomposes into multiple 4×4×4 Tensor Core operations across the 4 Tensor Cores per SM (on A100). The 32 threads of a warp each hold a specific subset of the fragment data — the exact distribution is hardware-defined and not exposed to the programmer through the WMMA API, though PTX documentation describes the physical layout for each supported shape. This opaque distribution is why fragments cannot be accessed element-wise: the programmer treats each fragment as an atomic unit.",
+      "The Hopper architecture (H100) introduced WGMMA (Warp Group MMA), a successor to WMMA where a 'warpgroup' of 4 warps (128 threads) collectively issues a larger MMA instruction. WGMMA instructions can be asynchronous — the warpgroup issues the MMA and continues to execute independent instructions while the Tensor Cores complete the computation. This instruction-level asynchrony enables even deeper overlap between MMA latency and memory operations. Triton on Hopper automatically uses WGMMA when available.",
+      "$$\\text{Tensor Core TFLOPS} = N_{\\text{SM}} \\times N_{\\text{TC/SM}} \\times \\frac{2 \\times 16^3}{\\text{clock}} \\times f_{\\text{clock}} \\quad \\Rightarrow \\quad 108 \\times 4 \\times 8192 \\times 1.41 \\times 10^9 \\approx 312\\ \\text{TFLOPS (A100)}$$",
+    ],
   },
   flash_attention: {
     what: "Flash Attention (Dao et al., 2022) is an I/O-aware tiled attention algorithm that avoids materializing the full N×N attention matrix in HBM. Standard attention writes O(N²) attention scores to HBM and reads them back; Flash Attention tiles Q, K, V and computes attention in SRAM chunks using an online softmax algorithm, reducing HBM reads/writes for the attention matrix from O(N²) to O(N) while producing the identical output.",
@@ -432,5 +583,10 @@ export const EXPLANATIONS = {
       "Versions: FA-1 (2022, NeurIPS) established the algorithm; FA-2 (2023) improved warp partitioning for 2× speedup; FA-3 (2024, H100) uses WGMMA + TMA instructions to reach ~75% of H100 peak throughput",
     ],
     formula: "O = softmax(QK^T / √d) V  // computed in O(N) HBM I/O via tiled SRAM computation with online softmax",
+    deepDive: [
+      "The online softmax algorithm is the mathematical key that enables Flash Attention's single-pass tiling. Standard softmax requires two passes over the input: one to find the maximum (for numerical stability) and one to compute the exponentials and normalization. Online softmax maintains a running maximum m and running sum l such that after processing each K/V tile, the accumulated output O is numerically equivalent to what standard attention would compute after seeing all tiles. The correction factor exp(m_old - m_new) rescales previously accumulated O values when a larger maximum is encountered in a later tile.",
+      "Flash Attention's HBM I/O complexity is O(N × d) per attention head for the forward pass, compared to O(N² + N × d) for standard attention. The O(N²) term comes from the N×N attention score matrix that standard attention writes to and reads from HBM. For N=8192 and d=128 in FP16, this is 8192² × 2 bytes ≈ 134 MB per head versus essentially nothing for Flash Attention (the scores never leave SRAM). At 32 attention heads in a typical transformer, the savings are 32 × 134 MB ≈ 4 GB of HBM traffic per forward pass.",
+      "$$O_i = \\sum_{j} \\text{softmax}\\!\\left(\\frac{q_i k_j^\\top}{\\sqrt{d}}\\right) v_j = \\frac{\\sum_j e^{s_{ij} - m_i} v_j}{\\sum_j e^{s_{ij} - m_i}} \\quad \\text{where } m_i = \\max_j s_{ij}, \\text{ computed online}$$",
+    ],
   },
 };

@@ -1413,3 +1413,1029 @@ export function PosteriorPredictiveVis() {
 
   return <Canvas2D draw={draw} />;
 }
+
+export function PercentileVis() {
+  var draw = useCallback(function (ctx, w, h) {
+    drawGrid(ctx, w, h);
+    var data = [-2.1, -1.4, -0.8, -0.3, 0.2, 0.7, 1.1, 1.6, 2.0, 2.9, 4.1];
+    var sorted = data.slice().sort(function (a, b) { return a - b; });
+    var n = sorted.length;
+    var cx = w / 2;
+    var bcy = h / 2 - 10;
+    var scale = 42;
+
+    function toX(v) { return cx + v * scale; }
+
+    var q1 = sorted[Math.floor(n * 0.25)];
+    var q3 = sorted[Math.floor(n * 0.75)];
+    var med = sorted[Math.floor(n * 0.5)];
+    var iqr = q3 - q1;
+    var fence1 = q1 - 1.5 * iqr;
+    var fence2 = q3 + 1.5 * iqr;
+
+    // IQR box
+    ctx.fillStyle = "rgba(22,163,74,0.25)";
+    ctx.fillRect(toX(q1), bcy - 22, toX(q3) - toX(q1), 44);
+    ctx.strokeStyle = "#22C55E";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(toX(q1), bcy - 22, toX(q3) - toX(q1), 44);
+
+    // Median line
+    ctx.strokeStyle = "#86EFAC";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(toX(med), bcy - 22);
+    ctx.lineTo(toX(med), bcy + 22);
+    ctx.stroke();
+
+    // Whiskers
+    ctx.strokeStyle = "rgba(255,255,255,0.55)";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    ctx.moveTo(toX(Math.max(fence1, sorted[0])), bcy);
+    ctx.lineTo(toX(q1), bcy);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(toX(q3), bcy);
+    ctx.lineTo(toX(Math.min(fence2, sorted[n - 1])), bcy);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Data points
+    var i;
+    for (i = 0; i < sorted.length; i++) {
+      var isOut = sorted[i] < fence1 || sorted[i] > fence2;
+      drawDot(ctx, toX(sorted[i]), bcy - 38, isOut ? 5 : 3.5, isOut ? "#F97316" : "rgba(255,255,255,0.7)");
+    }
+
+    drawText(ctx, "Q1", toX(q1) - 10, bcy + 38, "#86EFAC", 11);
+    drawText(ctx, "Q3", toX(q3) - 10, bcy + 38, "#86EFAC", 11);
+    drawText(ctx, "median", toX(med) + 5, bcy - 26, "#86EFAC", 10);
+    drawText(ctx, "IQR", cx - 10, bcy + 56, "#86EFAC", 11);
+    drawText(ctx, "Percentiles & IQR — Boxplot", 10, 22, "#86EFAC", 13);
+    drawText(ctx, "Orange dots are outliers (beyond 1.5×IQR fence)", 10, h - 20, "rgba(255,255,255,0.5)", 10.3);
+  }, []);
+
+  return <Canvas2D draw={draw} />;
+}
+
+export function BinomialVis() {
+  var st = useState(10);
+  var n = st[0];
+  var setN = st[1];
+  var p = 0.4;
+
+  var draw = useCallback(function (ctx, w, h) {
+    drawGrid(ctx, w, h);
+    var barW = Math.min(28, (w - 60) / (n + 1));
+    var maxH = h - 70;
+    var baseY = h - 38;
+    var i;
+
+    function binom(nn, k) {
+      var coef = 1;
+      var j;
+      for (j = 0; j < k; j++) coef = coef * (nn - j) / (j + 1);
+      return coef;
+    }
+    function prob(k) { return binom(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k); }
+
+    var probs = [];
+    var maxP = 0;
+    for (i = 0; i <= n; i++) { var pi = prob(i); probs.push(pi); if (pi > maxP) maxP = pi; }
+
+    var totalW = (n + 1) * (barW + 3);
+    var startX = (w - totalW) / 2;
+
+    for (i = 0; i <= n; i++) {
+      var bh = (probs[i] / maxP) * maxH;
+      var bx = startX + i * (barW + 3);
+      ctx.fillStyle = i === Math.round(n * p) ? "#06B6D4" : "rgba(6,182,212,0.45)";
+      ctx.fillRect(bx, baseY - bh, barW, bh);
+      if (n <= 15) drawText(ctx, String(i), bx + barW / 2 - 4, baseY + 14, "rgba(255,255,255,0.6)", 9);
+    }
+
+    // Mean line
+    var meanX = startX + n * p * (barW + 3) + barW / 2;
+    ctx.strokeStyle = "#67E8F9";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 3]);
+    ctx.beginPath();
+    ctx.moveTo(meanX, 30);
+    ctx.lineTo(meanX, baseY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    drawText(ctx, "Binomial(n=" + n + ", p=0.4)", 10, 22, "#67E8F9", 13);
+    drawText(ctx, "mean = " + (n * p).toFixed(1) + "  std = " + Math.sqrt(n * p * (1 - p)).toFixed(2), 10, h - 20, "rgba(255,255,255,0.5)", 10.5);
+  }, [n]);
+
+  return (
+    <div>
+      <Canvas2D draw={draw} />
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        {[5, 10, 20, 40].map(function (v) {
+          return (
+            <button key={v} onClick={function () { setN(v); }} style={{ padding: "6px 14px", borderRadius: 8, border: "none", cursor: "pointer", background: n === v ? "#06B6D4" : "rgba(255,255,255,0.08)", color: n === v ? "#fff" : "rgba(255,255,255,0.5)", fontFamily: "monospace", fontSize: 12, fontWeight: 600 }}>n={v}</button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function PoissonVis() {
+  var st = useState(4);
+  var lam = st[0];
+  var setLam = st[1];
+
+  var draw = useCallback(function (ctx, w, h) {
+    drawGrid(ctx, w, h);
+    var maxK = Math.min(20, lam * 3 + 5);
+    var barW = Math.min(30, (w - 60) / (maxK + 1));
+    var maxH = h - 70;
+    var baseY = h - 38;
+    var i;
+
+    function poisProb(k) {
+      var logP = k * Math.log(lam) - lam;
+      for (var j = 1; j <= k; j++) logP -= Math.log(j);
+      return Math.exp(logP);
+    }
+
+    var probs = [];
+    var maxP = 0;
+    for (i = 0; i <= maxK; i++) { var pi = poisProb(i); probs.push(pi); if (pi > maxP) maxP = pi; }
+
+    var totalW = (maxK + 1) * (barW + 2);
+    var startX = (w - totalW) / 2;
+
+    for (i = 0; i <= maxK; i++) {
+      var bh = (probs[i] / maxP) * maxH;
+      var bx = startX + i * (barW + 2);
+      ctx.fillStyle = i === Math.floor(lam) ? "#0EA5E9" : "rgba(14,165,233,0.4)";
+      ctx.fillRect(bx, baseY - bh, barW, bh);
+    }
+
+    // Mark mean
+    var meanX = startX + lam * (barW + 2) + barW / 2;
+    ctx.strokeStyle = "#7DD3FC";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 3]);
+    ctx.beginPath();
+    ctx.moveTo(meanX, 30);
+    ctx.lineTo(meanX, baseY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    drawText(ctx, "λ=" + lam, meanX + 4, 44, "#7DD3FC", 11);
+
+    drawText(ctx, "Poisson(λ=" + lam + ")", 10, 22, "#7DD3FC", 13);
+    drawText(ctx, "mean = variance = λ = " + lam, 10, h - 20, "rgba(255,255,255,0.5)", 10.5);
+  }, [lam]);
+
+  return (
+    <div>
+      <Canvas2D draw={draw} />
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        {[1, 4, 8, 15].map(function (v) {
+          return (
+            <button key={v} onClick={function () { setLam(v); }} style={{ padding: "6px 14px", borderRadius: 8, border: "none", cursor: "pointer", background: lam === v ? "#0EA5E9" : "rgba(255,255,255,0.08)", color: lam === v ? "#fff" : "rgba(255,255,255,0.5)", fontFamily: "monospace", fontSize: 12, fontWeight: 600 }}>λ={v}</button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function TDistVis() {
+  var st = useState(3);
+  var df = st[0];
+  var setDf = st[1];
+
+  var draw = useCallback(function (ctx, w, h) {
+    drawGrid(ctx, w, h);
+    var cx = w / 2;
+    var base = h - 34;
+    var scaleX = 38;
+    var scaleY = 90;
+    var x;
+
+    function normalPDF(t) { return Math.exp(-0.5 * t * t) / Math.sqrt(2 * Math.PI); }
+    function tPDF(t, nu) { return Math.pow(1 + t * t / nu, -(nu + 1) / 2); }
+
+    // Compute normalizing peak for t to match display
+    var tPeak = tPDF(0, df);
+    var normalPeak = normalPDF(0);
+
+    // Normal curve
+    ctx.strokeStyle = "rgba(255,255,255,0.35)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (x = -4; x <= 4; x += 0.05) {
+      var yn = (normalPDF(x) / normalPeak) * scaleY;
+      var px = cx + x * scaleX;
+      var py = base - yn;
+      if (x === -4) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // t curve
+    ctx.strokeStyle = "#7C3AED";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (x = -4; x <= 4; x += 0.05) {
+      var yt = (tPDF(x, df) / tPeak) * scaleY;
+      var px2 = cx + x * scaleX;
+      var py2 = base - yt;
+      if (x === -4) ctx.moveTo(px2, py2); else ctx.lineTo(px2, py2);
+    }
+    ctx.stroke();
+
+    // Shade tails
+    ctx.fillStyle = "rgba(124,58,237,0.25)";
+    ctx.beginPath();
+    for (x = 2; x <= 4; x += 0.05) {
+      var yt2 = (tPDF(x, df) / tPeak) * scaleY;
+      var px3 = cx + x * scaleX;
+      if (x === 2) ctx.moveTo(px3, base); else ctx.lineTo(px3, base - yt2);
+    }
+    ctx.lineTo(cx + 4 * scaleX, base);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    for (x = -4; x <= -2; x += 0.05) {
+      var yt3 = (tPDF(x, df) / tPeak) * scaleY;
+      var px4 = cx + x * scaleX;
+      if (x === -4) { ctx.moveTo(px4, base); ctx.lineTo(px4, base - yt3); } else ctx.lineTo(px4, base - yt3);
+    }
+    ctx.lineTo(cx - 2 * scaleX, base);
+    ctx.closePath();
+    ctx.fill();
+
+    // Axis
+    ctx.strokeStyle = "rgba(255,255,255,0.2)";
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(20, base); ctx.lineTo(w - 20, base); ctx.stroke();
+
+    drawText(ctx, "N(0,1)", cx + 4 * scaleX - 42, base - scaleY - 8, "rgba(255,255,255,0.5)", 10);
+    drawText(ctx, "t(ν=" + df + ")", cx - 28, base - scaleY + 8, "#C4B5FD", 11);
+    drawText(ctx, "t-Distribution  ν=" + df, 10, 22, "#C4B5FD", 13);
+    drawText(ctx, "Heavier tails than normal; converges to N(0,1) as ν→∞", 10, h - 20, "rgba(255,255,255,0.5)", 10.3);
+  }, [df]);
+
+  return (
+    <div>
+      <Canvas2D draw={draw} />
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        {[1, 3, 10, 30].map(function (v) {
+          return (
+            <button key={v} onClick={function () { setDf(v); }} style={{ padding: "6px 14px", borderRadius: 8, border: "none", cursor: "pointer", background: df === v ? "#7C3AED" : "rgba(255,255,255,0.08)", color: df === v ? "#fff" : "rgba(255,255,255,0.5)", fontFamily: "monospace", fontSize: 12, fontWeight: 600 }}>ν={v}</button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function FDistVis() {
+  var st = useState([5, 10]);
+  var dfs = st[0];
+  var setDfs = st[1];
+  var d1 = dfs[0];
+  var d2 = dfs[1];
+
+  var draw = useCallback(function (ctx, w, h) {
+    drawGrid(ctx, w, h);
+    var padL = 30;
+    var base = h - 34;
+    var plotW = w - padL - 20;
+    var scaleY = h - 70;
+    var x;
+
+    function gamma2(n) {
+      if (n === 1) return Math.sqrt(Math.PI);
+      if (n === 2) return 1;
+      return (n / 2 - 1) * gamma2(n - 2);
+    }
+
+    function fPDF(f) {
+      if (f <= 0) return 0;
+      return Math.pow(d1 * f / (d1 * f + d2), d1 / 2) * Math.pow(d2 / (d1 * f + d2), d2 / 2) / (f * (d1 / 2 + d2 / 2 - 1 < 1 ? 1 : 1));
+    }
+
+    // Sample F-distribution using chi-squared approximation visually
+    function fPDFapprox(f) {
+      if (f <= 0.001) return 0;
+      var a = d1 / 2;
+      var b = d2 / 2;
+      return Math.pow(f, a - 1) * Math.pow(1 + d1 * f / d2, -(a + b));
+    }
+
+    var maxF = 5;
+    var samples = [];
+    var maxY = 0;
+    for (var xi = 0; xi <= 200; xi++) {
+      var fv = (xi / 200) * maxF;
+      var yv = fPDFapprox(fv);
+      samples.push({ f: fv, y: yv });
+      if (yv > maxY) maxY = yv;
+    }
+
+    // Fill under curve
+    ctx.fillStyle = "rgba(147,51,234,0.2)";
+    ctx.beginPath();
+    ctx.moveTo(padL, base);
+    for (var si = 0; si < samples.length; si++) {
+      var sx = padL + (samples[si].f / maxF) * plotW;
+      var sy = base - (samples[si].y / maxY) * scaleY * 0.85;
+      if (si === 0) ctx.lineTo(sx, sy); else ctx.lineTo(sx, sy);
+    }
+    ctx.lineTo(padL + plotW, base);
+    ctx.closePath();
+    ctx.fill();
+
+    // Curve
+    ctx.strokeStyle = "#9333EA";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (var si2 = 0; si2 < samples.length; si2++) {
+      var sx2 = padL + (samples[si2].f / maxF) * plotW;
+      var sy2 = base - (samples[si2].y / maxY) * scaleY * 0.85;
+      if (si2 === 0) ctx.moveTo(sx2, sy2); else ctx.lineTo(sx2, sy2);
+    }
+    ctx.stroke();
+
+    // Axis
+    ctx.strokeStyle = "rgba(255,255,255,0.2)";
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, base); ctx.lineTo(padL + plotW, base); ctx.stroke();
+
+    // X labels
+    var j;
+    for (j = 0; j <= 5; j++) {
+      var lx = padL + (j / maxF) * plotW;
+      drawText(ctx, String(j), lx - 3, base + 14, "rgba(255,255,255,0.5)", 10);
+    }
+
+    drawText(ctx, "F(d1=" + d1 + ", d2=" + d2 + ")", 10, 22, "#D8B4FE", 13);
+    drawText(ctx, "Right-skewed; mode = ((d1-2)/d1)·(d2/(d2+2))", 10, h - 20, "rgba(255,255,255,0.5)", 10.3);
+  }, [d1, d2]);
+
+  return (
+    <div>
+      <Canvas2D draw={draw} />
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        {[[2, 5], [5, 10], [10, 20], [20, 50]].map(function (v) {
+          var lab = "d1=" + v[0] + " d2=" + v[1];
+          return (
+            <button key={lab} onClick={function () { setDfs(v); }} style={{ padding: "6px 14px", borderRadius: 8, border: "none", cursor: "pointer", background: d1 === v[0] && d2 === v[1] ? "#9333EA" : "rgba(255,255,255,0.08)", color: d1 === v[0] && d2 === v[1] ? "#fff" : "rgba(255,255,255,0.5)", fontFamily: "monospace", fontSize: 11, fontWeight: 600 }}>{lab}</button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function ChiSqVis() {
+  var draw = useCallback(function (ctx, w, h) {
+    drawGrid(ctx, w, h);
+    // Contingency table 2x2
+    var tableX = w / 2 - 120;
+    var tableY = 50;
+    var cw = 90;
+    var rh = 36;
+
+    var observed = [[45, 55], [30, 70]];
+    var row = [100, 100];
+    var col = [75, 125];
+    var N = 200;
+    var expected = [[row[0] * col[0] / N, row[0] * col[1] / N], [row[1] * col[0] / N, row[1] * col[1] / N]];
+    var chiSq = 0;
+    var i;
+    var j;
+    for (i = 0; i < 2; i++) for (j = 0; j < 2; j++) chiSq += Math.pow(observed[i][j] - expected[i][j], 2) / expected[i][j];
+
+    // Draw table headers
+    var headers = ["Drug", "Placebo"];
+    var rows = ["Improved", "No change"];
+    ctx.fillStyle = "rgba(236,72,153,0.2)";
+    ctx.fillRect(tableX + cw, tableY, cw, rh);
+    ctx.fillRect(tableX + cw * 2, tableY, cw, rh);
+    ctx.fillRect(tableX, tableY + rh, cw, rh);
+    ctx.fillRect(tableX, tableY + rh * 2, cw, rh);
+
+    for (j = 0; j < 2; j++) drawText(ctx, headers[j], tableX + cw * (j + 1) + 18, tableY + 22, "#F9A8D4", 11);
+    for (i = 0; i < 2; i++) drawText(ctx, rows[i], tableX + 6, tableY + rh * (i + 1) + 22, "#F9A8D4", 11);
+
+    // Cells
+    for (i = 0; i < 2; i++) {
+      for (j = 0; j < 2; j++) {
+        var cx2 = tableX + cw * (j + 1);
+        var cy2 = tableY + rh * (i + 1);
+        var diff = observed[i][j] - expected[i][j];
+        var intensity = Math.abs(diff) / 15;
+        ctx.fillStyle = diff > 0 ? "rgba(22,163,74," + (0.1 + intensity * 0.4) + ")" : "rgba(220,38,38," + (0.1 + intensity * 0.4) + ")";
+        ctx.fillRect(cx2, cy2, cw, rh);
+        ctx.strokeStyle = "rgba(255,255,255,0.2)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(cx2, cy2, cw, rh);
+        drawText(ctx, "O=" + observed[i][j], cx2 + 6, cy2 + 16, "#fff", 10);
+        drawText(ctx, "E=" + expected[i][j].toFixed(1), cx2 + 6, cy2 + 28, "rgba(255,255,255,0.6)", 9);
+      }
+    }
+
+    // Chi-sq bar visualization
+    var barY = tableY + rh * 3 + 30;
+    var critVal = 3.84; // chi-sq(1) at alpha=0.05
+    var maxBar = 8;
+    var barScale = (w - 60) / maxBar;
+
+    ctx.fillStyle = "rgba(255,255,255,0.12)";
+    ctx.fillRect(30, barY, maxBar * barScale, 22);
+    ctx.fillStyle = chiSq > critVal ? "rgba(220,38,38,0.6)" : "rgba(34,197,94,0.6)";
+    ctx.fillRect(30, barY, Math.min(chiSq, maxBar) * barScale, 22);
+    ctx.strokeStyle = "#F9A8D4";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    ctx.moveTo(30 + critVal * barScale, barY - 6);
+    ctx.lineTo(30 + critVal * barScale, barY + 28);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    drawText(ctx, "χ²=" + chiSq.toFixed(2), 30, barY - 8, "#EC4899", 11);
+    drawText(ctx, "crit=3.84", 30 + critVal * barScale + 4, barY - 8, "rgba(255,255,255,0.6)", 10);
+    drawText(ctx, "p≈0.039  →  reject independence", 30, barY + 38, "#F9A8D4", 11);
+
+    drawText(ctx, "Chi-Square Test — Contingency Table", 10, 22, "#F9A8D4", 13);
+    drawText(ctx, "Green=O>E (more than expected), Red=O<E; χ²=Σ(O-E)²/E", 10, h - 20, "rgba(255,255,255,0.5)", 10);
+  }, []);
+
+  return <Canvas2D draw={draw} />;
+}
+
+export function ErrorsVis() {
+  var st = useState(0.05);
+  var alpha = st[0];
+  var setAlpha = st[1];
+
+  var draw = useCallback(function (ctx, w, h) {
+    drawGrid(ctx, w, h);
+    var cx0 = w / 2 - 55;
+    var cx1 = w / 2 + 55;
+    var base = h - 34;
+    var scaleX = 32;
+    var scaleY = 75;
+    var zCrit = alpha < 0.01 ? 2.58 : alpha < 0.05 ? 1.96 : 1.65;
+
+    function normalPDF(x, mu) { return Math.exp(-0.5 * Math.pow(x - mu, 2)); }
+
+    // H0 distribution
+    ctx.strokeStyle = "rgba(255,255,255,0.5)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    var xv;
+    for (xv = -4; xv <= 4; xv += 0.05) {
+      var yn = normalPDF(xv, 0) * scaleY;
+      var px = cx0 + xv * scaleX;
+      if (xv === -4) ctx.moveTo(px, base - yn); else ctx.lineTo(px, base - yn);
+    }
+    ctx.stroke();
+
+    // Type I error region (tail of H0)
+    ctx.fillStyle = "rgba(239,68,68,0.4)";
+    ctx.beginPath();
+    ctx.moveTo(cx0 + zCrit * scaleX, base);
+    for (xv = zCrit; xv <= 4; xv += 0.05) {
+      ctx.lineTo(cx0 + xv * scaleX, base - normalPDF(xv, 0) * scaleY);
+    }
+    ctx.lineTo(cx0 + 4 * scaleX, base);
+    ctx.closePath();
+    ctx.fill();
+
+    // H1 distribution
+    ctx.strokeStyle = "rgba(34,197,94,0.7)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (xv = -4; xv <= 4; xv += 0.05) {
+      var yn2 = normalPDF(xv, 0) * scaleY;
+      var px2 = cx1 + xv * scaleX;
+      if (xv === -4) ctx.moveTo(px2, base - yn2); else ctx.lineTo(px2, base - yn2);
+    }
+    ctx.stroke();
+
+    // Type II error region (left of critical in H1)
+    ctx.fillStyle = "rgba(34,197,94,0.25)";
+    ctx.beginPath();
+    ctx.moveTo(cx1 - 4 * scaleX, base);
+    for (xv = -4; xv <= zCrit - 2; xv += 0.05) {
+      ctx.lineTo(cx1 + xv * scaleX, base - normalPDF(xv, 0) * scaleY);
+    }
+    ctx.lineTo(cx1 + (zCrit - 2) * scaleX, base);
+    ctx.closePath();
+    ctx.fill();
+
+    // Critical line
+    ctx.strokeStyle = "#FBBF24";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 3]);
+    ctx.beginPath();
+    ctx.moveTo(cx0 + zCrit * scaleX, 30);
+    ctx.lineTo(cx0 + zCrit * scaleX, base + 5);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    drawText(ctx, "H₀", cx0 - 8, base - scaleY - 10, "rgba(255,255,255,0.7)", 12);
+    drawText(ctx, "H₁", cx1 - 8, base - scaleY - 10, "#86EFAC", 12);
+    drawText(ctx, "α=" + alpha + " (Type I)", cx0 + zCrit * scaleX + 5, base - 30, "#EF4444", 10);
+    drawText(ctx, "β (Type II)", cx1 - 4 * scaleX + 5, base - 30, "#86EFAC", 10);
+
+    drawText(ctx, "Type I & II Errors  α=" + alpha, 10, 22, "#FCA5A5", 13);
+    drawText(ctx, "Red=false positive α; Green=false negative β; yellow=critical value", 10, h - 20, "rgba(255,255,255,0.5)", 10);
+  }, [alpha]);
+
+  return (
+    <div>
+      <Canvas2D draw={draw} />
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        {[0.10, 0.05, 0.01].map(function (v) {
+          return (
+            <button key={v} onClick={function () { setAlpha(v); }} style={{ padding: "6px 14px", borderRadius: 8, border: "none", cursor: "pointer", background: alpha === v ? "#EF4444" : "rgba(255,255,255,0.08)", color: alpha === v ? "#fff" : "rgba(255,255,255,0.5)", fontFamily: "monospace", fontSize: 12, fontWeight: 600 }}>α={v}</button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function PowerVis() {
+  var st = useState(25);
+  var n = st[0];
+  var setN = st[1];
+  var delta = 0.5; // effect in sigma units
+
+  var draw = useCallback(function (ctx, w, h) {
+    drawGrid(ctx, w, h);
+    var cx0 = w / 2 - 40;
+    var base = h - 34;
+    var scaleX = 28;
+    var scaleY = 72;
+    var se = 1 / Math.sqrt(n);
+    var zCrit = 1.645;
+    var critX = zCrit; // in H0 units (sigma=1)
+    var shift = delta / se; // H1 mean in H0 units
+
+    function normalPDF(x, mu, sig) { return Math.exp(-0.5 * Math.pow((x - mu) / sig, 2)) / sig; }
+
+    var norm0Peak = normalPDF(0, 0, 1);
+
+    // H0 null distribution
+    ctx.strokeStyle = "rgba(255,255,255,0.4)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    var xv;
+    for (xv = -4; xv <= 4; xv += 0.05) {
+      var y0 = (normalPDF(xv, 0, 1) / norm0Peak) * scaleY;
+      var px = cx0 + xv * scaleX;
+      if (xv === -4) ctx.moveTo(px, base - y0); else ctx.lineTo(px, base - y0);
+    }
+    ctx.stroke();
+
+    // Alpha region
+    ctx.fillStyle = "rgba(239,68,68,0.35)";
+    ctx.beginPath();
+    ctx.moveTo(cx0 + critX * scaleX, base);
+    for (xv = critX; xv <= 4; xv += 0.05) {
+      ctx.lineTo(cx0 + xv * scaleX, base - (normalPDF(xv, 0, 1) / norm0Peak) * scaleY);
+    }
+    ctx.lineTo(cx0 + 4 * scaleX, base);
+    ctx.closePath();
+    ctx.fill();
+
+    // H1 alternative distribution
+    ctx.strokeStyle = "rgba(34,197,94,0.8)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    var norm1Peak = normalPDF(shift, shift, 1);
+    for (xv = -4; xv <= shift + 4; xv += 0.05) {
+      var y1 = (normalPDF(xv, shift, 1) / norm0Peak) * scaleY;
+      var px2 = cx0 + xv * scaleX;
+      if (xv === -4) ctx.moveTo(px2, base - Math.max(0, y1)); else ctx.lineTo(px2, base - Math.max(0, y1));
+    }
+    ctx.stroke();
+
+    // Power region
+    ctx.fillStyle = "rgba(34,197,94,0.3)";
+    ctx.beginPath();
+    ctx.moveTo(cx0 + critX * scaleX, base);
+    for (xv = critX; xv <= shift + 4; xv += 0.05) {
+      var y2 = (normalPDF(xv, shift, 1) / norm0Peak) * scaleY;
+      ctx.lineTo(cx0 + xv * scaleX, base - Math.max(0, y2));
+    }
+    ctx.lineTo(cx0 + (shift + 4) * scaleX, base);
+    ctx.closePath();
+    ctx.fill();
+
+    // Critical line
+    ctx.strokeStyle = "#FBBF24";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 3]);
+    ctx.beginPath();
+    ctx.moveTo(cx0 + critX * scaleX, 28);
+    ctx.lineTo(cx0 + critX * scaleX, base);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Compute power
+    var nonCent = delta * Math.sqrt(n);
+    var power = 1 - (function () {
+      var u = zCrit - nonCent;
+      return 0.5 * (1 + Math.sign(u) * (1 - Math.exp(-0.717 * Math.abs(u) - 0.416 * u * u)));
+    })();
+
+    drawText(ctx, "H₀: μ=0", cx0 - 20, base - scaleY - 10, "rgba(255,255,255,0.6)", 11);
+    drawText(ctx, "H₁: μ=δ", cx0 + shift * scaleX - 20, base - scaleY - 10, "#86EFAC", 11);
+    drawText(ctx, "Power ≈ " + Math.min(0.999, Math.max(0.01, power)).toFixed(2), cx0 + (critX + 0.5) * scaleX, base - 44, "#86EFAC", 11);
+
+    drawText(ctx, "Statistical Power  n=" + n, 10, 22, "#86EFAC", 13);
+    drawText(ctx, "Green shaded area = Power = P(reject H₀ | H₁ true)", 10, h - 20, "rgba(255,255,255,0.5)", 10.3);
+  }, [n]);
+
+  return (
+    <div>
+      <Canvas2D draw={draw} />
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        {[10, 25, 50, 100].map(function (v) {
+          return (
+            <button key={v} onClick={function () { setN(v); }} style={{ padding: "6px 14px", borderRadius: 8, border: "none", cursor: "pointer", background: n === v ? "#22C55E" : "rgba(255,255,255,0.08)", color: n === v ? "#fff" : "rgba(255,255,255,0.5)", fontFamily: "monospace", fontSize: 12, fontWeight: 600 }}>n={v}</button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function EffectSizeVis() {
+  var st = useState(0.5);
+  var d = st[0];
+  var setD = st[1];
+
+  var draw = useCallback(function (ctx, w, h) {
+    drawGrid(ctx, w, h);
+    var cx = w / 2;
+    var base = h - 34;
+    var scaleX = 36;
+    var scaleY = 75;
+
+    function normalPDF(x, mu) { return Math.exp(-0.5 * Math.pow(x - mu, 2)); }
+
+    // Group A centered at 0
+    ctx.fillStyle = "rgba(251,191,36,0.2)";
+    ctx.beginPath();
+    var xv;
+    for (xv = -3.5; xv <= 3.5; xv += 0.05) {
+      var ya = normalPDF(xv, 0) * scaleY;
+      var px = cx - d * scaleX / 2 + xv * scaleX;
+      if (xv === -3.5) { ctx.moveTo(px, base); ctx.lineTo(px, base - ya); } else ctx.lineTo(px, base - ya);
+    }
+    ctx.lineTo(cx - d * scaleX / 2 + 3.5 * scaleX, base);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "#FBBF24";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (xv = -3.5; xv <= 3.5; xv += 0.05) {
+      var ya2 = normalPDF(xv, 0) * scaleY;
+      var px2 = cx - d * scaleX / 2 + xv * scaleX;
+      if (xv === -3.5) ctx.moveTo(px2, base - ya2); else ctx.lineTo(px2, base - ya2);
+    }
+    ctx.stroke();
+
+    // Group B shifted by d
+    ctx.fillStyle = "rgba(99,102,241,0.2)";
+    ctx.beginPath();
+    for (xv = -3.5; xv <= 3.5; xv += 0.05) {
+      var yb = normalPDF(xv, 0) * scaleY;
+      var px3 = cx + d * scaleX / 2 + xv * scaleX;
+      if (xv === -3.5) { ctx.moveTo(px3, base); ctx.lineTo(px3, base - yb); } else ctx.lineTo(px3, base - yb);
+    }
+    ctx.lineTo(cx + d * scaleX / 2 + 3.5 * scaleX, base);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "#818CF8";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (xv = -3.5; xv <= 3.5; xv += 0.05) {
+      var yb2 = normalPDF(xv, 0) * scaleY;
+      var px4 = cx + d * scaleX / 2 + xv * scaleX;
+      if (xv === -3.5) ctx.moveTo(px4, base - yb2); else ctx.lineTo(px4, base - yb2);
+    }
+    ctx.stroke();
+
+    // Arrow showing d
+    var aLeft = cx - d * scaleX / 2;
+    var aRight = cx + d * scaleX / 2;
+    drawArrow(ctx, aLeft, base - scaleY - 18, aRight, base - scaleY - 18, "#FDE68A", 1.5);
+    drawText(ctx, "d=" + d.toFixed(1), cx - 14, base - scaleY - 24, "#FDE68A", 11);
+
+    var label = d <= 0.2 ? "small" : d <= 0.5 ? "medium" : "large";
+    drawText(ctx, "Effect Size d=" + d.toFixed(1) + " (" + label + ")", 10, 22, "#FDE68A", 13);
+    drawText(ctx, "Cohen's d: 0.2=small, 0.5=medium, 0.8=large", 10, h - 20, "rgba(255,255,255,0.5)", 10.3);
+  }, [d]);
+
+  return (
+    <div>
+      <Canvas2D draw={draw} />
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        {[0.2, 0.5, 0.8, 1.2].map(function (v) {
+          return (
+            <button key={v} onClick={function () { setD(v); }} style={{ padding: "6px 14px", borderRadius: 8, border: "none", cursor: "pointer", background: d === v ? "#FBBF24" : "rgba(255,255,255,0.08)", color: d === v ? "#000" : "rgba(255,255,255,0.5)", fontFamily: "monospace", fontSize: 12, fontWeight: 600 }}>d={v}</button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function FTestVis() {
+  var draw = useCallback(function (ctx, w, h) {
+    drawGrid(ctx, w, h);
+    var groups = [
+      { name: "A", values: [4.1, 5.2, 4.8, 5.5, 4.4], color: "#A855F7" },
+      { name: "B", values: [7.2, 6.8, 7.9, 7.1, 8.0], color: "#8B5CF6" },
+      { name: "C", values: [5.8, 6.2, 5.5, 6.6, 5.9], color: "#7C3AED" },
+    ];
+    var allVals = [];
+    var i;
+    var j;
+    for (i = 0; i < groups.length; i++) for (j = 0; j < groups[i].values.length; j++) allVals.push(groups[i].values[j]);
+    var grandMean = allVals.reduce(function (a, b) { return a + b; }, 0) / allVals.length;
+
+    var colW = (w - 60) / groups.length;
+    var base = h - 50;
+    var minV = 3;
+    var maxV = 9;
+    var scaleY = (base - 50) / (maxV - minV);
+
+    // Grand mean line
+    var grandY = base - (grandMean - minV) * scaleY;
+    ctx.strokeStyle = "rgba(255,255,255,0.3)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([6, 3]);
+    ctx.beginPath();
+    ctx.moveTo(20, grandY);
+    ctx.lineTo(w - 20, grandY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    drawText(ctx, "grand mean", w - 88, grandY - 5, "rgba(255,255,255,0.4)", 10);
+
+    for (i = 0; i < groups.length; i++) {
+      var gx = 30 + i * colW + colW / 2;
+      var gVals = groups[i].values;
+      var gMean = gVals.reduce(function (a, b) { return a + b; }, 0) / gVals.length;
+      var gMeanY = base - (gMean - minV) * scaleY;
+
+      // Draw individual points
+      for (j = 0; j < gVals.length; j++) {
+        var py = base - (gVals[j] - minV) * scaleY;
+        drawDot(ctx, gx + (j - 2) * 8, py, 4, groups[i].color);
+        // Within-group line to group mean
+        ctx.strokeStyle = "rgba(255,255,255,0.15)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(gx + (j - 2) * 8, py);
+        ctx.lineTo(gx + (j - 2) * 8, gMeanY);
+        ctx.stroke();
+      }
+
+      // Group mean marker
+      ctx.strokeStyle = groups[i].color;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(gx - 20, gMeanY);
+      ctx.lineTo(gx + 20, gMeanY);
+      ctx.stroke();
+      drawText(ctx, groups[i].name, gx - 5, base + 16, groups[i].color, 12);
+      drawText(ctx, gMean.toFixed(1), gx - 10, gMeanY - 8, groups[i].color, 10);
+
+      // Between-group arrow to grand mean
+      drawArrow(ctx, gx, gMeanY, gx, grandY, "#D8B4FE", 1.2);
+    }
+
+    // F statistic text
+    var ssBetween = groups.reduce(function (acc, g) {
+      var gm = g.values.reduce(function (a, b) { return a + b; }, 0) / g.values.length;
+      return acc + g.values.length * Math.pow(gm - grandMean, 2);
+    }, 0);
+    var ssWithin = groups.reduce(function (acc, g) {
+      var gm = g.values.reduce(function (a, b) { return a + b; }, 0) / g.values.length;
+      return acc + g.values.reduce(function (s, v) { return s + Math.pow(v - gm, 2); }, 0);
+    }, 0);
+    var F = (ssBetween / (groups.length - 1)) / (ssWithin / (allVals.length - groups.length));
+
+    drawText(ctx, "F-Test — Between vs Within Variance", 10, 22, "#D8B4FE", 13);
+    drawText(ctx, "F=" + F.toFixed(2) + "  SS_between=" + ssBetween.toFixed(1) + "  SS_within=" + ssWithin.toFixed(1), 10, h - 20, "rgba(255,255,255,0.5)", 10.3);
+  }, []);
+
+  return <Canvas2D draw={draw} />;
+}
+
+export function MLEVis() {
+  var st = useState(2.5);
+  var lamHat = st[0];
+  var setLamHat = st[1];
+
+  // Observed data: exponential samples with true lambda = 2
+  var data = [0.45, 0.22, 0.71, 0.18, 0.55, 0.33, 0.89, 0.12, 0.64, 0.41];
+  var xBar = data.reduce(function (a, b) { return a + b; }, 0) / data.length;
+  var trueMLELam = 1 / xBar;
+
+  var draw = useCallback(function (ctx, w, h) {
+    drawGrid(ctx, w, h);
+    var padL = 40;
+    var padR = 20;
+    var base = h - 34;
+    var plotW = w - padL - padR;
+    var lamRange = [0.5, 5];
+    var nPoints = 200;
+
+    function logLik(lam) {
+      var ll = 0;
+      var i;
+      for (i = 0; i < data.length; i++) ll += Math.log(lam) - lam * data[i];
+      return ll;
+    }
+
+    var llVals = [];
+    var maxLL = -Infinity;
+    var minLL = Infinity;
+    var k;
+    for (k = 0; k <= nPoints; k++) {
+      var lv = lamRange[0] + (k / nPoints) * (lamRange[1] - lamRange[0]);
+      var ll = logLik(lv);
+      llVals.push({ lam: lv, ll: ll });
+      if (ll > maxLL) maxLL = ll;
+      if (ll < minLL) minLL = ll;
+    }
+
+    var llRange = maxLL - minLL;
+
+    function toCanvasY(ll) { return base - ((ll - minLL) / llRange) * (base - 40); }
+    function toCanvasX(lam) { return padL + ((lam - lamRange[0]) / (lamRange[1] - lamRange[0])) * plotW; }
+
+    // Fill under curve
+    ctx.fillStyle = "rgba(20,184,166,0.12)";
+    ctx.beginPath();
+    ctx.moveTo(toCanvasX(llVals[0].lam), base);
+    for (k = 0; k <= nPoints; k++) ctx.lineTo(toCanvasX(llVals[k].lam), toCanvasY(llVals[k].ll));
+    ctx.lineTo(toCanvasX(llVals[nPoints].lam), base);
+    ctx.closePath();
+    ctx.fill();
+
+    // Log-likelihood curve
+    ctx.strokeStyle = "#14B8A6";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (k = 0; k <= nPoints; k++) {
+      if (k === 0) ctx.moveTo(toCanvasX(llVals[k].lam), toCanvasY(llVals[k].ll));
+      else ctx.lineTo(toCanvasX(llVals[k].lam), toCanvasY(llVals[k].ll));
+    }
+    ctx.stroke();
+
+    // True MLE
+    ctx.strokeStyle = "#5EEAD4";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 3]);
+    ctx.beginPath();
+    ctx.moveTo(toCanvasX(trueMLELam), 28);
+    ctx.lineTo(toCanvasX(trueMLELam), base);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    drawText(ctx, "MLE λ̂=" + trueMLELam.toFixed(2), toCanvasX(trueMLELam) + 5, 44, "#5EEAD4", 11);
+
+    // Current lambda marker
+    var curLL = logLik(lamHat);
+    drawDot(ctx, toCanvasX(lamHat), toCanvasY(curLL), 6, "#F97316");
+    ctx.strokeStyle = "#F97316";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(toCanvasX(lamHat), toCanvasY(curLL));
+    ctx.lineTo(toCanvasX(lamHat), base);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    drawText(ctx, "λ=" + lamHat.toFixed(1), toCanvasX(lamHat) + 4, toCanvasY(curLL) - 8, "#F97316", 10);
+
+    // Axis
+    ctx.strokeStyle = "rgba(255,255,255,0.2)";
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, base); ctx.lineTo(padL + plotW, base); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL, 28); ctx.lineTo(padL, base); ctx.stroke();
+
+    drawText(ctx, "Log-likelihood", 10, 22, "#5EEAD4", 13);
+    drawText(ctx, "Drag λ to see ℓ(λ|data); orange dot = current, teal line = MLE", 10, h - 20, "rgba(255,255,255,0.5)", 10);
+  }, [lamHat]);
+
+  return (
+    <div>
+      <Canvas2D draw={draw} />
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        {[0.5, 1.5, 2.5, 3.5, 4.5].map(function (v) {
+          return (
+            <button key={v} onClick={function () { setLamHat(v); }} style={{ padding: "6px 14px", borderRadius: 8, border: "none", cursor: "pointer", background: lamHat === v ? "#14B8A6" : "rgba(255,255,255,0.08)", color: lamHat === v ? "#fff" : "rgba(255,255,255,0.5)", fontFamily: "monospace", fontSize: 12, fontWeight: 600 }}>λ={v}</button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function MultipleCompVis() {
+  var st = useState("BH");
+  var method = st[0];
+  var setMethod = st[1];
+
+  var pValues = [0.001, 0.008, 0.019, 0.034, 0.048, 0.062, 0.081, 0.134, 0.210, 0.380];
+  var m = pValues.length;
+  var alpha = 0.05;
+
+  var draw = useCallback(function (ctx, w, h) {
+    drawGrid(ctx, w, h);
+    var padL = 36;
+    var padR = 16;
+    var base = h - 36;
+    var plotW = w - padL - padR;
+    var plotH = base - 36;
+    var barH = plotH / (m + 1);
+
+    var i;
+    for (i = 0; i < m; i++) {
+      var p = pValues[i];
+      var by = 40 + i * barH;
+      var bx = padL + (p / 0.5) * plotW;
+
+      // Bonferroni threshold
+      var bonThresh = alpha / m;
+      // BH threshold
+      var bhThresh = ((i + 1) * alpha) / m;
+      var rejected = method === "Bonferroni" ? p < bonThresh : p < bhThresh;
+
+      ctx.fillStyle = rejected ? "rgba(34,197,94,0.6)" : "rgba(239,68,68,0.35)";
+      ctx.fillRect(padL, by, bx - padL, barH * 0.7);
+      drawText(ctx, "p" + (i + 1) + "=" + p.toFixed(3), padL + 4, by + barH * 0.5, rejected ? "#86EFAC" : "#FCA5A5", 10);
+    }
+
+    // Threshold line
+    var thresh = method === "Bonferroni" ? bonThresh : alpha * (m / 2) / m;
+    // Draw BH step thresholds
+    if (method === "BH") {
+      for (i = 0; i < m; i++) {
+        var bhT = ((i + 1) * alpha) / m;
+        var tx = padL + (bhT / 0.5) * plotW;
+        ctx.strokeStyle = "#FBBF24";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(tx, 40 + i * barH);
+        ctx.lineTo(tx, 40 + (i + 1) * barH);
+        ctx.stroke();
+      }
+      drawText(ctx, "BH thresholds (kα/m)", padL + (0.08 / 0.5) * plotW, base - 6, "#FBBF24", 10);
+    } else {
+      var bonX = padL + (bonThresh / 0.5) * plotW;
+      ctx.strokeStyle = "#FBBF24";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 3]);
+      ctx.beginPath();
+      ctx.moveTo(bonX, 36);
+      ctx.lineTo(bonX, base);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      drawText(ctx, "α/m=" + bonThresh.toFixed(3), bonX + 3, 50, "#FBBF24", 10);
+    }
+
+    // Axis
+    ctx.strokeStyle = "rgba(255,255,255,0.2)";
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, base); ctx.lineTo(padL + plotW, base); ctx.stroke();
+
+    var rejCount = method === "Bonferroni"
+      ? pValues.filter(function (p) { return p < alpha / m; }).length
+      : pValues.filter(function (p, idx) { return p < (idx + 1) * alpha / m; }).length;
+
+    drawText(ctx, "Multiple Comparisons — " + method, 10, 22, "#FDA4AF", 13);
+    drawText(ctx, "Green = rejected (" + rejCount + "/" + m + "); p-axis 0 to 0.5", 10, h - 20, "rgba(255,255,255,0.5)", 10.3);
+  }, [method]);
+
+  return (
+    <div>
+      <Canvas2D draw={draw} />
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        {["Bonferroni", "BH"].map(function (v) {
+          return (
+            <button key={v} onClick={function () { setMethod(v); }} style={{ padding: "6px 14px", borderRadius: 8, border: "none", cursor: "pointer", background: method === v ? "#E11D48" : "rgba(255,255,255,0.08)", color: method === v ? "#fff" : "rgba(255,255,255,0.5)", fontFamily: "monospace", fontSize: 12, fontWeight: 600 }}>{v}</button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

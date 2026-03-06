@@ -540,4 +540,220 @@ export const EXPLANATIONS = {
       "The Brier score and calibration are distinct from discrimination. A model can rank observations perfectly (AUC = 1) yet have poorly calibrated probabilities (predicted 0.9 when true frequency is 0.5). Calibration plots compare mean predicted probabilities to observed event rates in deciles. Platt scaling and isotonic regression are post-hoc calibration methods that adjust predicted probabilities while preserving rank order.",
     ],
   },
+  percentile: {
+    what: "Percentiles divide a sorted dataset into 100 equal parts. The p-th percentile is the value below which p% of observations fall. The interquartile range (IQR = Q3 − Q1) spans the middle 50% of the data and is the most robust spread measure against outliers.",
+    visual:
+      "A box plot shows Q1, median (Q2), and Q3 as the box edges and center line. Whiskers extend to the farthest non-outlier values; points beyond 1.5×IQR are plotted individually as outliers.",
+    intuition: [
+      "IQR captures the spread of the central half of the data — immune to extreme values",
+      "Q1 = 25th percentile, Q3 = 75th percentile; their gap is IQR",
+      "Outlier rule of thumb: observations beyond Q1 − 1.5×IQR or Q3 + 1.5×IQR",
+      "Percentiles are ideal for skewed data like income, latency, or test scores",
+      "Quantile regression extends this idea to fit any percentile of the response, not just the mean",
+    ],
+    formula: "IQR = Q3 - Q1",
+    deepDive: [
+      "The sample quantile function is defined as Q(p) = x_{(ceil(np))}, the ceil(np)-th order statistic. Unlike the mean, percentiles require no moment assumptions and converge under only mild regularity. For heavy-tailed distributions, high percentiles (95th, 99th) are critical because they reflect extreme-event risk that the mean and variance ignore entirely.",
+      "$$\\text{IQR} = Q_3 - Q_1 = F^{-1}(0.75) - F^{-1}(0.25)$$",
+      "The influence function of the p-th quantile is zero everywhere except at the quantile itself, making it maximally robust. Compare this to the mean, whose influence function grows linearly with the value, giving unbounded sensitivity. This is why the median (50th percentile) has 50% breakdown point — up to half the data can be corrupted before the estimate becomes unusable — while the mean has 0% breakdown.",
+    ],
+  },
+  binomial: {
+    what: "The binomial distribution B(n, p) counts the number of successes in n independent Bernoulli trials, each with success probability p. It is the fundamental discrete model for binary outcomes over repeated experiments.",
+    visual:
+      "Bar chart of binomial probabilities for increasing n: the distribution is right-skewed for small p, symmetric when p = 0.5, and left-skewed for large p. As n grows, the shape approaches a normal bell curve.",
+    intuition: [
+      "Mean = np; variance = np(1−p) — both determined by n and p alone",
+      "For p = 0.5 the distribution is symmetric; skewness direction tracks which of p or 1−p is larger",
+      "Normal approximation works well when np ≥ 5 and n(1−p) ≥ 5",
+      "Poisson(λ) approximates Binomial(n, p) when n is large, p is small, and λ = np",
+      "Negative binomial extends this: count trials until r successes rather than successes in n trials",
+    ],
+    formula: "P(X=k) = C(n,k) p^k (1-p)^(n-k)",
+    deepDive: [
+      "The binomial coefficient C(n,k) = n!/(k!(n-k)!) counts the number of ways to arrange k successes among n trials. The full PMF sums to 1 because \\sum_{k=0}^{n} \\binom{n}{k} p^k (1-p)^{n-k} = (p + (1-p))^n = 1 by the binomial theorem — the distribution is literally a factored expansion of 1.",
+      "$$P(X = k) = \\binom{n}{k} p^k (1-p)^{n-k}, \\quad \\mathbb{E}[X] = np, \\quad \\mathrm{Var}(X) = np(1-p)$$",
+      "The maximum likelihood estimator of p given k observed successes in n trials is simply p̂ = k/n, the sample proportion. By the delta method, the approximate confidence interval for p is p̂ ± z_{α/2} √(p̂(1−p̂)/n). The Wilson interval improves on this by being coverage-exact near the boundaries (p close to 0 or 1), where the normal approximation fails.",
+    ],
+  },
+  poisson: {
+    what: "The Poisson distribution Poisson(λ) counts the number of independent events occurring in a fixed interval of time or space, when events happen at a constant average rate λ. Its defining feature is that mean equals variance.",
+    visual:
+      "Bar chart of Poisson PMF for λ = 1, 3, 8. Low λ gives a highly right-skewed distribution concentrated near zero; high λ gives a roughly symmetric, bell-shaped distribution — convergence to a normal with the same mean and variance.",
+    intuition: [
+      "Mean = variance = λ — if observed variance ≫ mean, data is overdispersed (consider negative binomial)",
+      "Models arrivals, defects, typos, radioactive decays — anything rare per unit",
+      "Poisson process: inter-arrival times follow exponential(λ) distribution",
+      "For large λ, Poisson(λ) ≈ Normal(λ, λ) by CLT",
+      "Sum of independent Poisson variates is Poisson: if X ~ Pois(λ₁) and Y ~ Pois(λ₂), X+Y ~ Pois(λ₁+λ₂)",
+    ],
+    formula: "P(X=k) = lambda^k * exp(-lambda) / k!",
+    deepDive: [
+      "The Poisson distribution emerges as the limit of Binomial(n, p) when n → ∞ and p → 0 with np = λ fixed. This is the law of rare events: when each trial is very unlikely but there are many trials, the count follows Poisson. The derivation uses lim_{n→∞} (1 - λ/n)^n = e^{-λ} and Stirling's approximation on the binomial coefficient.",
+      "$$P(X = k) = \\frac{\\lambda^k e^{-\\lambda}}{k!}, \\quad \\mathbb{E}[X] = \\lambda, \\quad \\mathrm{Var}(X) = \\lambda$$",
+      "The Poisson process is a stochastic process where events occur continuously and independently at rate λ. Three equivalent characterizations: (1) inter-arrival times are i.i.d. Exponential(λ); (2) the number of events in [0,t] is Poisson(λt); (3) for any non-overlapping intervals, counts are independent. This triply-characterizable structure explains why the Poisson process is the backbone model for queueing theory, reliability, and survival analysis.",
+    ],
+  },
+  tdist: {
+    what: "The t-distribution (Student's t) is a symmetric, bell-shaped distribution with heavier tails than the standard normal. It arises when estimating the mean of a normal population with unknown variance, replacing σ with the sample standard deviation s.",
+    visual:
+      "Two overlapping curves — standard normal and t with ν = 3 — showing the heavier tails of the t. As degrees of freedom ν increase, the t-distribution converges to the standard normal.",
+    intuition: [
+      "Heavier tails account for additional uncertainty from estimating variance from data",
+      "With ν degrees of freedom, the t has variance ν/(ν−2) for ν > 2 — larger than the normal's 1",
+      "As n → ∞ (ν → ∞), t converges to standard normal — normal is a special case",
+      "The t-test statistic t = (x̄ − μ₀)/(s/√n) follows t(n−1) under H₀",
+      "Gosset ('Student') derived it in 1908 for small-sample quality control at Guinness Brewery",
+    ],
+    formula: "t = (x_bar - mu_0) / (s / sqrt(n)), ~ t(n-1)",
+    deepDive: [
+      "The t-distribution with ν degrees of freedom is defined as t = Z/√(V/ν), where Z ~ N(0,1) and V ~ χ²(ν) are independent. Its PDF is proportional to (1 + t²/ν)^{-(ν+1)/2}, a power-law tail that decays much more slowly than the Gaussian's exponential tail. For ν = 1 it is the Cauchy distribution, which has no defined mean; for ν = 2 it has no variance.",
+      "$$t = \\frac{\\bar{X} - \\mu_0}{s/\\sqrt{n}} \\sim t_{n-1}, \\quad f(t) \\propto \\left(1 + \\frac{t^2}{\\nu}\\right)^{-(\\nu+1)/2}$$",
+      "The central limit theorem guarantees that even without normality, the t-statistic is approximately t-distributed for large n. For small samples from non-normal populations, however, the t-distribution approximation can fail — particularly when the underlying distribution is heavy-tailed or skewed. Bootstrap t-tests, which estimate the null distribution empirically, are a robust alternative that remains valid without distributional assumptions.",
+    ],
+  },
+  fdist: {
+    what: "The F-distribution describes the ratio of two independent chi-squared variables each divided by their degrees of freedom. It is right-skewed and strictly positive, arising naturally when comparing two variance estimates.",
+    visual:
+      "Right-skewed density curve for F(d₁, d₂) with the peak near 1 when the two variance estimates are similar. As d₁ and d₂ grow, the distribution tightens around 1 and becomes more symmetric.",
+    intuition: [
+      "F = (χ²₁/d₁) / (χ²₂/d₂) — ratio of two scaled chi-square variates",
+      "Under the null of equal variances, both numerator and denominator estimate the same σ², so F ≈ 1",
+      "Large F means the numerator variance greatly exceeds denominator — evidence against the null",
+      "F(1, ν) is the square of a t(ν) variable — t-test is a special case of F-test",
+      "Named for Ronald Fisher who formalized the analysis-of-variance framework",
+    ],
+    formula: "F = (chi1^2 / d1) / (chi2^2 / d2)",
+    deepDive: [
+      "The F-distribution F(d₁, d₂) has mean d₂/(d₂ − 2) for d₂ > 2, and variance 2d₂²(d₁ + d₂ − 2) / (d₁(d₂ − 2)²(d₂ − 4)) for d₂ > 4. Both moments depend on the denominator degrees of freedom: large d₂ (large denominator sample) makes the denominator a precise estimate of σ², driving the F-distribution toward a scaled chi-square / d₁.",
+      "$$F = \\frac{\\chi^2_{d_1}/d_1}{\\chi^2_{d_2}/d_2} \\sim F(d_1,\\, d_2), \\quad \\mathbb{E}[F] = \\frac{d_2}{d_2-2}$$",
+      "A key relationship: if T ~ t(ν), then T² ~ F(1, ν). This means every two-sided t-test can be reframed as an F-test with d₁ = 1. More generally, Welch's F-test and Levene's test use F-statistics to compare group variances with robustness to non-normality. The F-distribution's asymmetry means critical values for one-sided variance tests differ substantially from two-sided ones.",
+    ],
+  },
+  ftest: {
+    what: "The F-test uses the F-statistic to compare two variance estimates. In ANOVA it compares between-group variance to within-group variance. In regression it tests whether a set of predictors explains more variance than chance.",
+    visual:
+      "F-statistic plotted on the F-distribution with shaded right-tail critical region. The ratio MS_between / MS_within inflates when group means separate relative to within-group noise.",
+    intuition: [
+      "ANOVA F = MS_between / MS_within — large when groups are well-separated relative to scatter",
+      "Regression F tests overall model: MS_regression / MS_residual",
+      "Under H₀ (all group means equal), F follows F(k−1, n−k) exactly for normal data",
+      "F-test is the basis for model comparison: nested models via likelihood-ratio reduce to F",
+      "ANOVA is a special case of linear regression with dummy-coded group indicators",
+    ],
+    formula: "F = MS_between / MS_within = (SS_b / (k-1)) / (SS_w / (n-k))",
+    deepDive: [
+      "The total sum of squares SST decomposes as SST = SS_between + SS_within: the total variance in the outcome splits into variance explained by group membership and variance unexplained within groups. Under the null hypothesis that all group population means are equal, both SS_between/(k−1) and SS_within/(n−k) are unbiased estimates of σ², so their ratio follows F(k−1, n−k). Under the alternative, SS_between is inflated by the non-centrality parameter Σ_j n_j(μ_j − μ)² / σ².",
+      "$$F = \\frac{\\mathrm{SS}_\\text{between}/(k-1)}{\\mathrm{SS}_\\text{within}/(n-k)} = \\frac{\\mathrm{MS}_\\text{between}}{\\mathrm{MS}_\\text{within}} \\sim F(k-1,\\, n-k)$$",
+      "For regression, the F-test of overall model fit evaluates H₀: β₁ = β₂ = ... = βₚ = 0. The statistic F = (R² / p) / ((1 − R²) / (n − p − 1)) compares the fraction of variance explained by p predictors to the remaining unexplained fraction. This framework extends to partial F-tests for subsets of predictors, enabling sequential model building with principled stopping rules.",
+    ],
+  },
+  chisq: {
+    what: "The chi-square test assesses whether observed frequencies in categorical data match expected frequencies under a null model. The statistic Σ(O − E)²/E sums standardized squared discrepancies — large values indicate the null is implausible.",
+    visual:
+      "Right-skewed chi-square density with the observed χ² statistic marked, and the right-tail p-value shaded. Degrees of freedom control peak location — chi-square(1) peaks at 0, while high-df chi-square peaks near df − 2.",
+    intuition: [
+      "Each (O − E)²/E term measures a single cell's contribution to total discrepancy",
+      "For a 2×2 table: df = (rows−1)(cols−1) = 1; for an r×c table: df = (r−1)(c−1)",
+      "Expected cell count must be ≥ 5 for the approximation to be valid; use Fisher's exact test otherwise",
+      "Goodness-of-fit test uses known expected distribution; independence test uses marginal frequencies",
+      "Chi-square with 2 df is an exponential distribution; chi-square(k) is a gamma(k/2, 2)",
+    ],
+    formula: "chi^2 = sum (O - E)^2 / E",
+    deepDive: [
+      "The chi-square statistic is asymptotically distributed as χ²(df) under the null by Pearson's theorem (1900). The proof uses the Lindeberg-Lévy CLT on each cell count and the geometry of the multinomial distribution's covariance structure. Pearson's chi-square is equivalent to the score test of the multinomial likelihood evaluated at the null parameter values.",
+      "$$\\chi^2 = \\sum_{i=1}^{k} \\frac{(O_i - E_i)^2}{E_i} \\xrightarrow{d} \\chi^2_{k-1}$$",
+      "For two-way contingency tables, the expected cell count under independence is E_{ij} = (row_i total × col_j total) / n. This formula embodies the factorization P(A,B) = P(A)P(B) under independence: if the joint frequency equals the product of marginals, the cell is consistent with independence and contributes zero to χ². The G-test (likelihood-ratio test for independence) uses 2ΣO·log(O/E) and is asymptotically equivalent but better-behaved for small cell counts.",
+    ],
+  },
+  errors: {
+    what: "Type I error (α) is rejecting a true null hypothesis — a false positive. Type II error (β) is failing to reject a false null — a false negative. These error rates trade off: reducing α (requiring stronger evidence) inevitably increases β for a fixed sample size.",
+    visual:
+      "Two overlapping distributions: the null (H₀) and the alternative (H₁). The decision threshold divides them. The α region is the tail of H₀ beyond the threshold; the β region is the portion of H₁ below the threshold.",
+    intuition: [
+      "α = P(reject H₀ | H₀ true) — controlled directly by the significance level choice",
+      "β = P(fail to reject H₀ | H₁ true) — driven by sample size and effect size",
+      "Power = 1 − β = P(reject H₀ | H₁ true) — the probability of detecting a real effect",
+      "Moving the threshold right reduces α but enlarges the β region of H₁ under the threshold",
+      "The α/β trade-off is identical to the precision/recall trade-off in classification",
+    ],
+    formula: "alpha = P(reject H0 | H0 true),  beta = P(fail to reject H0 | H1 true)",
+    deepDive: [
+      "The Neyman-Pearson lemma (1933) proves that the most powerful test for a simple H₀ vs. simple H₁ at level α is the likelihood-ratio test: reject H₀ when L(H₁|data)/L(H₀|data) > k, where k is chosen to set the Type I rate at exactly α. For composite alternatives, uniformly most powerful tests exist only in special exponential families.",
+      "$$\\alpha = P(T > c \\mid H_0), \\quad \\beta = P(T \\leq c \\mid H_1), \\quad \\text{Power} = 1 - \\beta$$",
+      "In practice, α is chosen before analysis (typically 0.05) while β is implicitly determined by sample size and effect size. A priori power analysis computes the required n to achieve target power (e.g., 0.80) given a specified effect size and α. Post-hoc power analysis — computing power after observing the data — is generally uninformative and sometimes misleading because it is mechanically related to the observed p-value.",
+    ],
+  },
+  power: {
+    what: "Statistical power is the probability of correctly rejecting a false null hypothesis — detecting a real effect when it exists. Power = 1 − β, where β is the Type II error rate. It increases with sample size, effect size, and significance level α.",
+    visual:
+      "Two distributions centered at H₀ and H₁. Power is the shaded region of the H₁ distribution exceeding the critical threshold. As n increases, both distributions narrow and overlap less, expanding the shaded power region.",
+    intuition: [
+      "Larger n → narrower sampling distributions → less overlap → more power",
+      "Larger effect size → H₁ distribution farther from H₀ → easier to distinguish",
+      "Raising α (less conservative threshold) increases power but also Type I error",
+      "One-sided tests have more power than two-sided at the same α, if direction is known a priori",
+      "Underpowered studies are wasteful: they often fail to detect real effects and inflate effect size estimates when they do succeed",
+    ],
+    formula: "Power = 1 - beta = P(reject H0 | H1 true)",
+    deepDive: [
+      "The non-centrality parameter δ = (μ₁ − μ₀)/(σ/√n) determines power. For a one-sample z-test with known σ, power = Φ(δ − z_{α/2}) + Φ(−δ − z_{α/2}), where Φ is the standard normal CDF. The required sample size to achieve power 1−β at level α is n = ((z_α + z_β) / (effect_size))², where z_α = Φ^{-1}(1 − α/2) and z_β = Φ^{-1}(1 − β) for a two-sided test.",
+      "$$\\text{Power} = 1 - \\beta = \\Phi\\!\\left(\\frac{|\\mu_1-\\mu_0|}{\\sigma/\\sqrt{n}} - z_{\\alpha/2}\\right), \\quad n = \\left(\\frac{z_\\alpha + z_\\beta}{\\delta}\\right)^2$$",
+      "Publication bias — the tendency to publish only significant findings — interacts with low power in a damaging way: when power is low (e.g., 20%), the significant studies that get published are a selected sample of runs where the estimate happened to be unusually large. Winner's curse describes this inflation: published effect sizes systematically overestimate true effects in low-power fields, a phenomenon formalized by Gelman and Loken (2014) as the 'garden of forking paths'.",
+    ],
+  },
+  effectsize: {
+    what: "Effect size measures the practical magnitude of a difference or relationship in standardized units, independent of sample size. While p-values tell you whether an effect is detectable, effect sizes tell you whether it matters.",
+    visual:
+      "Two normal distributions separated by d standard deviations. Cohen's d = 0.2 shows nearly complete overlap; d = 0.8 shows clear separation. The overlap coefficient visually quantifies how distinguishable the groups are.",
+    intuition: [
+      "Cohen's d = (μ₁ − μ₂) / σ_pooled — d = 0.2 small, 0.5 medium, 0.8 large (conventional benchmarks)",
+      "A highly significant p-value with small effect size means precise measurement of a trivial difference",
+      "Pearson's r, η² (eta-squared), and ω² (omega-squared) measure effect size for different designs",
+      "r² = proportion of variance explained; always between 0 and 1",
+      "Effect sizes are comparable across studies — meta-analysis pools them; p-values are not directly comparable",
+    ],
+    formula: "Cohen's d = (mu1 - mu2) / sigma_pooled",
+    deepDive: [
+      "Cohen's d is defined as (μ₁ − μ₂) / σ_p, where σ_p = √((σ₁² + σ₂²) / 2) for equal-variance groups. It measures overlap between two distributions: d = 0.8 corresponds to about 47% non-overlap, meaning a randomly selected observation from group 1 exceeds a randomly selected group 2 observation 71% of the time (the Common Language Effect Size). This probability of superiority interpretation makes effect sizes more accessible than standardized differences.",
+      "$$d = \\frac{\\mu_1 - \\mu_2}{\\sigma_p}, \\quad \\sigma_p = \\sqrt{\\frac{\\sigma_1^2 + \\sigma_2^2}{2}}, \\quad r = \\frac{d}{\\sqrt{d^2 + 4}}$$",
+      "Effect size and sample size together determine power. Given a target power of 0.80 at α = 0.05, a small effect (d = 0.2) requires about 394 participants per group; a medium effect (d = 0.5) needs 64 per group; a large effect (d = 0.8) needs 26 per group. This sensitivity is why large-scale studies regularly detect small effects that are statistically significant but clinically irrelevant — the question of which threshold matters is domain-specific.",
+    ],
+  },
+  mle: {
+    what: "Maximum Likelihood Estimation (MLE) finds the parameter values that make the observed data most probable under the assumed model. By maximizing L(θ) = P(data | θ), MLE provides efficient, consistent, and asymptotically normal estimates.",
+    visual:
+      "A likelihood curve L(θ) plotted over the parameter space, with the maximum marked at θ̂. Data points are fixed; θ slides to find where their joint probability is highest.",
+    intuition: [
+      "Likelihood is not a probability over θ — it is a function of θ for fixed data",
+      "Log-likelihood ℓ(θ) = log L(θ) is used for numerical stability and turns products into sums",
+      "MLE is asymptotically efficient: achieves the Cramér-Rao lower bound as n → ∞",
+      "Minimizing cross-entropy and maximizing Bernoulli log-likelihood are the same — logistic regression is MLE",
+      "Bias: MLE is not always unbiased in small samples (e.g., MLE of σ² uses n, not n−1 in denominator)",
+    ],
+    formula: "theta_hat = argmax_theta sum_i log p(x_i | theta)",
+    deepDive: [
+      "For i.i.d. data, the log-likelihood is ℓ(θ) = Σ_i log p(x_i | θ). Taking the derivative and setting it to zero gives the score equations: Σ_i ∇_θ log p(x_i | θ) = 0. The Fisher information I(θ) = E[−∂²ℓ/∂θ²] governs the curvature of the log-likelihood at θ* and determines the asymptotic variance of the MLE: √n(θ̂ − θ*) → N(0, I(θ*)^{−1}). This is the Cramér-Rao bound, which MLE achieves in the large-sample limit.",
+      "$$\\hat{\\theta}_{\\text{MLE}} = \\operatorname{argmax}_{\\theta}\\, \\ell(\\theta) = \\operatorname{argmax}_{\\theta} \\sum_{i=1}^n \\log p(x_i \\mid \\theta)$$",
+      "The EM algorithm (Expectation-Maximization, Dempster et al. 1977) is the canonical approach to MLE with latent variables or missing data. The E-step computes the expected complete-data log-likelihood (Q-function) given current parameters; the M-step maximizes Q over parameters. EM converges monotonically to a local maximum of the observed-data likelihood. It underlies Gaussian mixture models, hidden Markov models, and the imputation of missing data in many applied settings.",
+    ],
+  },
+  multiplecomp: {
+    what: "When conducting m simultaneous hypothesis tests, the probability of at least one false positive inflates dramatically. Multiple comparison correction methods control either the familywise error rate (FWER) — the probability of any false positive — or the false discovery rate (FDR) — the expected fraction of rejections that are false.",
+    visual:
+      "A row of p-values from m truly-null tests, each uniformly distributed on [0,1]. Some fall below α = 0.05 by chance. As m grows, more false positives accumulate. Bonferroni threshold α/m and BH threshold are shown.",
+    intuition: [
+      "With 20 independent null tests at α = 0.05, expect 1 false positive by chance alone",
+      "Bonferroni: reject if p_i < α/m — controls FWER but is very conservative for large m",
+      "Benjamini-Hochberg (BH): sort p-values, reject up to the largest k where p_(k) ≤ kα/m — controls FDR",
+      "FDR (= E[false positives / total rejections]) is more powerful than FWER correction for exploratory research",
+      "The Bonferroni bound P(any false positive) ≤ mα follows from the union bound (Boole's inequality)",
+    ],
+    formula: "Bonferroni: alpha_adj = alpha/m  |  BH FDR: p_(k) <= k*alpha/m",
+    deepDive: [
+      "The Benjamini-Hochberg (BH) procedure (1995) controls FDR at level α: sort the m p-values p_(1) ≤ ... ≤ p_(m), find the largest k such that p_(k) ≤ kα/m, and reject H_(1), ..., H_(k). The BH procedure is uniformly more powerful than Bonferroni and controls FDR exactly at α under positive dependence (PRDS condition) and conservatively under arbitrary dependence (BY procedure adds a log(m) correction factor for the general case).",
+      "$$\\text{Bonferroni: reject } p_i < \\frac{\\alpha}{m}; \\quad \\text{BH: reject } p_{(i)} < \\frac{i \\cdot \\alpha}{m}$$",
+      "The local false discovery rate (local FDR) takes a Bayesian perspective: using the empirical null distribution, it estimates the posterior probability that each individual hypothesis is null given its test statistic. Efron's empirical Bayes framework uses the mixture model f(z) = π₀ f₀(z) + (1−π₀) f₁(z), where π₀ is the fraction of true nulls estimated from the bulk of the z-score distribution. Local FDR provides a per-test decision while pooling information across all m tests simultaneously.",
+    ],
+  },
 };

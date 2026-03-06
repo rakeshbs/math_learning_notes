@@ -439,6 +439,174 @@ export const CONCEPT_DETAILS = {
     quickCheck:
       "Evaluate both discrimination (AUC) and calibration (reliability).",
   },
+  percentile: {
+    deeper:
+      "Percentiles partition the sorted data distribution into hundredths. The IQR = Q3 - Q1 captures the middle 50% and is resistant to outliers with a breakdown point of 25%.",
+    useCases: [
+      "Outlier detection using 1.5×IQR fence rule",
+      "Growth charts and standardized test reporting",
+      "Robust spread comparison across skewed distributions",
+    ],
+    pitfalls: [
+      "Confusing percentile rank with percent correct",
+      "Using IQR as only spread measure when tails matter",
+    ],
+    quickCheck: "Draw a boxplot and check whisker lengths relative to IQR.",
+  },
+  binomial: {
+    deeper:
+      "The binomial distribution counts successes in n independent Bernoulli trials with fixed success probability p. It approaches normal as n grows (by CLT) and Poisson as n→∞ with np fixed.",
+    useCases: [
+      "A/B test conversion rate analysis",
+      "Quality control pass/fail counting",
+      "Election polling margin-of-error estimation",
+    ],
+    pitfalls: [
+      "Assuming independence when trials are clustered",
+      "Using normal approximation when np or n(1-p) < 5",
+    ],
+    quickCheck: "Verify np ≥ 5 and n(1-p) ≥ 5 before using normal approximation.",
+  },
+  poisson: {
+    deeper:
+      "The Poisson distribution models counts of rare, independent events per unit time or space. Its key property is mean = variance = λ. Overdispersion (variance > mean) in real data signals violation of independence.",
+    useCases: [
+      "Call center arrival rate modeling",
+      "Network packet count distributions",
+      "Epidemiological disease incidence rates",
+    ],
+    pitfalls: [
+      "Applying Poisson when events cluster (overdispersion)",
+      "Ignoring excess zeros in count data",
+    ],
+    quickCheck: "Compare sample mean and variance; large ratio suggests negative binomial.",
+  },
+  tdist: {
+    deeper:
+      "The t-distribution arises naturally when estimating a normal mean with unknown variance. With ν degrees of freedom, its PDF has heavier tails than normal, providing honest uncertainty bounds for small samples.",
+    useCases: [
+      "Single or two-sample mean comparison with small n",
+      "Regression coefficient inference",
+      "Constructing confidence intervals without known σ",
+    ],
+    pitfalls: [
+      "Using z-table when sample size is small and σ is unknown",
+      "Assuming t-test is robust when data is heavily skewed",
+    ],
+    quickCheck: "Check if ν > 30; beyond that, t and z intervals are nearly identical.",
+  },
+  fdist: {
+    deeper:
+      "The F-distribution is the ratio of two scaled chi-squared variables. It is right-skewed and bounded below by zero. F(1, ν) = t(ν)², connecting t-tests and F-tests for single coefficients.",
+    useCases: [
+      "ANOVA overall significance test",
+      "Comparing model fit across nested regression models",
+      "Levene's test for equal variances",
+    ],
+    pitfalls: [
+      "Assuming F-test is robust without checking normality",
+      "Confusing numerator and denominator degrees of freedom",
+    ],
+    quickCheck: "Verify assumptions: normality and independence within each group.",
+  },
+  chisq: {
+    deeper:
+      "Chi-square tests compare observed versus expected cell counts. For association tests, the null assumes independence; for goodness-of-fit, the null specifies the distribution. Expected counts < 5 per cell reduce reliability.",
+    useCases: [
+      "Contingency table association testing",
+      "Goodness-of-fit to a hypothesized distribution",
+      "Model selection using deviance difference",
+    ],
+    pitfalls: [
+      "Using chi-square with very small expected cell counts",
+      "Interpreting association as causation",
+    ],
+    quickCheck: "Ensure all expected cell counts ≥ 5; otherwise use Fisher's exact test.",
+  },
+  errors: {
+    deeper:
+      "Type I error (false positive) rate is controlled at α. Type II error (false negative) rate β depends on effect size, sample size, and α. Reducing α increases β unless sample size grows. The Neyman-Pearson framework formalizes this trade-off.",
+    useCases: [
+      "Clinical trial safety threshold setting",
+      "Manufacturing defect detection system calibration",
+      "Security system false alarm vs miss trade-off",
+    ],
+    pitfalls: [
+      "Setting α without considering the cost of Type II errors",
+      "Ignoring base rates when interpreting p-values",
+    ],
+    quickCheck: "Compute power at target effect size before running the study.",
+  },
+  power: {
+    deeper:
+      "Power = 1 - β = P(reject H₀ | H₁ true). It increases with sample size, effect size, and α. A priori power analysis determines n needed before data collection. Post-hoc power calculations from observed effects are uninformative.",
+    useCases: [
+      "Pre-study sample size planning",
+      "Understanding why a non-significant result may be uninformative",
+      "Comparing sensitivity of different experimental designs",
+    ],
+    pitfalls: [
+      "Computing power after seeing results using observed effect size",
+      "Treating underpowered non-significant results as evidence of no effect",
+    ],
+    quickCheck: "Aim for power ≥ 0.80 at the minimum scientifically meaningful effect size.",
+  },
+  effectsize: {
+    deeper:
+      "Effect size measures the practical magnitude of a difference independently of sample size. Cohen's d = (μ₁ - μ₂)/σ_pooled, with benchmarks 0.2/0.5/0.8 for small/medium/large. Unlike p-values, effect sizes are comparable across studies.",
+    useCases: [
+      "Meta-analysis synthesis across heterogeneous studies",
+      "Interpreting practical significance beyond statistical significance",
+      "Communicating treatment benefits in accessible units",
+    ],
+    pitfalls: [
+      "Applying universal benchmarks without domain calibration",
+      "Reporting effect size without confidence interval",
+    ],
+    quickCheck: "Always report effect size alongside p-value for complete inference.",
+  },
+  ftest: {
+    deeper:
+      "The F-test compares variance estimates. In ANOVA, F = MS_between / MS_within. In regression, the global F-test checks whether any predictor explains variance. Nested model F-tests compare residual SS reduction.",
+    useCases: [
+      "ANOVA global significance assessment",
+      "Comparing full vs reduced regression models",
+      "Variance equality testing between groups",
+    ],
+    pitfalls: [
+      "Interpreting insignificant F as confirming equal means",
+      "Neglecting model assumption checks before F-test",
+    ],
+    quickCheck: "Follow significant F with post-hoc tests to identify which groups differ.",
+  },
+  mle: {
+    deeper:
+      "Maximum likelihood estimation finds parameters that maximize the probability of observed data. Under regularity conditions, MLEs are consistent, asymptotically normal, and efficient (achieving the Cramér-Rao bound). The EM algorithm handles latent variables by alternating expectation and maximization steps.",
+    useCases: [
+      "Fitting parametric distributions to data",
+      "Logistic and Poisson regression coefficient estimation",
+      "Training probabilistic generative models",
+    ],
+    pitfalls: [
+      "Overfitting in small samples when parameter space is large",
+      "Local maxima in non-convex likelihoods without proper initialization",
+    ],
+    quickCheck: "Plot the log-likelihood surface or use multiple random restarts to verify convergence.",
+  },
+  multiplecomp: {
+    deeper:
+      "Testing m hypotheses simultaneously inflates family-wise error rate. Bonferroni controls FWER at α by requiring p < α/m per test. The Benjamini-Hochberg procedure controls FDR at level q: sort p-values and reject all H₀ where p_(k) ≤ kq/m.",
+    useCases: [
+      "Genomics differential expression across thousands of genes",
+      "Clinical trial secondary endpoint adjustment",
+      "Post-hoc comparison adjustment after ANOVA",
+    ],
+    pitfalls: [
+      "Ignoring multiplicity corrections in exploratory analyses",
+      "Applying Bonferroni when tests are highly correlated (overly conservative)",
+    ],
+    quickCheck: "Use BH-FDR for many correlated tests; Bonferroni for few independent tests.",
+  },
 };
 
 export const CONCEPT_EXPANSIONS = {
@@ -715,5 +883,113 @@ export const CONCEPT_EXPANSIONS = {
       "Bayes decision threshold",
       "Classification metrics",
     ],
+  },
+  percentile: {
+    algebraic:
+      "The p-th percentile is the value x such that P(X ≤ x) = p/100. IQR = Q3 - Q1; boxplot fences at Q1 - 1.5×IQR and Q3 + 1.5×IQR.",
+    computation:
+      "Sort data, interpolate between adjacent values using linear interpolation or the nearest-rank method.",
+    workedExample:
+      "Dataset [2,4,7,9,15]: Q1=4, Q3=9, IQR=5, upper fence=9+7.5=16.5, so 15 is not an outlier.",
+    connections: ["Median", "Standard deviation", "Boxplot visualization"],
+  },
+  binomial: {
+    algebraic:
+      "P(X=k) = C(n,k) p^k (1-p)^{n-k}; E[X] = np; Var(X) = np(1-p).",
+    computation:
+      "Use scipy.stats.binom or exact formula for small n; normal approximation when np and n(1-p) ≥ 5.",
+    workedExample:
+      "n=20 coin flips, p=0.5: P(X=10) ≈ 0.176; 95% CI via Wilson interval ≈ [0.30, 0.70].",
+    connections: ["Normal distribution (CLT limit)", "Poisson (rare event limit)", "Beta distribution (conjugate prior)"],
+  },
+  poisson: {
+    algebraic:
+      "P(X=k) = λ^k e^{-λ} / k!; E[X] = Var(X) = λ; MGF = exp(λ(e^t - 1)).",
+    computation:
+      "Estimate λ̂ = x̄ (MLE). Check mean ≈ variance; if not, consider negative binomial.",
+    workedExample:
+      "Call center: 3 calls/min average. P(≥5 calls) = 1 - Σ_{k=0}^{4} P(X=k) ≈ 0.185.",
+    connections: ["Binomial (large n, small p limit)", "Exponential (inter-arrival times)", "Negative binomial (overdispersion)"],
+  },
+  tdist: {
+    algebraic:
+      "If Z ~ N(0,1) and V ~ χ²(ν) independently, then T = Z/√(V/ν) ~ t(ν). PDF ∝ (1 + t²/ν)^{-(ν+1)/2}.",
+    computation:
+      "One-sample: t = (x̄ - μ₀)/(s/√n) with ν = n-1; two-sample Welch uses Welch-Satterthwaite df.",
+    workedExample:
+      "n=10, x̄=5.2, s=1.4, μ₀=5: t = 0.2/(1.4/√10) = 0.45, df=9, p≈0.66 (two-tailed), fail to reject.",
+    connections: ["Normal distribution (ν→∞)", "Chi-square (T² ~ F(1,ν))", "Hypothesis testing"],
+  },
+  fdist: {
+    algebraic:
+      "If U ~ χ²(d₁) and V ~ χ²(d₂) independently, then F = (U/d₁)/(V/d₂) ~ F(d₁, d₂). Mean = d₂/(d₂-2) for d₂>2.",
+    computation:
+      "Compute F = MS_between / MS_within in ANOVA; look up p-value in F-table with (k-1, N-k) degrees of freedom.",
+    workedExample:
+      "Three groups (n=10 each): SS_between=80, SS_within=120, F = (80/2)/(120/27) = 40/4.44 ≈ 9.0, p < 0.001.",
+    connections: ["t-Distribution (F(1,ν) = t(ν)²)", "Chi-square (numerator)", "ANOVA"],
+  },
+  chisq: {
+    algebraic:
+      "χ² = Σ (O_ij - E_ij)² / E_ij where E_ij = (row_i × col_j) / N. Degrees of freedom = (r-1)(c-1).",
+    computation:
+      "Construct contingency table, compute row/column marginals, calculate expected counts and chi-square statistic.",
+    workedExample:
+      "2×2 table drug vs placebo: O=[45,55;30,70], E=[37.5,62.5;37.5,62.5], χ²=4.27, df=1, p≈0.039.",
+    connections: ["F-Distribution (chi-sq/df)", "Fisher's exact test (small samples)", "G-test (log-likelihood ratio)"],
+  },
+  errors: {
+    algebraic:
+      "α = P(reject H₀ | H₀ true); β = P(fail to reject H₀ | H₁ true); Power = 1 - β. Decision matrix: {H₀ true, H₀ false} × {reject, retain}.",
+    computation:
+      "Set α first; compute β from effect size δ, sample size n, and test structure: β = Φ(z_{α/2} - δ√n/σ) for one-sided test.",
+    workedExample:
+      "α=0.05, δ=0.5σ, n=25: power = 1 - Φ(1.645 - 0.5×5) = 1 - Φ(-0.855) ≈ 0.80.",
+    connections: ["P-value", "Statistical power", "Neyman-Pearson lemma"],
+  },
+  power: {
+    algebraic:
+      "Power = P(T > t_{crit} | θ = θ₁) = 1 - Φ(z_α - δ) where δ = (μ₁-μ₀)/(σ/√n) is the non-centrality parameter.",
+    computation:
+      "Solve for n: n = ((z_α + z_β) × σ / δ)² for one-sample test. Use G*Power or pwr package for complex designs.",
+    workedExample:
+      "Want power=0.90 for d=0.4 at α=0.05: n = ((1.645+1.28)/0.4)² ≈ 54 per group.",
+    connections: ["Type I & II errors", "Effect size", "Sample size planning"],
+  },
+  effectsize: {
+    algebraic:
+      "Cohen's d = (μ₁-μ₂)/σ_pooled; η² = SS_between/SS_total (ANOVA); r = Z/√N (correlations); ω² corrects η² for bias.",
+    computation:
+      "Compute pooled SD from both groups, divide mean difference; report with 95% CI via bootstrap or noncentrality parameter.",
+    workedExample:
+      "Group A: mean=70, n=30; Group B: mean=65, n=30, s_pooled=10: d = (70-65)/10 = 0.5 (medium effect).",
+    connections: ["Statistical power", "Confidence intervals", "Meta-analysis"],
+  },
+  ftest: {
+    algebraic:
+      "F = MS_between/MS_within = (SS_between/(k-1)) / (SS_within/(N-k)). Nested model F = (SS_R - SS_F)/q / (SS_F/(N-p)).",
+    computation:
+      "Fit both models, extract residual SS, compute F-statistic, compare to F(q, N-p) distribution.",
+    workedExample:
+      "Adding 2 predictors reduces RSS from 500 to 420 with N=50, p=5: F = (80/2)/(420/45) = 40/9.33 ≈ 4.29, p≈0.02.",
+    connections: ["ANOVA", "F-Distribution", "Likelihood ratio test"],
+  },
+  mle: {
+    algebraic:
+      "θ̂_MLE = argmax_θ Σᵢ log p(xᵢ|θ). Score equation ∂ℓ/∂θ = 0. Fisher information I(θ) = -E[∂²ℓ/∂θ²]. Asymptotic: √n(θ̂-θ) → N(0, I(θ)⁻¹).",
+    computation:
+      "Differentiate log-likelihood, set score to zero, solve analytically or use gradient-based optimization.",
+    workedExample:
+      "Exponential distribution: ℓ(λ) = n log λ - λΣxᵢ; score = n/λ - Σxᵢ = 0 → λ̂ = n/Σxᵢ = 1/x̄.",
+    connections: ["Bayesian inference (flat prior gives MLE)", "EM algorithm", "Fisher information"],
+  },
+  multiplecomp: {
+    algebraic:
+      "FWER: P(any false rejection) ≤ α. Bonferroni: reject if pᵢ < α/m. BH-FDR: sort p₍₁₎ ≤ ... ≤ p₍ₘ₎; reject H₍ₖ₎ for all k ≤ max{k: p₍ₖ₎ ≤ kq/m}.",
+    computation:
+      "Apply p.adjust(p_values, method='BH') in R or statsmodels multipletests in Python.",
+    workedExample:
+      "m=10 tests, q=0.05: sorted p-values [0.001,0.01,0.02,0.04,...]; BH thresholds [0.005,0.01,0.015,0.02,...]; reject first 3.",
+    connections: ["P-value", "Hypothesis testing", "False Discovery Rate"],
   },
 };

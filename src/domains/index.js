@@ -7,6 +7,7 @@ import { STATISTICS_DOMAIN } from "./statistics";
 import { BAYESIAN_DOMAIN } from "./bayesian";
 import { ACTIVATION_FUNCTIONS_DOMAIN } from "./activation-functions";
 import { GPU_DOMAIN } from "./gpu";
+import { CATEGORY_THEORY_DOMAIN } from "./category-theory";
 
 export {
   MATRICES_DOMAIN,
@@ -18,6 +19,7 @@ export {
   BAYESIAN_DOMAIN,
   ACTIVATION_FUNCTIONS_DOMAIN,
   GPU_DOMAIN,
+  CATEGORY_THEORY_DOMAIN,
 };
 
 export const ALL_DOMAINS = [
@@ -30,4 +32,5 @@ export const ALL_DOMAINS = [
   BAYESIAN_DOMAIN,
   ACTIVATION_FUNCTIONS_DOMAIN,
   GPU_DOMAIN,
+  CATEGORY_THEORY_DOMAIN,
 ];

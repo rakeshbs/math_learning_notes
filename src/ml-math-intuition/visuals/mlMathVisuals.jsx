@@ -37,7 +37,7 @@ export function VectorNormProjectionVis() {
       "#FDBA74",
       13,
     );
-    drawText(ctx, "Vector geometry in feature space", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Vector geometry in feature space", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -69,7 +69,7 @@ export function DotProductAngleVis() {
 
     var dot = ax * bx + ay * by;
     drawText(ctx, "x.y = " + dot.toFixed(0), 10, 22, "#FDBA74", 13);
-    drawText(ctx, "Projection gives alignment strength", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Projection gives alignment strength", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -113,7 +113,7 @@ export function MatrixTransformVis() {
     ctx.stroke();
 
     drawText(ctx, "B then A = AB", 10, 22, "#93C5FD", 13);
-    drawText(ctx, "Composition of linear maps", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Composition of linear maps", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -145,7 +145,7 @@ export function RankCompressionVis() {
     ctx.stroke();
 
     drawText(ctx, phase < 0.45 ? "Higher rank" : "Collapsing toward rank 1", 10, 22, "#93C5FD", 13);
-    drawText(ctx, "Rank controls dimensional survival", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Rank controls dimensional survival", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -184,7 +184,7 @@ export function EigenSVDPCAVis() {
     drawArrow(ctx, cx, cy, cx + vx, cy - vy, "#8B5CF6", 3);
 
     drawText(ctx, "Principal axes = dominant modes", 10, 22, "#C4B5FD", 13);
-    drawText(ctx, "Eigen/SVD/PCA share axis-stretch intuition", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Eigen/SVD/PCA share axis-stretch intuition", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -226,7 +226,7 @@ export function DerivativeGradientVis() {
 
     drawDot(ctx, mapX(w, x0), mapY(h, y0), 4, "#5EEAD4");
     drawText(ctx, "local slope = " + slope.toFixed(2), 10, 22, "#5EEAD4", 13);
-    drawText(ctx, "Derivative is local linear behavior", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Derivative is local linear behavior", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -258,7 +258,7 @@ export function JacobianFieldVis() {
     drawArrow(ctx, cx + p0[0], cy - p0[1], cx + py[0], cy - py[1], "#06B6D4", 2.5);
 
     drawText(ctx, "Jacobian maps tiny basis moves", 10, 22, "#67E8F9", 13);
-    drawText(ctx, "Local linear map of nonlinear transform", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Local linear map of nonlinear transform", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -290,7 +290,7 @@ export function HessianConvexityVis() {
     }
 
     drawText(ctx, mode > 0 ? "Convex bowl (Hessian PSD)" : "Saddle (mixed curvature)", 10, 22, mode > 0 ? "#7DD3FC" : "#FCA5A5", 13);
-    drawText(ctx, "Hessian eigen-signs classify local geometry", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Hessian eigen-signs classify local geometry", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -330,7 +330,7 @@ export function GradientDescentPathVis() {
     ctx.stroke();
 
     drawText(ctx, "w <- w - eta * grad L", 10, 22, "#86EFAC", 13);
-    drawText(ctx, "Iterative descent toward minimum", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Iterative descent toward minimum", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -372,7 +372,7 @@ export function ProbabilityExpectationVis() {
     ctx.setLineDash([]);
 
     drawText(ctx, "E[X] = " + mean.toFixed(2), 10, 22, "#BEF264", 13);
-    drawText(ctx, "Expectation is weighted center", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Expectation is weighted center", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -401,7 +401,7 @@ export function VarianceCovarianceVis() {
     ctx.stroke();
 
     drawText(ctx, "Covariance sets ellipse tilt", 10, 22, "#6EE7B7", 13);
-    drawText(ctx, "Variance controls spread along axes", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Variance controls spread along axes", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -445,7 +445,7 @@ export function InformationTheoryVis() {
     drawText(ctx, "H(p): " + hp.toFixed(2), 10, 22, "#F9A8D4", 12);
     drawText(ctx, "H(p,q): " + ceVal.toFixed(2), 10, 40, "#F9A8D4", 12);
     drawText(ctx, "KL(p||q): " + kl.toFixed(2), 10, 58, "#F9A8D4", 12);
-    drawText(ctx, "Mismatch raises cross-entropy and KL", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Mismatch raises cross-entropy and KL", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -480,7 +480,7 @@ export function RegularizationVis() {
     }
 
     drawText(ctx, "lambda = " + lambda.toFixed(2), 10, 22, "#FCA5A5", 13);
-    drawText(ctx, "Penalty shrinks coefficients toward zero", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Penalty shrinks coefficients toward zero", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -513,7 +513,7 @@ export function BiasVarianceVis() {
     ctx.stroke();
 
     drawText(ctx, "Test error U-curve", 10, 22, "#FCA5A5", 13);
-    drawText(ctx, "Left: high bias  |  Right: high variance", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Left: high bias  |  Right: high variance", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -554,7 +554,7 @@ export function MLEVis() {
     ctx.setLineDash([]);
 
     drawText(ctx, "argmax_theta p(D|theta)", 10, 22, "#FCA5A5", 13);
-    drawText(ctx, "Peak of likelihood gives estimate", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Peak of likelihood gives estimate", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }

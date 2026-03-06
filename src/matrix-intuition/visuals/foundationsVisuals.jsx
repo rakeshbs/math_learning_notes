@@ -24,7 +24,7 @@ export function LinIndepVis() {
           ctx,
           "Independent: no scalar c makes v2 = c*v1",
           10,
-          h - 14,
+          h - 20,
           "rgba(255,255,255,0.5)",
           11,
         );
@@ -55,7 +55,7 @@ export function LinIndepVis() {
           ctx,
           "Dependent: v2 is a scaled copy of v1",
           10,
-          h - 14,
+          h - 20,
           "rgba(255,255,255,0.5)",
           11,
         );
@@ -157,7 +157,7 @@ export function BasisVis() {
       ctx,
       "Any basis spans the whole space minimally",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );

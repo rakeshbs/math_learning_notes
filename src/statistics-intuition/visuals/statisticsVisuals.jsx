@@ -83,7 +83,7 @@ export function MeanMedianVis() {
         ctx,
         withOutlier ? "Outlier pulls mean more than median" : "Without outlier, center estimates are close",
         10,
-        h - 14,
+        h - 20,
         "rgba(255,255,255,0.5)",
         11,
       );
@@ -177,7 +177,7 @@ export function MeanOutlierVis() {
     drawText(ctx, "moving outlier", toX(outlier, cx, scale) + 6, cy - 34, "#F97316", 11);
     drawText(ctx, "mean shifts", meanX + 6, cy + 56, "#FDBA74", 11);
     drawText(ctx, "Outlier sensitivity of mean", 10, 22, "#FDBA74", 13);
-    drawText(ctx, "As one extreme point moves, mean follows", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "As one extreme point moves, mean follows", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -222,7 +222,7 @@ export function SpreadVis() {
     drawText(ctx, "mu-s", left - 16, cy + 22, "#93C5FD", 11);
     drawText(ctx, "mu+s", right - 10, cy + 22, "#93C5FD", 11);
     drawText(ctx, "Spread around center", 10, 22, "#93C5FD", 13);
-    drawText(ctx, "Higher spread means wider typical deviations", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Higher spread means wider typical deviations", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -260,7 +260,7 @@ export function VarianceSquaresVis() {
     var varApprox = total / (vals.length - 1);
     drawText(ctx, "Variance as squared distances", 10, 22, "#93C5FD", 13);
     drawText(ctx, "s^2 approx " + varApprox.toFixed(2), 10, 40, "#2563EB", 12);
-    drawText(ctx, "Far points create much larger square contributions", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Far points create much larger square contributions", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -290,7 +290,7 @@ export function CovarianceVis() {
       var covProxy = sum / 40;
       drawText(ctx, "Covariance sign", 10, 22, "#7DD3FC", 13);
       drawText(ctx, covProxy >= 0 ? "positive co-movement" : "negative co-movement", 10, 40, "#0EA5E9", 12);
-      drawText(ctx, "Products (x-x_bar)(y-y_bar) drive covariance", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+      drawText(ctx, "Products (x-x_bar)(y-y_bar) drive covariance", 10, h - 20, "rgba(255,255,255,0.5)", 11);
     },
     [sign],
   );
@@ -358,7 +358,7 @@ export function CorrelationVis() {
         drawDot(ctx, cx + x, cy - y, 2.4, "rgba(125,211,252,0.8)");
       }
       drawText(ctx, "Correlation r approx " + rho.toFixed(2), 10, 22, "#7DD3FC", 13);
-      drawText(ctx, "Magnitude controls linear tightness", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+      drawText(ctx, "Magnitude controls linear tightness", 10, h - 20, "rgba(255,255,255,0.5)", 11);
     },
     [rho],
   );
@@ -415,7 +415,7 @@ export function DistributionVis() {
     }
 
     drawText(ctx, "Distribution shape", 10, 22, "#5EEAD4", 13);
-    drawText(ctx, "Bars show where probability mass concentrates", 10, h - 8, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Bars show where probability mass concentrates", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -460,7 +460,7 @@ export function NormalVis() {
     ctx.stroke();
 
     drawText(ctx, "Normal bell", 10, 22, "#C4B5FD", 13);
-    drawText(ctx, "Center around mu, width controlled by sigma", 10, h - 12, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Center around mu, width controlled by sigma", 10, h - 18, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -493,7 +493,7 @@ export function EmpiricalRuleVis() {
     }
 
     drawText(ctx, "Empirical normal rule", 10, 22, "#C4B5FD", 13);
-    drawText(ctx, "Approx mass within 1s, 2s, 3s", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Approx mass within 1s, 2s, 3s", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -527,7 +527,7 @@ export function ZScoreVis() {
 
     drawDot(ctx, cx + z * scale, cy - 2, 5, "#C4B5FD");
     drawText(ctx, "z = " + z.toFixed(2), 10, 22, "#C4B5FD", 13);
-    drawText(ctx, "Standardized distance from mean", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Standardized distance from mean", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -568,7 +568,7 @@ export function LLNVis() {
     ctx.stroke();
 
     drawText(ctx, "Running average converges", 10, 22, "#D8B4FE", 13);
-    drawText(ctx, "Fluctuations shrink as n grows", 10, h - 10, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Fluctuations shrink as n grows", 10, h - 16, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -607,7 +607,7 @@ export function CLTVis() {
     ctx.stroke();
 
     drawText(ctx, "Sample-mean distribution", 10, 22, "#D8B4FE", 13);
-    drawText(ctx, "Means approach bell shape as n increases", 10, h - 10, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Means approach bell shape as n increases", 10, h - 16, "rgba(255,255,255,0.5)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -656,7 +656,7 @@ export function BayesVis() {
 
       drawText(ctx, "P(H)= " + prior.toFixed(2), 10, 22, "#F9A8D4", 12);
       drawText(ctx, "P(H|+)= " + post.toFixed(2), 10, 40, "#F472B6", 12);
-      drawText(ctx, "Posterior reweights prior with evidence", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+      drawText(ctx, "Posterior reweights prior with evidence", 10, h - 20, "rgba(255,255,255,0.5)", 11);
     },
     [prior],
   );
@@ -720,7 +720,7 @@ export function SamplingVis() {
     drawText(ctx, "sample", w - 105, h / 2 + 30, "#86EFAC", 12);
 
     drawText(ctx, "Sampling from a population", 10, 22, "#86EFAC", 13);
-    drawText(ctx, "Random subset drives estimator variability", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Random subset drives estimator variability", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -751,7 +751,7 @@ export function BootstrapVis() {
     }
 
     drawText(ctx, "Bootstrap estimate distribution", 10, 22, "#86EFAC", 13);
-    drawText(ctx, "Resample with replacement to get uncertainty", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Resample with replacement to get uncertainty", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -784,7 +784,7 @@ export function ConfidenceVis() {
     }
 
     drawText(ctx, "Repeated confidence intervals", 10, 22, "#BEF264", 13);
-    drawText(ctx, "Green intervals cover true parameter line", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Green intervals cover true parameter line", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -821,7 +821,7 @@ export function HypothesisVis() {
     ctx.fill();
 
     drawText(ctx, "Null distribution with rejection region", 10, 22, "#FDA4AF", 12);
-    drawText(ctx, "Reject H0 if statistic enters shaded tail", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Reject H0 if statistic enters shaded tail", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -866,7 +866,7 @@ export function PValueVis() {
 
     drawText(ctx, "Observed statistic", cx + xObs + 6, base - 124, "#FDA4AF", 10);
     drawText(ctx, "P-value = right-tail area", 10, 22, "#FDA4AF", 13);
-    drawText(ctx, "Smaller tail area means stronger tension with H0", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Smaller tail area means stronger tension with H0", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -900,7 +900,7 @@ export function TTestVis() {
     drawArrow(ctx, leftX, m1 - 26, rightX, m2 - 26, "#FCA5A5", 2.2);
     drawText(ctx, "mean diff / SE", (leftX + rightX) / 2 - 26, m2 - 34, "#FCA5A5", 10.8);
     drawText(ctx, "t-statistic compares mean gap to uncertainty", 10, 22, "#FCA5A5", 11.4);
-    drawText(ctx, "Large gap relative to SE -> larger |t|", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Large gap relative to SE -> larger |t|", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -929,7 +929,7 @@ export function ANOVAVis() {
     }
 
     drawText(ctx, "Between-group vs within-group variation", 10, 22, "#FCA5A5", 11.6);
-    drawText(ctx, "ANOVA F rises when group centers separate", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "ANOVA F rises when group centers separate", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -966,7 +966,7 @@ export function LinearRegVis() {
     ctx.stroke();
 
     drawText(ctx, "OLS best-fit line", 10, 22, "#67E8F9", 13);
-    drawText(ctx, "Line minimizes squared vertical residuals", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Line minimizes squared vertical residuals", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -1017,7 +1017,7 @@ export function LogisticVis() {
     ctx.setLineDash([]);
 
     drawText(ctx, "Sigmoid probability curve", 10, 22, "#5EEAD4", 13);
-    drawText(ctx, "Linear score maps to bounded probability", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Linear score maps to bounded probability", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -1047,7 +1047,7 @@ export function RandomVariableVis() {
     drawText(ctx, "R", w - 78, y + 5, "#5EEAD4", 12);
     drawText(ctx, "X", w / 2 - 4, y - 8, "#5EEAD4", 12);
     drawText(ctx, "Random variable as mapping", 10, 22, "#5EEAD4", 12);
-    drawText(ctx, "X: Omega -> R", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "X: Omega -> R", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -1089,7 +1089,7 @@ export function ExpectationVis() {
 
     drawText(ctx, "E[X]", exX + 4, cy - 48, "#5EEAD4", 11);
     drawText(ctx, "Probability-weighted balance point", 10, 22, "#5EEAD4", 11.5);
-    drawText(ctx, "E[X] ≈ " + ex.toFixed(2), 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "E[X] ≈ " + ex.toFixed(2), 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -1115,12 +1115,12 @@ export function PMFVis() {
       ctx.fillStyle = "rgba(6,182,212,0.82)";
       drawRoundRect(ctx, 28 + i * bw, h - 28 - bh, bw - 6, bh, 6);
       ctx.fill();
-      drawText(ctx, String(i), 28 + i * bw + 10, h - 10, "rgba(255,255,255,0.55)", 10);
+      drawText(ctx, String(i), 28 + i * bw + 10, h - 16, "rgba(255,255,255,0.55)", 10);
       drawText(ctx, v.toFixed(2), 28 + i * bw + 3, h - 34 - bh, "rgba(255,255,255,0.5)", 9);
     }
 
     drawText(ctx, "PMF: mass at each value", 10, 22, "#67E8F9", 12.5);
-    drawText(ctx, "Bars encode p(X=x)", 10, h - 8, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Bars encode p(X=x)", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -1162,7 +1162,7 @@ export function CDFVis() {
     ctx.stroke();
 
     drawText(ctx, "CDF accumulates probability", 10, 22, "#67E8F9", 12.5);
-    drawText(ctx, "F(x)=P(X<=x)", 10, h - 10, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "F(x)=P(X<=x)", 10, h - 16, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -1195,7 +1195,7 @@ export function ConditionalProbVis() {
     drawText(ctx, "A", cx - dx - 34, cy - 2, "#7DD3FC", 13);
     drawText(ctx, "B", cx + dx + 24, cy - 2, "#7DD3FC", 13);
     drawText(ctx, "Conditional probability", 10, 22, "#7DD3FC", 12.5);
-    drawText(ctx, "P(A|B)=overlap/B", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "P(A|B)=overlap/B", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -1232,7 +1232,7 @@ export function IndependenceVis() {
       }
 
       drawText(ctx, independent ? "P(A∩B)=P(A)P(B)" : "Dependence: product rule fails", 10, 22, "#7DD3FC", 12.2);
-      drawText(ctx, "Independence via factorization", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+      drawText(ctx, "Independence via factorization", 10, h - 20, "rgba(255,255,255,0.5)", 11);
     },
     [independent],
   );
@@ -1323,7 +1323,7 @@ export function LikelihoodVis() {
     ctx.stroke();
 
     drawText(ctx, "Likelihood over parameter", 10, 22, "#F9A8D4", 13);
-    drawText(ctx, "Peak = best-supported theta", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Peak = best-supported theta", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -1370,7 +1370,7 @@ export function CredibleIntervalVis() {
     ctx.fill();
 
     drawText(ctx, "95% posterior mass interval", 10, 22, "#F9A8D4", 12);
-    drawText(ctx, "Credible interval from posterior", 10, h - 14, "rgba(255,255,255,0.5)", 11);
+    drawText(ctx, "Credible interval from posterior", 10, h - 20, "rgba(255,255,255,0.5)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;
@@ -1408,7 +1408,7 @@ export function PosteriorPredictiveVis() {
     ctx.stroke();
 
     drawText(ctx, "Posterior predictive mixture", 10, 22, "#F9A8D4", 12.2);
-    drawText(ctx, "Light curves: parameter draws, bold: averaged predictive", 10, h - 14, "rgba(255,255,255,0.5)", 10.3);
+    drawText(ctx, "Light curves: parameter draws, bold: averaged predictive", 10, h - 20, "rgba(255,255,255,0.5)", 10.3);
   }, []);
 
   return <Canvas2D draw={draw} />;

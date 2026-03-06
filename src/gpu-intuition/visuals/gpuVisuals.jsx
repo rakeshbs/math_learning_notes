@@ -133,7 +133,7 @@ export function SMVis() {
           ctx,
           "One SM: 128 cores, 4 warp schedulers",
           sx,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.35)",
           10,
         );
@@ -284,7 +284,7 @@ export function StreamProcessorsVis() {
           ctx,
           "Architectural counts vary by generation; execution model remains warp-centric",
           6,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.35)",
           9,
         );
@@ -422,7 +422,7 @@ export function WarpSchedulerDeepVis() {
           ctx,
           "Per cycle: each scheduler picks one eligible warp, then dispatches to matching pipeline",
           6,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.34)",
           9,
         );
@@ -581,7 +581,7 @@ export function WarpScoreboardVis() {
           ctx,
           "Scheduler can only issue warps marked READY by scoreboard",
           6,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.35)",
           9,
         );
@@ -672,7 +672,7 @@ export function WarpVis() {
           ctx,
           "Warp = SIMT unit of execution",
           6,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.35)",
           10,
         );
@@ -770,7 +770,7 @@ export function ThreadHierarchyVis() {
           ctx,
           "Thread → Block → Grid hierarchy",
           6,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.35)",
           10,
         );
@@ -964,7 +964,7 @@ export function MemoryHierarchyVis() {
           ctx,
           "Bandwidth ↑  Latency ↓  going up",
           8,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.35)",
           10,
         );
@@ -1056,7 +1056,7 @@ export function SIMTVis() {
           ctx,
           "SIMT: same instruction, independent data",
           4,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.35)",
           10,
         );
@@ -1146,7 +1146,7 @@ export function WarpDivergenceVis() {
           ctx,
           "Avoid divergence within a warp",
           8,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.35)",
           10,
         );
@@ -1256,7 +1256,7 @@ export function OccupancyVis() {
           ctx,
           "High occupancy hides memory latency",
           8,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.35)",
           10,
         );
@@ -1355,7 +1355,7 @@ export function LatencyHidingVis() {
           ctx,
           "→ compute unit stays busy",
           4,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.3)",
           9,
         );
@@ -1865,7 +1865,7 @@ export function TilingVis() {
           ctx,
           "Load tiles to shared mem, reuse",
           cx,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.3)",
           9,
         );
@@ -1988,7 +1988,7 @@ export function PipeliningVis() {
           ctx,
           "Async prefetch hides global mem latency",
           4,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.35)",
           10,
         );
@@ -2147,7 +2147,7 @@ export function FlashAttentionVis() {
           ctx,
           "Flash Attn:    O(N)  HBM reads",
           8,
-          h - 14,
+          h - 20,
           "#A8E063",
           10,
         );
@@ -2247,7 +2247,7 @@ export function KernelLaunchVis() {
           ctx,
           "Each block → one SM, threads fill warps",
           4,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.35)",
           10,
         );
@@ -2340,7 +2340,7 @@ export function CUDAStreamsVis() {
           ctx,
           "Streams overlap H2D, kernel, D2H async",
           4,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.35)",
           10,
         );
@@ -2444,7 +2444,7 @@ export function TritonTilesVis() {
           ctx,
           "pid = program_id(0) — one tile per pid",
           4,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.3)",
           10,
         );
@@ -2539,7 +2539,7 @@ export function ArithmeticIntensityVis() {
           ctx,
           "GEMM: ~512 FLOP/byte → compute-bound",
           6,
-          h - 12,
+          h - 18,
           "rgba(255,255,255,0.35)",
           10,
         );

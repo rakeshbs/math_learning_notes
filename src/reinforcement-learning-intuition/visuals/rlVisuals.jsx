@@ -40,7 +40,7 @@ export function MDPGraphVis() {
     });
 
     drawText(ctx, "States + action transitions", 10, 22, "#FDBA74", 12);
-    drawText(ctx, "MDP graph for sequential control", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "MDP graph for sequential control", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -60,7 +60,7 @@ export function ReturnDiscountVis() {
       drawText(ctx, "t" + k, x + 2, base + 14, "rgba(255,255,255,0.5)", 10);
     }
     drawText(ctx, "gamma = " + gamma.toFixed(2), 10, 22, "#FDBA74", 12);
-    drawText(ctx, "Discount shrinks far future rewards", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Discount shrinks far future rewards", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -82,7 +82,7 @@ export function BellmanBackupVis() {
     var bx = x0 + idx * 64 + 18;
     drawArrow(ctx, bx, h - 44 - states[idx] * 36, bx + 60, h - 44 - states[Math.min(idx + 1, states.length - 1)] * 36, "#93C5FD", 2);
     drawText(ctx, "Bellman backup", 10, 22, "#93C5FD", 12);
-    drawText(ctx, "V(s) <- r + gamma E[V(s') ]", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "V(s) <- r + gamma E[V(s') ]", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -109,7 +109,7 @@ export function TDUpdateVis() {
     ctx.fill();
 
     drawText(ctx, "TD error", 36, 30, "#FCD34D", 11);
-    drawText(ctx, "One-step bootstrap target", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "One-step bootstrap target", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -138,7 +138,7 @@ export function QTableVis() {
       }
     }
     drawText(ctx, "Q(s,a) table / action-values", 10, 22, "#67E8F9", 12);
-    drawText(ctx, "Greedy picks max cell per state", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Greedy picks max cell per state", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -165,7 +165,7 @@ export function DQNSystemVis() {
     var pulse = 0.4 + 0.6 * ((Math.sin(t * 2) + 1) / 2);
     drawDot(ctx, 170, 110, 4 + pulse * 2, "rgba(250,204,21,0.7)");
 
-    drawText(ctx, "Replay + target network stabilize learning", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Replay + target network stabilize learning", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -195,7 +195,7 @@ export function PolicyGradientVis() {
     var k = Math.floor(((Math.sin(t * 1.2) + 1) / 2) * (pts.length - 1));
     drawArrow(ctx, pts[k][0], pts[k][1], pts[Math.min(k + 1, pts.length - 1)][0], pts[Math.min(k + 1, pts.length - 1)][1], "#F472B6", 2.5);
     drawText(ctx, "Trajectory-weighted gradient", 10, 22, "#F9A8D4", 12);
-    drawText(ctx, "Increase log-prob of high-return actions", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Increase log-prob of high-return actions", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -225,7 +225,7 @@ export function ActorCriticVis() {
     var pulse = 0.3 + 0.7 * ((Math.sin(t * 2) + 1) / 2);
     drawDot(ctx, 170, 62, 4 + pulse * 2, "rgba(250,204,21,0.8)");
     drawText(ctx, "advantage signal", 130, 30, "#FCD34D", 10);
-    drawText(ctx, "Actor improves, critic evaluates", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Actor improves, critic evaluates", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -264,7 +264,7 @@ export function ModelPlanningVis() {
     ctx.stroke();
 
     drawText(ctx, "Tree search / rollout planning", 10, 22, "#86EFAC", 12);
-    drawText(ctx, "Lookahead selects high-value branch", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Lookahead selects high-value branch", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -296,7 +296,7 @@ export function DataRegimeVis() {
 
     drawText(ctx, "On-policy", 34, 28, "#67E8F9", 11);
     drawText(ctx, "Off-policy / Offline", mid + 18, 28, "#F9A8D4", 11);
-    drawText(ctx, "Data distribution mismatch is central", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Data distribution mismatch is central", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -323,7 +323,7 @@ export function BanditVis() {
     }
 
     drawText(ctx, "Selected arm", 10, 22, "#FCD34D", 12);
-    drawText(ctx, "Explore vs exploit under uncertainty", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Explore vs exploit under uncertainty", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -348,7 +348,7 @@ export function ExplorationRewardVis() {
     drawText(ctx, "task reward", cx + 98, cy - 84, "#86EFAC", 10);
     drawDot(ctx, cx - 80, cy + 70, 6, "#F9A8D4");
     drawText(ctx, "novelty", cx - 72, cy + 82, "#F9A8D4", 10);
-    drawText(ctx, "Shaped objective = external + intrinsic", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Shaped objective = external + intrinsic", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -377,7 +377,7 @@ export function MultiAgentVis() {
     ctx.stroke();
 
     drawText(ctx, "Joint payoff landscape", 10, 22, "#93C5FD", 12);
-    drawText(ctx, "Each learner changes others' objective", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Each learner changes others' objective", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -408,7 +408,7 @@ export function HierarchyVis() {
     var p = 0.35 + 0.65 * ((Math.sin(t * 2.2) + 1) / 2);
     drawDot(ctx, 170, 104, 4 + p * 2, "rgba(250,204,21,0.75)");
 
-    drawText(ctx, "Temporal abstraction with options", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Temporal abstraction with options", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -438,7 +438,7 @@ export function BeliefStateVis() {
     }
 
     drawText(ctx, "Belief over hidden states", 10, 22, "#A5B4FC", 12);
-    drawText(ctx, "POMDP policy acts on belief, not true state", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "POMDP policy acts on belief, not true state", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -477,7 +477,7 @@ export function SafeRLVis() {
     ctx.fillRect(left + 1, boundY, right - left - 2, bottom - boundY);
 
     drawText(ctx, "Reward vs cost trade-off", 10, 22, "#93C5FD", 12);
-    drawText(ctx, "Constrained feasible region", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Constrained feasible region", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -515,7 +515,7 @@ export function ImitationVis() {
 
     drawText(ctx, "Expert", 42, h - 60, "#86EFAC", 10);
     drawText(ctx, "Learner", 42, h - 42, "#F9A8D4", 10);
-    drawText(ctx, "Imitation minimizes trajectory divergence", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Imitation minimizes trajectory divergence", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }

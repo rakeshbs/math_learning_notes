@@ -266,7 +266,7 @@ export const SoftmaxVis = () => {
       drawText(ctx, probs[i].toFixed(2), px + 2, baseY - ph - 6, "rgba(110,231,183,0.9)", 9);
     }
 
-    drawText(ctx, "Softmax: exp(xi) / Σ exp(xj)", 10, h - 14, "rgba(255,255,255,0.45)", 11);
+    drawText(ctx, "Softmax: exp(xi) / Σ exp(xj)", 10, h - 20, "rgba(255,255,255,0.45)", 11);
   }, []);
 
   return <Canvas2D draw={draw} />;

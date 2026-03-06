@@ -43,7 +43,7 @@ export function PartialsVis() {
       ctx,
       "Move only in x or y to read a partial slope",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -103,7 +103,7 @@ export function GradientVis() {
       ctx,
       "Gradient is normal to level curves",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -154,7 +154,7 @@ export function DirectionalVis() {
       ctx,
       "Directional rate is a projection",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -244,7 +244,7 @@ export function TangentPlaneVis() {
       ctx,
       "Linear approximation near one point",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -297,7 +297,7 @@ export function JacobianVis() {
       ctx,
       "Tiny square -> local parallelogram",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -356,7 +356,7 @@ export function ChainRuleVis() {
       ctx,
       "Sensitivities multiply through layers",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -412,7 +412,7 @@ export function DivergenceVis() {
         ctx,
         mode > 0 ? "Source-like outflow" : "Sink-like inflow",
         10,
-        h - 14,
+        h - 20,
         "rgba(255,255,255,0.5)",
         11,
       );
@@ -523,7 +523,7 @@ export function CurlVis() {
         ctx,
         "Paddle wheel rotation encodes local curl",
         10,
-        h - 14,
+        h - 20,
         "rgba(255,255,255,0.5)",
         11,
       );
@@ -663,7 +663,7 @@ export function LineIntegralVis() {
       ctx,
       "Accumulate F dot dr along the path",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -733,7 +733,7 @@ export function DoubleIntegralVis() {
       ctx,
       "Sum f(x,y) * dA over tiny cells",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -832,7 +832,7 @@ export function ChangeVarsVis() {
       ctx,
       "Tile areas rescale under coordinate mapping",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -912,7 +912,7 @@ export function HessianVis() {
         ctx,
         "Second-order curvature geometry",
         10,
-        h - 14,
+        h - 20,
         "rgba(255,255,255,0.5)",
         11,
       );
@@ -1029,7 +1029,7 @@ export function CriticalPointsVis() {
         ctx,
         "Solve grad f = 0, then classify with Hessian",
         10,
-        h - 14,
+        h - 20,
         "rgba(255,255,255,0.5)",
         11,
       );
@@ -1181,7 +1181,7 @@ export function Taylor2Vis() {
       ctx,
       "Second-order term adds curvature",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -1271,7 +1271,7 @@ export function LagrangeVis() {
       ctx,
       "Touching level set + constraint gives candidate extrema",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -1355,7 +1355,7 @@ export function GreensTheoremVis() {
         ctx,
         "Boundary circulation = interior curl integral",
         10,
-        h - 14,
+        h - 20,
         "rgba(255,255,255,0.5)",
         11,
       );
@@ -1494,7 +1494,7 @@ export function TripleIntegralVis() {
       ctx,
       "3D volume integral as stacked slices",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -1589,7 +1589,7 @@ export function SurfaceIntegralVis() {
       ctx,
       "Flux sums normal components over surface patches",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -1654,7 +1654,7 @@ export function GradientFieldVis() {
       ctx,
       "Each arrow shows steepest local ascent",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -1718,7 +1718,7 @@ export function LineIntegralConservativeVis() {
       ctx,
       "Path 1 and Path 2 give same work",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -1780,7 +1780,7 @@ export function DoubleIntegralOrderVis() {
         ctx,
         "Same area, different slicing order",
         10,
-        h - 14,
+        h - 20,
         "rgba(255,255,255,0.5)",
         11,
       );
@@ -1917,7 +1917,7 @@ export function JacobianLinearizationVis() {
       ctx,
       "Jacobian gives local first-order approximation",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );

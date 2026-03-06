@@ -5,6 +5,7 @@ import {
   drawArrow,
   drawDot,
   drawText,
+  drawCenteredText,
   drawRoundRect,
 } from "../../matrix-intuition/drawing/helpers";
 
@@ -40,7 +41,7 @@ export function NeuronActivationVis() {
 
     drawText(ctx, "z = w.x + b = " + z.toFixed(2), 10, 22, "#FDBA74", 12);
     drawText(ctx, "ReLU(z) = " + a.toFixed(2), 10, 40, "#FDBA74", 12);
-    drawText(ctx, "Perceptron + activation", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Perceptron + activation", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -107,7 +108,7 @@ export function ForwardBackpropVis() {
 
     drawText(ctx, "Blue: forward activations", 10, 22, "#93C5FD", 12);
     drawText(ctx, "Pink: backward gradients", 10, 40, "#F9A8D4", 12);
-    drawText(ctx, "Chain rule over layers", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Chain rule over layers", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -157,7 +158,7 @@ export function InitGradientFlowVis() {
     }
 
     drawText(ctx, modeLabel, 10, 22, modeColor, 12);
-    drawText(ctx, "Initialization quality controls signal flow", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Initialization quality controls signal flow", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -236,7 +237,7 @@ export function NormDropoutVis() {
 
     drawText(ctx, "Left: BatchNorm — before/after", 10, 22, "#67E8F9", 12);
     drawText(ctx, "Right: Dropout random subnetworks", 10, 40, "#7DD3FC", 12);
-    drawText(ctx, "Stability + regularization", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Stability + regularization", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -290,7 +291,7 @@ export function OptimizerVis() {
 
     drawText(ctx, "SGD", 10, 22, "#86EFAC", 12);
     drawText(ctx, "Adam/Adaptive", 10, 40, "#BEF264", 12);
-    drawText(ctx, "Learning rate shapes trajectories", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Learning rate shapes trajectories", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -326,7 +327,7 @@ export function ResidualVis() {
     drawDot(ctx, x + bw + 42, y + bh / 2, 5, "rgba(216,180,254," + pulse.toFixed(3) + ")");
 
     drawText(ctx, "y = F(x) + x", 10, 22, "#D8B4FE", 13);
-    drawText(ctx, "Skip path keeps signal and gradients alive", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Skip path keeps signal and gradients alive", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -367,7 +368,7 @@ export function CNNPoolingVis() {
 
     drawText(ctx, "Local filters + shared weights", 10, 22, "#C4B5FD", 12);
     drawText(ctx, "Pooling downsamples to compact maps", 10, 40, "#C4B5FD", 12);
-    drawText(ctx, "CNN hierarchy builds spatial abstractions", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "CNN hierarchy builds spatial abstractions", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -386,7 +387,7 @@ export function RNNVis() {
       ctx.beginPath();
       ctx.arc(x, y, 14, 0, Math.PI * 2);
       ctx.stroke();
-      drawText(ctx, "t" + (i + 1), x - 7, y + 32, "rgba(255,255,255,0.55)", 11);
+      drawCenteredText(ctx, "t" + (i + 1), x, y + 32, "rgba(255,255,255,0.55)", 11);
 
       if (i < n - 1) {
         drawArrow(ctx, x + 14, y, x + gap - 14, y, "#A78BFA", 2.5);
@@ -398,7 +399,7 @@ export function RNNVis() {
     }
 
     drawText(ctx, "Hidden state through time", 10, 22, "#D8B4FE", 12);
-    drawText(ctx, "Temporal dependence with shared parameters", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Temporal dependence with shared parameters", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -425,7 +426,7 @@ export function AttentionVis() {
 
     drawText(ctx, "Attention weight matrix", 10, 22, "#F9A8D4", 12);
     drawText(ctx, "Rows: query focus over keys", 10, 40, "#F9A8D4", 12);
-    drawText(ctx, "Content-based token interactions", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Content-based token interactions", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -446,7 +447,7 @@ export function TransformerVis() {
       ctx.lineWidth = 1.7;
       drawRoundRect(ctx, bx, y, bw, bh, 10);
       ctx.stroke();
-      drawText(ctx, "MHA + FFN", bx + 16, y + bh / 2 + 4, "#F9A8D4", 12);
+      drawCenteredText(ctx, "MHA + FFN", bx + bw / 2, y + bh / 2, "#F9A8D4", 12);
 
       if (i < 2) {
         drawArrow(ctx, bx + bw / 2, y + bh, bx + bw / 2, y + bh + 12, "#F9A8D4", 2);
@@ -463,7 +464,7 @@ export function TransformerVis() {
     ctx.stroke();
 
     drawText(ctx, "Stacked residual-attention blocks", 10, 22, "#F9A8D4", 12);
-    drawText(ctx, "Depth refines contextual representations", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Depth refines contextual representations", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -501,7 +502,7 @@ export function EmbeddingVis() {
     }
 
     drawText(ctx, "Embedding clusters by semantics", 10, 22, "#FCA5A5", 12);
-    drawText(ctx, "Nearby points share learned features", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Nearby points share learned features", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -541,7 +542,7 @@ export function LossLandscapeVis() {
     ctx.stroke();
 
     drawText(ctx, "Optimization path on loss surface", 10, 22, "#6EE7B7", 12);
-    drawText(ctx, "Sharp vs flat basin geometry", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Sharp vs flat basin geometry", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -565,8 +566,8 @@ export function SoftmaxOutputVis() {
     var maxH = h * 0.52;
 
     // Column headers
-    drawText(ctx, "logits", leftX + colW * 0.5 - 18, h * 0.14, "#FDBA74", 12);
-    drawText(ctx, "probs", rightX + colW * 0.5 - 14, h * 0.14, "#86EFAC", 12);
+    drawCenteredText(ctx, "logits", leftX + barW / 2, h * 0.14, "#FDBA74", 12);
+    drawCenteredText(ctx, "probs", rightX + barW / 2, h * 0.14, "#86EFAC", 12);
 
     // Arrow between columns
     drawArrow(ctx, leftX + colW + 12, h * 0.5, rightX - 12, h * 0.5, "rgba(255,255,255,0.5)", 2);
@@ -596,7 +597,7 @@ export function SoftmaxOutputVis() {
     drawText(ctx, "sum = " + sumVal.toFixed(2), rightX, baseY + 14, "#86EFAC", 11);
 
     drawText(ctx, "Logits → softmax probabilities", 10, 22, "#FDBA74", 12);
-    drawText(ctx, "Oscillating bar shows input sensitivity", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Oscillating bar shows input sensitivity", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -647,7 +648,7 @@ export function LabelSmoothingVis() {
       drawText(ctx, softLabels[i].toFixed(2), rx, yBase + 12, "rgba(255,255,255,0.55)", 9);
     }
 
-    drawText(ctx, "Label smoothing regularizes overconfidence", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Label smoothing regularizes overconfidence", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -687,8 +688,12 @@ export function DiffusionVis() {
     drawText(ctx, "p_\u03b8(x_{t-1}|x_t)", w * 0.28, arrowY + 28, "rgba(249,168,212,0.75)", 10);
 
     drawText(ctx, "t=0 clean", 10, 22, "#93C5FD", 12);
-    drawText(ctx, "t=T noisy", w - 68, 22, "#F9A8D4", 12);
-    drawText(ctx, "Forward noising process (left\u2192right)", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    ctx.font = "600 12px monospace";
+    ctx.fillStyle = "#F9A8D4";
+    ctx.textAlign = "right";
+    ctx.fillText("t=T noisy", w - 10, 22);
+    ctx.textAlign = "left";
+    drawText(ctx, "Forward noising process (left\u2192right)", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -710,8 +715,8 @@ export function GANVis() {
     ctx.lineWidth = 2;
     drawRoundRect(ctx, genX, genY, boxW, boxH, 10);
     ctx.stroke();
-    drawText(ctx, "Generator", genX + 8, genY + boxH / 2 - 6, "#F472B6", 12);
-    drawText(ctx, "G", genX + 8, genY + boxH / 2 + 10, "#F472B6", 11);
+    drawCenteredText(ctx, "Generator", genX + boxW / 2, genY + boxH / 2 - 8, "#F472B6", 12);
+    drawCenteredText(ctx, "G", genX + boxW / 2, genY + boxH / 2 + 8, "#F472B6", 11);
 
     // Discriminator box
     ctx.fillStyle = "rgba(59,130,246,0.12)";
@@ -721,8 +726,8 @@ export function GANVis() {
     ctx.lineWidth = 2;
     drawRoundRect(ctx, discX, discY, boxW, boxH, 10);
     ctx.stroke();
-    drawText(ctx, "Discriminator", discX + 4, discY + boxH / 2 - 6, "#60A5FA", 12);
-    drawText(ctx, "D", discX + 8, discY + boxH / 2 + 10, "#60A5FA", 11);
+    drawCenteredText(ctx, "Discriminator", discX + boxW / 2, discY + boxH / 2 - 8, "#60A5FA", 12);
+    drawCenteredText(ctx, "D", discX + boxW / 2, discY + boxH / 2 + 8, "#60A5FA", 11);
     drawText(ctx, "Real/Fake?", discX + 4, discY + boxH + 14, "rgba(255,255,255,0.55)", 10);
 
     // Fake samples moving from G to D
@@ -752,7 +757,7 @@ export function GANVis() {
     drawArrow(ctx, discX, gradY, genX + boxW, gradY, "#FBBF24", 2);
     drawText(ctx, "gradient", w * 0.38, gradY - 8, "#FBBF24", 10);
 
-    drawText(ctx, "Adversarial minimax game", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Adversarial minimax game", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -781,7 +786,7 @@ export function LSTMVis() {
     ctx.moveTo(cellX + 14, csY);
     ctx.lineTo(cellX + cellW - 14, csY);
     ctx.stroke();
-    drawText(ctx, "c_t  (cell state)", cellX + cellW * 0.35, csY - 8, "#C4B5FD", 11);
+    drawCenteredText(ctx, "c_t  (cell state)", cellX + cellW / 2, csY - 10, "#C4B5FD", 11);
 
     // Gate definitions: forget, input, output
     var gateColors = ["#F87171", "#4ADE80", "#60A5FA"];
@@ -824,7 +829,7 @@ export function LSTMVis() {
     drawArrow(ctx, cellX - 24, csY, cellX + 6, csY, "#A78BFA", 1.8);
     drawText(ctx, "h_{t-1}", cellX - 52, csY - 6, "#A78BFA", 9);
 
-    drawText(ctx, "Gated cell state preserves long-range memory", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Gated cell state preserves long-range memory", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -923,7 +928,7 @@ export function ContrastiveLearningVis() {
     ctx.setLineDash([]);
     drawText(ctx, "push", (clusters[0].beforeX + clusters[2].beforeX) / 2 - 8, (clusters[0].beforeY + clusters[2].beforeY) / 2, "#F87171", 9);
 
-    drawText(ctx, "Pull positives together, push negatives apart", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Pull positives together, push negatives apart", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -949,7 +954,7 @@ export function LearnRateScheduleVis() {
     drawText(ctx, "0", padL - 8, padT + plotH + 14, "rgba(255,255,255,0.4)", 9);
     drawText(ctx, "1", padL + plotW - 4, padT + plotH + 14, "rgba(255,255,255,0.4)", 9);
     drawText(ctx, "lr", padL - 22, padT + 6, "rgba(255,255,255,0.4)", 9);
-    drawText(ctx, "steps", padL + plotW / 2 - 12, padT + plotH + 26, "rgba(255,255,255,0.4)", 9);
+    drawCenteredText(ctx, "steps", padL + plotW / 2, padT + plotH + 26, "rgba(255,255,255,0.4)", 9);
 
     var curves = [
       {
@@ -1006,7 +1011,7 @@ export function LearnRateScheduleVis() {
       drawText(ctx, curves[li].name, padL + 6, padT + 12 + li * 15, curves[li].color, 10);
     }
 
-    drawText(ctx, "Schedule controls training pace and convergence", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Schedule controls training pace and convergence", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -1023,13 +1028,13 @@ export function PositionalEncodingVis() {
     var cellH = (h - padT - padB) / positions;
 
     // Axis labels
-    drawText(ctx, "dim \u2192", padL + (w - padL - padR) / 2 - 16, h - 8, "rgba(255,255,255,0.45)", 10);
+    drawCenteredText(ctx, "dim \u2192", padL + (w - padL - padR) / 2, h - padB + 18, "rgba(255,255,255,0.45)", 10);
 
     // Rotated "position" label — approximate with text at left
     ctx.save();
     ctx.translate(10, padT + (h - padT - padB) / 2);
     ctx.rotate(-Math.PI / 2);
-    drawText(ctx, "pos", -12, 0, "rgba(255,255,255,0.45)", 10);
+    drawCenteredText(ctx, "pos", 0, 0, "rgba(255,255,255,0.45)", 10);
     ctx.restore();
 
     for (var pos = 0; pos < positions; pos++) {
@@ -1064,7 +1069,7 @@ export function PositionalEncodingVis() {
       }
     }
 
-    drawText(ctx, "Sinusoidal encoding injects position order", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Sinusoidal encoding injects position order", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }
@@ -1116,7 +1121,7 @@ export function BeamSearchVis() {
     }
 
     drawText(ctx, "beam width=3", 10, 22, "#F9A8D4", 12);
-    drawText(ctx, "Top-k paths survive at each step", 10, h - 14, "rgba(255,255,255,0.55)", 11);
+    drawText(ctx, "Top-k paths survive at each step", 10, h - 20, "rgba(255,255,255,0.55)", 11);
   }, []);
   return <Canvas2D draw={draw} />;
 }

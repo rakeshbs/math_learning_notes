@@ -60,7 +60,7 @@ export function SVDVis() {
       ctx,
       "Every matrix = rotate, stretch, rotate",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -112,7 +112,7 @@ export function DiagonalizationVis() {
       ctx,
       "Eigenbasis turns coupling into pure scaling",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -207,7 +207,7 @@ export function LUVis() {
       ctx,
       "Factorization separates elimination into two simple solves",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -285,7 +285,7 @@ export function QRVis() {
       ctx,
       "QR turns arbitrary columns into orthonormal geometry + coefficients",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       10.5,
     );
@@ -409,7 +409,7 @@ export function ConditionVis() {
       ctx,
       "Nearby inputs stretch apart — high kappa = sensitive to perturbation",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -480,7 +480,7 @@ export function CholeskyVis() {
       ctx,
       "SPD transform as a triangular square-root composition",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       10.8,
     );
@@ -543,7 +543,7 @@ export function PseudoinverseVis() {
       ctx,
       "Pseudoinverse maps b to the closest reachable output",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       10.6,
     );

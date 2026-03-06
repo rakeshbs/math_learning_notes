@@ -38,7 +38,7 @@ export function RankVis() {
           ctx,
           "Rank 2: spans a plane",
           10,
-          h - 14,
+          h - 20,
           "rgba(255,255,255,0.5)",
           12,
         );
@@ -60,7 +60,7 @@ export function RankVis() {
           ctx,
           "Rank 1: only spans a line",
           10,
-          h - 14,
+          h - 20,
           "rgba(255,255,255,0.5)",
           12,
         );
@@ -70,7 +70,7 @@ export function RankVis() {
           ctx,
           "Rank 0: collapses to origin",
           10,
-          h - 14,
+          h - 20,
           "rgba(255,255,255,0.5)",
           12,
         );
@@ -188,7 +188,7 @@ export function DetVis() {
               ? "Collapsed to a line (det = 0)"
               : "Orientation flipped! (det < 0)",
         10,
-        h - 14,
+        h - 20,
         "rgba(255,255,255,0.5)",
         12,
       );
@@ -287,7 +287,7 @@ export function EigenVis() {
       ctx,
       "Eigenvectors stay on their line, only scale",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -351,7 +351,7 @@ export function NullVis() {
       ctx,
       "Every null vector maps to origin under A",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -398,7 +398,7 @@ export function TraceVis() {
       ctx,
       "Trace = sum of diagonal scaling factors",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -471,7 +471,7 @@ export function TransposeVis() {
       ctx,
       "Rows and Columns swap",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -566,7 +566,7 @@ export function InverseVis() {
       ctx,
       "A^-1 A = I : inverse exactly undoes the transform",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -614,7 +614,7 @@ export function SpanVis() {
       ctx,
       "Every dot = c1*col1 + c2*col2",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -640,7 +640,7 @@ export function IdentityVis() {
       ctx,
       "Identity leaves every vector unchanged",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -737,7 +737,7 @@ export function MultiplicationVis() {
       ctx,
       "Applying A then B equals one combined map BA",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -791,7 +791,7 @@ export function NonCommuteVis() {
       ctx,
       "Changing order changes the endpoint",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -845,7 +845,7 @@ export function DetOrientationVis() {
         ctx,
         det > 0 ? "Orientation preserved" : "Orientation flipped (mirror)",
         10,
-        h - 14,
+        h - 20,
         "rgba(255,255,255,0.5)",
         11,
       );
@@ -939,7 +939,7 @@ export function EigenDecomposeVis() {
       ctx,
       "Eigenbasis decouples the transform into axis scaling",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       10.8,
     );
@@ -988,7 +988,7 @@ export function RankSingularBarsVis() {
         ctx,
         "σ" + String(i + 1),
         baseX + i * gap + 10,
-        h - 12,
+        h - 18,
         "rgba(255,255,255,0.6)",
         11,
       );
@@ -1047,7 +1047,7 @@ export function NullspaceFamilyVis() {
       ctx,
       "Every nullspace vector maps to origin",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );

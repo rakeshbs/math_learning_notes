@@ -52,7 +52,18 @@ export function drawText(ctx, text, x, y, color, size) {
   ctx.font = "600 " + (size || 11) + "px monospace";
   ctx.fillStyle = color || "#fff";
   ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
   ctx.fillText(text, x, y);
+}
+
+export function drawCenteredText(ctx, text, x, y, color, size) {
+  ctx.font = "600 " + (size || 11) + "px monospace";
+  ctx.fillStyle = color || "#fff";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x, y);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
 }
 
 export function drawDot(ctx, x, y, r, color) {

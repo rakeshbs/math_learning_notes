@@ -63,7 +63,7 @@ export function PosDefVis() {
       ctx,
       "All lambda > 0: bowl shape, always positive",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -164,7 +164,7 @@ export function SymmetricVis() {
         "] = " +
         vals[currentPair[0][0]][currentPair[0][1]],
       10,
-      h - 14,
+      h - 20,
       "#F9A8D4",
       12,
     );

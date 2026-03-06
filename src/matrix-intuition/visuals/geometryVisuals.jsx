@@ -33,7 +33,7 @@ export function OrthogonalVis() {
       ctx,
       "90 degrees: dot product = 0",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -80,7 +80,7 @@ export function ProjectionVis() {
       ctx,
       "Shadow of v onto the line",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );
@@ -130,7 +130,7 @@ export function NormVis() {
       ctx,
       "Circle = L2 ball, Diamond = L1 ball",
       10,
-      h - 14,
+      h - 20,
       "rgba(255,255,255,0.5)",
       11,
     );

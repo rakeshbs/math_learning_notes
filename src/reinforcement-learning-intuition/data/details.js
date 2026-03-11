@@ -409,6 +409,216 @@ export const CONCEPT_DETAILS = {
     ],
     "Track reward and constraint-return curves jointly across training.",
   ),
+  sarsa: detail(
+    "SARSA is an on-policy TD control algorithm that updates Q(s,a) using the actually-taken next action, preserving on-policy semantics.",
+    [
+      "Safe exploration in environments with dangerous off-policy deviations",
+      "On-policy discrete-action baselines",
+      "Environments where behavior and target policy must match",
+    ],
+    [
+      "Exploration policy quality limits learned Q quality",
+      "Slower convergence than Q-learning on simple tasks",
+      "Sensitive to epsilon-greedy exploration rate schedule",
+    ],
+    "Compare SARSA and Q-learning Q estimates to observe on vs off-policy divergence.",
+  ),
+  nstep: detail(
+    "N-step returns bridge one-step TD and full Monte Carlo by summing n actual rewards before bootstrapping, trading bias for variance.",
+    [
+      "Tuning bias-variance tradeoff in value estimation",
+      "N-step actor-critic target construction",
+      "Improving credit assignment in medium-horizon tasks",
+    ],
+    [
+      "Choosing n without environment-specific tuning",
+      "Stale bootstrapped values at n-step horizon",
+      "Increased memory for storing n-step trajectory segments",
+    ],
+    "Sweep n from 1 to full episode length and plot value estimate variance vs bias.",
+  ),
+  eligibility: detail(
+    "Eligibility traces assign decaying credit backward through recently visited state-action pairs, unifying TD(0) and Monte Carlo under a single lambda parameter.",
+    [
+      "Efficient multi-step credit assignment",
+      "Forward-backward view equivalence in policy evaluation",
+      "TD(lambda) as principled n-step return mixture",
+    ],
+    [
+      "Memory overhead from storing trace vectors",
+      "Lambda requiring careful per-domain tuning",
+      "Trace cutoffs masking long-horizon dependencies",
+    ],
+    "Visualize trace decay over episode to confirm lambda controls credit horizon.",
+  ),
+  doubledqn: detail(
+    "Double DQN decouples action selection (online network) from value evaluation (target network) to reduce systematic overestimation bias inherent in Q-learning max backup.",
+    [
+      "Replacing vanilla DQN baseline in Atari benchmarks",
+      "Environments with noisy or misleading high-Q actions",
+      "Improving stability of deep off-policy value methods",
+    ],
+    [
+      "Underestimation bias emerging in some domains",
+      "Still requires careful target network update schedule",
+      "Not always superior when Q overestimation does not dominate",
+    ],
+    "Compare Q-value scale between DQN and Double DQN across training.",
+  ),
+  duelingdqn: detail(
+    "Dueling DQN splits the Q-network into separate state-value V(s) and advantage A(s,a) streams, enabling better generalization across actions in states where action choice matters less.",
+    [
+      "Environments with many similar-value actions",
+      "Efficient learning in large action spaces",
+      "Improving robustness to action irrelevance",
+    ],
+    [
+      "Identifiability issue requiring advantage centering constraint",
+      "Marginal gain in action-critical tasks",
+      "Implementation complexity versus vanilla DQN",
+    ],
+    "Check whether V(s) stream correlates with reward density across states.",
+  ),
+  prioritizedreplay: detail(
+    "Prioritized Experience Replay samples transitions with probability proportional to their TD error magnitude, focusing learning on surprising and informative experiences.",
+    [
+      "Accelerating DQN-family training on sparse reward tasks",
+      "Memory-efficient replay in limited-buffer settings",
+      "Any off-policy method benefiting from weighted sampling",
+    ],
+    [
+      "Importance sampling corrections needed to avoid bias",
+      "Priority staleness as Q-network updates",
+      "High-error outliers dominating replay without proper annealing",
+    ],
+    "Monitor priority distribution entropy over training to detect degenerate sampling.",
+  ),
+  ddpg: detail(
+    "DDPG combines deterministic policy gradient with DQN-style replay and target networks for continuous-action off-policy control.",
+    [
+      "Continuous robotics and control benchmarks",
+      "Baseline for continuous-action off-policy evaluation",
+      "Foundation for TD3 and SAC development",
+    ],
+    [
+      "Brittle hyperparameter sensitivity requiring careful tuning",
+      "Q-value overestimation accumulation",
+      "Deterministic policy prone to poor local optima without noise",
+    ],
+    "Track Q-value scale and policy gradient norm stability.",
+  ),
+  td3: detail(
+    "TD3 fixes DDPG instability with twin critics (use minimum for targets), delayed actor updates, and target policy smoothing noise.",
+    [
+      "Continuous control where DDPG diverges",
+      "Standard continuous-action off-policy baseline",
+      "Overestimation-sensitive locomotion benchmarks",
+    ],
+    [
+      "Actor delay ratio requiring tuning",
+      "Smoothing noise variance sensitive to action scale",
+      "Still limited by off-policy distribution mismatch",
+    ],
+    "Compare twin critic estimates to verify minimum reduces overestimation vs DDPG.",
+  ),
+  sac: detail(
+    "SAC maximizes entropy-regularized expected return with automatic temperature tuning, achieving strong sample efficiency and stability in continuous control.",
+    [
+      "State-of-the-art continuous-action off-policy baseline",
+      "Robotic manipulation and locomotion",
+      "Stable training without sensitive hyperparameter search",
+    ],
+    [
+      "Value function overestimation under limited data",
+      "Entropy target schedule mismatch in non-stationary tasks",
+      "Computational cost of double critic and stochastic policy",
+    ],
+    "Track temperature alpha and entropy over training to confirm automatic tuning.",
+  ),
+  trpo: detail(
+    "TRPO enforces a KL divergence trust region around each policy update, providing monotonic improvement guarantees at cost of second-order optimization complexity.",
+    [
+      "Environments requiring theoretically safe policy updates",
+      "Baseline for understanding PPO approximation tradeoffs",
+      "Continuous-action on-policy reference method",
+    ],
+    [
+      "Computational cost of conjugate gradient and Fisher-vector products",
+      "Constraint satisfaction only approximate in practice",
+      "Scalability issues with large policy networks",
+    ],
+    "Measure KL divergence between old and new policy after each update step.",
+  ),
+  gae: detail(
+    "GAE computes advantage estimates as exponentially weighted sums of TD errors across multiple steps, controlled by lambda to balance bias and variance.",
+    [
+      "Standard advantage estimator in PPO, A2C, and TRPO",
+      "Tuning bias-variance tradeoff in policy gradient methods",
+      "Improving policy gradient stability in long-horizon tasks",
+    ],
+    [
+      "Lambda requiring environment-specific tuning alongside gamma",
+      "Stale value estimates under fast-changing policy",
+      "High lambda causing slow convergence in noisy environments",
+    ],
+    "Plot advantage estimate variance for lambda=0, 0.95, 1.0 to find optimal setting.",
+  ),
+  irl: detail(
+    "Inverse RL infers a reward function that rationalizes expert demonstrations, enabling transfer and generalization beyond behavior cloning.",
+    [
+      "Reward recovery from human or robot expert data",
+      "Transferable reward specification for new environments",
+      "Diagnosing expert behavior and intent modeling",
+    ],
+    [
+      "Reward ambiguity and ill-posedness without regularization",
+      "Computationally expensive inner RL loop",
+      "Expert distribution shift leading to poor reward generalization",
+    ],
+    "Check if recovered reward assigns higher values to expert states than random states.",
+  ),
+  rlhf: detail(
+    "RLHF trains a reward model from human preference comparisons, then optimizes policy against it with PPO, aligning agents with human intent beyond engineered rewards.",
+    [
+      "Language model fine-tuning for instruction following",
+      "Aligning agent behavior to subjective human values",
+      "Preference-based robot learning without explicit reward design",
+    ],
+    [
+      "Reward model overfitting to labeler preferences",
+      "Reward hacking against learned preference model",
+      "Human labeler inconsistency and annotation cost",
+    ],
+    "Evaluate policy outputs with held-out human ratings not seen during reward model training.",
+  ),
+  metarl: detail(
+    "Meta-RL learns an adaptation policy across task distributions so that the agent can quickly acquire new tasks with minimal experience using learned inductive biases.",
+    [
+      "Few-shot task adaptation in robotics",
+      "Fast fine-tuning from pretrained policy priors",
+      "Sim-to-real transfer with rapid adaptation",
+    ],
+    [
+      "Task distribution mismatch at test time",
+      "Inner loop instability in gradient-based meta-learning",
+      "High variance gradient estimates from short adaptation episodes",
+    ],
+    "Measure adaptation curve sample efficiency on held-out tasks vs standard RL baseline.",
+  ),
+  curriculum: detail(
+    "Curriculum learning structures task difficulty progression, starting from easy variants and advancing to harder ones as competence grows, improving final performance and stability.",
+    [
+      "Sparse reward environments where random exploration fails",
+      "Multi-stage task decomposition in robotics",
+      "Language grounding and instruction following agents",
+    ],
+    [
+      "Curriculum design requiring domain knowledge",
+      "Catastrophic forgetting of easy skills when advancing",
+      "Automatic curriculum adaptation requiring reliable performance signals",
+    ],
+    "Verify policy retains performance on earlier curriculum stages while advancing.",
+  ),
 };
 
 export const CONCEPT_EXPANSIONS = {
@@ -579,5 +789,95 @@ export const CONCEPT_EXPANSIONS = {
     "Estimate both reward and safety costs, then optimize with primal-dual/constrained updates.",
     "Constrained PPO variants maintain cost budgets while improving reward.",
     ["Reward Shaping", "Offline RL", "Multi-Agent RL"],
+  ),
+  sarsa: expansion(
+    "SARSA update: Q(s,a) <- Q(s,a) + alpha[r + gamma Q(s',a') - Q(s,a)] uses actual next action a'.",
+    "Run epsilon-greedy behavior and use same selected action for TD target.",
+    "In cliff-walking, SARSA's on-policy caution avoids cliff edges while Q-learning's greedy target exploits them.",
+    ["Q-Learning", "Temporal-Difference", "On-Policy"],
+  ),
+  nstep: expansion(
+    "N-step return: G_t^(n) = sum_{k=0}^{n-1} gamma^k r_{t+k+1} + gamma^n V(s_{t+n}).",
+    "Store n-step trajectory segments and compute mixed targets before bootstrapping.",
+    "n=3 often outperforms n=1 TD in tasks with moderate-length reward delays.",
+    ["Temporal-Difference", "TD(Lambda)", "Policy Gradient"],
+  ),
+  eligibility: expansion(
+    "Eligibility trace e_t(s,a) decays by gamma*lambda and spikes on visited state-actions, accumulating multi-step credit.",
+    "Maintain trace vector and update all state-action values proportionally after each TD error.",
+    "TD(1) with traces recovers Monte Carlo; TD(0) with lambda=0 is standard one-step TD.",
+    ["N-Step Returns", "Temporal-Difference", "Policy Evaluation"],
+  ),
+  doubledqn: expansion(
+    "Double DQN target: r + gamma Q_target(s', argmax_{a'} Q_online(s',a')) decouples selection and evaluation.",
+    "Use online network to pick action, target network to estimate its value.",
+    "On Atari, Double DQN reduces value overestimation and improves final scores vs vanilla DQN.",
+    ["DQN", "Q-Learning", "Prioritized Replay"],
+  ),
+  duelingdqn: expansion(
+    "Q(s,a) = V(s) + A(s,a) - mean_a A(s,a) enforces identifiability via advantage centering.",
+    "Split final network layers into V-stream and A-stream with shared encoder.",
+    "In navigation tasks, dueling architecture learns state values faster when most actions are equivalent.",
+    ["Double DQN", "DQN", "Value Iteration"],
+  ),
+  prioritizedreplay: expansion(
+    "Priority p_i = |TD error_i|^alpha; sampling probability P(i) = p_i / sum_j p_j with IS correction.",
+    "Maintain priority heap, sample proportionally, apply importance sampling weights in gradient update.",
+    "PER combined with Double DQN gives strong Atari baseline improvements.",
+    ["Double DQN", "DQN", "Off-Policy"],
+  ),
+  ddpg: expansion(
+    "DDPG gradient: nabla_theta J = E[nabla_a Q(s,a)|_{a=mu(s)} nabla_theta mu(s)] for deterministic actor.",
+    "Sample from replay, compute deterministic policy gradient, update actor and critic with target networks.",
+    "DDPG solves continuous pendulum and half-cheetah tasks where discrete Q-methods fail.",
+    ["TD3", "SAC", "Actor-Critic"],
+  ),
+  td3: expansion(
+    "Twin critics Q1, Q2; target uses min(Q1,Q2) to suppress overestimation; actor updates every d steps.",
+    "Train two critics on same replay batch, use minimum for Bellman targets, delay and smooth actor updates.",
+    "TD3 stabilizes DDPG on difficult locomotion benchmarks like Ant and Humanoid.",
+    ["DDPG", "SAC", "Actor-Critic"],
+  ),
+  sac: expansion(
+    "SAC objective: max_pi E[sum gamma^t (r_t + alpha H(pi(.|s_t)))] with entropy coefficient alpha.",
+    "Reparameterize stochastic policy, use twin critics, and auto-tune alpha via target entropy constraint.",
+    "SAC achieves strong sample efficiency on MuJoCo while remaining robust to hyperparameters.",
+    ["TD3", "Entropy RL", "Actor-Critic"],
+  ),
+  trpo: expansion(
+    "TRPO maximizes surrogate objective L(pi) subject to KL(pi_old || pi_new) <= delta using natural gradient.",
+    "Compute policy gradient, estimate Fisher-vector products via conjugate gradient, perform line search.",
+    "TRPO guarantees monotonic improvement in tabular settings and empirically in function approximation.",
+    ["PPO", "Policy Gradient", "Actor-Critic"],
+  ),
+  gae: expansion(
+    "GAE: A^{GAE}(s_t,a_t) = sum_{l=0}^{inf} (gamma lambda)^l delta_{t+l} where delta = r + gamma V(s') - V(s).",
+    "Compute TD errors across rollout, then exponentially weight them with lambda for advantage estimate.",
+    "lambda=0 gives TD advantage (low variance, biased); lambda=1 gives MC advantage (unbiased, high variance).",
+    ["PPO", "Actor-Critic", "N-Step Returns"],
+  ),
+  irl: expansion(
+    "IRL seeks reward R such that expert policy is optimal under R; MaxEnt IRL matches feature expectations.",
+    "Alternate between RL with current reward and reward update to better explain demonstrations.",
+    "GAIL frames IRL as GAN, using discriminator to match occupancy measures to expert.",
+    ["Imitation Learning", "Reward Shaping", "RLHF"],
+  ),
+  rlhf: expansion(
+    "RLHF pipeline: collect preferences, train reward model r_theta, then fine-tune policy with PPO against r_theta.",
+    "Label trajectory pairs by human preference, fit Bradley-Terry reward model, run PPO with KL penalty.",
+    "InstructGPT and ChatGPT use RLHF to align LLM outputs with human instructions.",
+    ["IRL", "Imitation Learning", "PPO"],
+  ),
+  metarl: expansion(
+    "MAML meta-gradient: theta* = theta - alpha nabla L(theta); meta-update: theta <- theta - beta nabla sum L(theta*).",
+    "Sample task batch, compute adapted parameters via inner gradient steps, update meta-parameters via outer loop.",
+    "RL^2 uses recurrent policy to meta-learn adaptation strategy from in-context experience.",
+    ["Curriculum", "Model-Based RL", "Hierarchical RL"],
+  ),
+  curriculum: expansion(
+    "Automatic curriculum selects tasks from distribution where agent is competent but challenged (learning progress signal).",
+    "Define task difficulty space, monitor agent performance, advance curriculum based on success rate threshold.",
+    "OpenAI Automatic Domain Randomization grew physically plausible curricula for dexterous hand manipulation.",
+    ["Meta-RL", "Reward Shaping", "Intrinsic Motivation"],
   ),
 };
